@@ -68,4 +68,4 @@ plot_heatmap(dat, reorder = T)
 
 par(mfrow = c(1,2))
 set.seed(10); plot_umap(dat, color_by = "counter")
-set.seed(10); plot_heatmap(dat, color_by = "time")
+set.seed(10); plot_umap(dat, color_by = "time")
