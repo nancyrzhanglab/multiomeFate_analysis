@@ -32,7 +32,6 @@ image(.rotate(mat_g), xlab = "Position in Modality 2",
 timepoints <- 100; max_val <- 2
 traj_mat <- generate_traj_cascading(df$df_y, timepoints = timepoints, 
                                     max_val = exp(max_val), min_val = 1)
-traj_mat <- pmax(traj_mat, 1)
 dim(traj_mat)
 traj_mat[1:5,1:5]
 
@@ -72,9 +71,10 @@ plot(df$df_y$location, y1_true, ylim = c(0, exp(max_val)),  pch = 16,
 plot(df$df_x$location, x1_true, pch = 16,
      xlab = "Genomic position", ylab = "Modal 1 expression", main = "Current time")
 plot(df$df_y$location, y2_true, ylim = c(0, exp(max_val)), pch = 16,
-     xlab = "Genomic position", ylab = "Modal 1 expression", main = "Next time")
+     xlab = "Genomic position", ylab = "Modal 2 expression", main = "Next time")
 plot(df$df_y$location, y2_true-y1_true, pch = 16,
      xlab = "Genomic position", ylab = "Modal 2 difference", main = "Difference in time")
+lines(c(-1e5,1e5), rep(0,2), col = "red", lty = 2, lwd = 2)
 
 # we can also generate the random values themselves. 
 # This compute the random values in the other modalities/other times.
@@ -89,7 +89,8 @@ plot(y2, pch = 16, xlab = "Genomic position", ylab = "Modal 2 expression")
 
 # step 5: We now generate the data.
 set.seed(10)
-dat <- generate_data(obj_next, verbose = T)
+dat <- generate_data(obj_next, number_runs = 5, sample_perc = 0.9, time_tol = 0.01, 
+                     verbose = T)
 
 head(dat$df_info); dim(dat$df_info)
 dat$obs_x[1:5,1:5]; dim(dat$obs_x)
