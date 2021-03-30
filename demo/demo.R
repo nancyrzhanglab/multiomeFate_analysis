@@ -116,3 +116,46 @@ plot_heatmap(dat, mode = 2, reorder = T, main = "Ordered by pseudotime")
 par(mfrow = c(1,2))
 set.seed(10); plot_umap(dat, mode_x = T, mode_y = T, reorder = F, main = "Ordered by simulation appearance")
 set.seed(10); plot_umap(dat, mode_x = T, mode_y = T, reorder = T, main = "Ordered by pseudotime")
+
+################################3
+################################
+
+rm(list=ls())
+library(multiomeFate)
+
+date_of_run <- Sys.time()
+session_info <- devtools::session_info()
+set.seed(10)
+
+.rotate <- function(mat){t(mat)[,nrow(mat):1]}
+
+# step 1: generate the genome
+p1 <- 100; p2 <- 20; genome_length <- 1000; window <- 10
+df <- generate_df_simple(p1, p2, genome_length = genome_length, window = window)
+
+# step 2: generate the G matrix
+set.seed(10)
+mat_g <- generate_gcoef_simple(df$df_x, df$df_y, window = window, 
+                               signal_sd = 0.1)
+
+# step 3: generate the "blueprint" on how a modality evolves.
+timepoints <- 100
+traj_mat <- generate_traj_cascading(df$df_x, timepoints = timepoints)
+dim(traj_mat)
+traj_mat[1:5,1:5]
+image(.rotate(traj_mat))
+
+# step 4: compute all the necessary ingredients for the simulation.
+set.seed(10)
+obj_next <- prepare_obj_nextcell(df$df_x, df$df_y, mat_g, list_traj_mat = list(traj_mat), verbose = T)
+
+# step 5: We now generate the data.
+set.seed(10)
+dat <- generate_data(obj_next, number_runs = 5, sample_perc = 0.9, time_tol = 0.01, 
+                     verbose = T)
+
+# plot Mode 1
+par(mfrow = c(1,2))
+plot_activation(dat, mode = 1, reorder = F, cex = 0.2, main = "Ordered by simulation appearance")
+plot_activation(dat, mode = 1, reorder = T, cex = 0.2, main = "Ordered by pseudotime")
+
