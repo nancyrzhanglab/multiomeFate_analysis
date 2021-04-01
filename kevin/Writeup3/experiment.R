@@ -1,59 +1,65 @@
 rm(list=ls())
+set.seed(10)
+.rotate <- function(mat){t(mat)[,nrow(mat):1]}
+p1 <- 100; p2 <- 20; genome_length <- 1000; window <- 10
+df <- generate_df_simple(p1, p2, genome_length = genome_length, window = window)
+set.seed(10)
+mat_g <- generate_gcoef_simple(df$df_x, df$df_y, window = window, 
+                               signal_sd = 0.1)
+timepoints <- 100; max_val <- 2
+traj_mat <- generate_traj_cascading(df$df_y, timepoints = timepoints, 
+                                    max_val = exp(max_val), min_val = 1)
+set.seed(10)
+obj_next <- prepare_obj_nextcell(df$df_x, df$df_y, mat_g, list_traj_mat = list(traj_mat), verbose = T)
+set.seed(10)
+dat <- generate_data(obj_next, number_runs = 5, sample_perc = 1, time_tol = 0.01, 
+                     verbose = T)
+dim(dat$obs_x)
+
+#############
+vec_start <- which(dat$df_info$time <= 0.1)
+list_end <- list(which(dat$df_info$time >= 0.9))
+set.seed(10)
+res <- chromatin_potential(dat$obs_x, dat$obs_y, df_x = dat$df_x, df_y = dat$df_y,
+                           vec_start = vec_start, list_end = list_end, 
+                           options = list(est_cis_window = window, cand_nn = 2))
+
+image(.rotate(res$res_g$mat_g), asp = T)
+quantile(res$res_g$mat_g)
 
 set.seed(10)
-p1 <- 20; p2 <- 5; genome_length <- 1000; window <- 10
-df <- generate_df_simple(p1, p2, genome_length = genome_length, window = window)
-mat_g <- generate_gcoef_simple(df$df_x, df$df_y, window = window)
-timepoints <- 30
-
-mat_traj <- generate_traj_cascading(df$df_y, timepoints = timepoints)*2
-res <- prepare_obj_nextcell(df$df_x, df$df_y, mat_g, list(mat_traj),
-                            bool_traj_y = T, verbose = F)
-
-#####
-list_traj_mat <- list(mat_traj)
-verbose = T
-coarseness = 0.1
-max_y = 1e5
-tol <- 1e-6
-mat_x1all <- pmax(pmin(.compute_xfromy(list_traj_mat, mat_g), 1-tol), tol) #x1
-mat_y2all <- do.call(rbind, list_traj_mat) #y2
-
-n_total <- nrow(mat_y2all) # count how many unique rows there are
-list_time <- list(seq(0, 1, length.out = n_total)) # [note to self: currently hard-coded for linear trajectory]
-
-ht <- hash::hash()
-counter <- 1
-
-## grab the relevant rows
-## [note to self: hard-code the fact it's a linear trajectory]
-i <- 2
-idx <- c(max(round(i-coarseness*n_total), 1):min(round(i+coarseness*n_total), n_total-1))
-mat_y2 <- mat_y2all[idx,,drop = F] 
-mat_x2 <- mat_x1all[idx+1,,drop = F] 
-
-###################
-
-response_prob <- mat_x2
-covariate <- mat_y2
-
-x <- covariate
-p1 <- ncol(response_prob); p2 <- ncol(covariate)
-mat_coef <- matrix(NA, nrow = p2, ncol = p1)
-vec_intercept <- rep(NA, length = ncol(response_prob))
-
-i <- 5
-if (diff(range(response_prob[,i])) <= tol){
-  mat_coef[,i] <- NA; vec_intercept[i] <- median(response_prob[,i])
-  
-} else {
-  y_mat <- cbind(1-response_prob[,i], response_prob[,i])
-  fit <- glmnet::glmnet(x = x, y = y_mat, family = "binomial",
-                        standardize = FALSE, intercept = TRUE, alpha = 0)
-  
-  len <- length(fit$lambda)
-  mat_coef[,i] <- fit$beta[,len]
-  vec_intercept[i] <- fit$a0[len]
+time_vec <- dat$df_info$time + rnorm(n, sd = 0.01)
+n <- nrow(dat$obs_x)
+vec_from <- rep(NA, n); vec_to <- rep(NA, n)
+key_vec <- as.character(sort(as.numeric(hash::keys(res$ht_neighbor))))
+key_vec <- key_vec[order(res$df_res$order_rec, decreasing = F)]
+for(i in 1:length(key_vec)){
+  vec_from[i] <- time_vec[as.numeric(key_vec[i])]
+  vec_to[i] <- time_vec[res$ht_neighbor[[key_vec[i]]][1]]
+}
+plot(NA, xlim = c(1,n), ylim = c(0,1))
+for(i in 1:n){
+  if(abs(vec_from[i] - vec_to[i]) <= 0.0001) {
+    points(i, vec_from[i], pch = 16, col = 'red')
+  } else {
+    graphics::arrows(x0 = i, y0 = vec_from[i], x1 = i, y1 = vec_to[i], 
+                     length = 0.1)
+  }
 }
 
+####################
 
+par(mfrow = c(1,2), mar = c(0.5, 0.5, 0.5, 0.5))
+set.seed(10)
+plot_umap(dat)
+set.seed(10)
+coords <- plot_umap(dat, only_coords = T)
+plot(coords[,1], coords[,2], pch = 16, col = rgb(0.5, 0.5, 0.5, 0.5))
+key_vec <- hash::keys(res$ht_neighbor)
+for(i in 1:n){
+  idx1 <- as.numeric(key_vec[i])
+  idx2 <- res$ht_neighbor[[key_vec[i]]][1]
+  graphics::arrows(x0 = coords[idx1,1], y0 = coords[idx1,2],
+                   x1 = coords[idx2,1], y1 = coords[idx2,2],
+                   length = 0.05)
+}
