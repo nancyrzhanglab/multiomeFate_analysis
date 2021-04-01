@@ -12,7 +12,7 @@ traj_mat <- generate_traj_cascading(df$df_y, timepoints = timepoints,
 set.seed(10)
 obj_next <- prepare_obj_nextcell(df$df_x, df$df_y, mat_g, list_traj_mat = list(traj_mat), verbose = T)
 set.seed(10)
-dat <- generate_data(obj_next, number_runs = 5, sample_perc = 1, time_tol = 0.01, 
+dat <- generate_data(obj_next, number_runs = 10, sample_perc = 1, time_tol = 0.01, 
                      verbose = T)
 dim(dat$obs_x)
 
@@ -27,7 +27,7 @@ res <- chromatin_potential(dat$obs_x, dat$obs_y, df_x = dat$df_x, df_y = dat$df_
 image(.rotate(res$res_g$mat_g), asp = T)
 quantile(res$res_g$mat_g)
 
-set.seed(10)
+set.seed(10); par(mfrow = c(1,1))
 time_vec <- dat$df_info$time + rnorm(n, sd = 0.01)
 n <- nrow(dat$obs_x)
 vec_from <- rep(NA, n); vec_to <- rep(NA, n)
@@ -56,10 +56,13 @@ set.seed(10)
 coords <- plot_umap(dat, only_coords = T)
 plot(coords[,1], coords[,2], pch = 16, col = rgb(0.5, 0.5, 0.5, 0.5))
 key_vec <- hash::keys(res$ht_neighbor)
+bool <- rbinom(n, size = 1, prob = 0.5)
 for(i in 1:n){
-  idx1 <- as.numeric(key_vec[i])
-  idx2 <- res$ht_neighbor[[key_vec[i]]][1]
-  graphics::arrows(x0 = coords[idx1,1], y0 = coords[idx1,2],
-                   x1 = coords[idx2,1], y1 = coords[idx2,2],
-                   length = 0.05)
+  if(bool[i]){
+    idx1 <- as.numeric(key_vec[i])
+    idx2 <- res$ht_neighbor[[key_vec[i]]][1]
+    graphics::arrows(x0 = coords[idx1,1], y0 = coords[idx1,2],
+                     x1 = coords[idx2,1], y1 = coords[idx2,2],
+                     length = 0.05)
+  }
 }
