@@ -51,6 +51,19 @@ plot(jitter(res$df_res$order_rec), jitter(res$df_res$num_cand), pch = 16,
      col = rgb(0.5,0.5,0.5,0.5))
 
 
+par(mfrow = c(1,2), mar = c(5,5,0.5,0.5))
+set.seed(10); plot_umap(dat, xlab = "UMAP 1", ylab = "UMAP 2")
+set.seed(10); plot_umap(res, multiple_to = "umap_avg", xlab = "UMAP 1", ylab = "UMAP 2")
+
+par(mfrow = c(1,2), mar = c(5,5,3,0.5))
+set.seed(10); plot_umap(res, multiple_to = "umap_avg", xlab = "UMAP 1", ylab = "UMAP 2", 
+                        percent_arrows = 1, num_col_arrows = 10, col_arrows_by = "order_rec",
+                        main = "Order of recruitment")
+set.seed(10); plot_umap(res, multiple_to = "umap_avg", xlab = "UMAP 1", ylab = "UMAP 2", 
+                        percent_arrows = 1, col_arrows_by = "direction", vec_time = dat$df_info$time,
+                        main = "Pseudotime direction")
+
+
 
 ## hypothesis: 
 # [[we think our algorithm relies a lot of nearest-neighbors,
