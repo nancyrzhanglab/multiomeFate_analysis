@@ -49,19 +49,29 @@ res <- chromatin_potential(dat$obs_x, dat$obs_y, df_x = dat$df_x, df_y = dat$df_
                            vec_start = vec_start, list_end = list_end, 
                            form_method = "average", est_method = "glmnet",
                            cand_method = "nn_xonly_avg", rec_method = "nn_yonly",
-                           options = list(est_cis_window = window, rec_nn = 10, rec_num_rec = 20))
+                           options = list(est_cis_window = window, cand_num_cand = 30,
+                                          cand_nn = 20,
+                                          rec_nn = 10, rec_num_rec = 20))
 res$options
 
-par(mfrow = c(1,1))
+par(mfrow = c(1,1), mar = c(5,5,0.5,0.5))
 set.seed(10)
 plot_arrow_iteration(res, dat$df_info$time, xlab = "Recruit index",
                      ylab = "True pseudotime")
 
-par(mfrow = c(1,2))
-set.seed(10); plot_umap(dat, xlab = "UMAP 1", ylab = "UMAP 2")
-set.seed(10); plot_umap(res, xlab = "UMAP 1", ylab = "UMAP 2")
+par(mfrow = c(1,2), mar = c(5,5,0.5,0.5))
+set.seed(10); plot_umap(dat, ghost_neighbor = res$ht_neighbor, xlab = "UMAP 1", ylab = "UMAP 2")
+set.seed(10); plot_umap(res, multiple_to = "ghost", xlab = "UMAP 1", ylab = "UMAP 2")
+
+par(mfrow = c(1,2), mar = c(5,5,3,0.5))
+set.seed(10); plot_umap(res, multiple_to = "ghost", xlab = "UMAP 1", ylab = "UMAP 2", 
+                        percent_arrows = 1, num_col_arrows = 10, col_arrows_by = "order_rec",
+                        main = "Order of recruitment")
+set.seed(10); plot_umap(res, multiple_to = "ghost", xlab = "UMAP 1", ylab = "UMAP 2", 
+                        percent_arrows = 1, col_arrows_by = "direction", vec_time = dat$df_info$time,
+                        main = "Pseudotime direction")
 
 par(mfrow = c(1,1))
-plot(res$df_res$order_rec, res$df_res$num_cand, pch = 16, 
-     xlab = "Recruitment index", ylab = "# times considered as candidate")
-
+plot(jitter(res$df_res$order_rec), jitter(res$df_res$num_cand), pch = 16, 
+     xlab = "Recruitment index", ylab = "# times considered as candidate",
+     col = rgb(0.5,0.5,0.5,0.5))
