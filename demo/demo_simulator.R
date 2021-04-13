@@ -61,8 +61,8 @@ obj_next <- prepare_obj_nextcell(df$df_x, df$df_y, mat_g, list_traj_mat = list(t
 time <- 40
 obj_next$ht[[as.character(time)]]$time
 y1_true <- obj_next$mat_y2all[time,]
-x1_true <- .bernoulli_xgiveny(y1_true, obj_next$ht[[as.character(time)]]$list_coef$mat_coef, obj_next$ht[[as.character(time)]]$list_coef$vec_intercept)
-y2_true <- .possion_ygivenx(x1_true, mat_g)
+x1_true <- multiomeFate:::.bernoulli_xgiveny(y1_true, obj_next$ht[[as.character(time)]]$list_coef$mat_coef, obj_next$ht[[as.character(time)]]$list_coef$vec_intercept)
+y2_true <- multiomeFate:::.possion_ygivenx(x1_true, mat_g)
 
 # plot these values
 par(mfrow = c(1,4))
@@ -79,9 +79,9 @@ lines(c(-1e5,1e5), rep(0,2), col = "red", lty = 2, lwd = 2)
 # we can also generate the random values themselves. 
 # This compute the random values in the other modalities/other times.
 par(mfrow = c(1,2))
-x1 <- .generate_xgiveny(obj_next, y1_true)
+x1 <- multiomeFate:::.generate_xgiveny(obj_next, y1_true)
 plot(x1$x, pch = 16, xlab = "Genomic position", ylab = "Modal 1 expression")
-y2 <- .generate_ygivenx(obj_next, x1$x)
+y2 <- multiomeFate:::.generate_ygivenx(obj_next, x1$x)
 plot(y2, pch = 16, xlab = "Genomic position", ylab = "Modal 2 expression")
 
 
@@ -120,6 +120,9 @@ set.seed(10); plot_umap(dat, mode_x = T, mode_y = T, reorder = T, main = "Ordere
 ################################3
 ################################
 
+# quick aside: the below demo is more-or-less the same, but here
+# the blueprint is now based on the trajectory of x (i.e, the "ATAC")
+# as opposed to the trajectory of y (which was done above, i.e., the "RNA")
 rm(list=ls())
 library(multiomeFate)
 
@@ -138,7 +141,7 @@ set.seed(10)
 mat_g <- generate_gcoef_simple(df$df_x, df$df_y, window = window, 
                                signal_sd = 0.1)
 
-# step 3: generate the "blueprint" on how a modality evolves.
+# step 3: generate the "blueprint" on how a modality evolves. [This is where this simulation setting differs]
 timepoints <- 100
 traj_mat <- generate_traj_cascading(df$df_x, timepoints = timepoints)
 dim(traj_mat)
