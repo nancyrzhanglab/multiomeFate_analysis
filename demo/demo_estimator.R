@@ -33,8 +33,10 @@ res <- chromatin_potential(dat$obs_x, dat$obs_y, df_x = dat$df_x, df_y = dat$df_
                            cand_method = "nn_xonly_avg", rec_method = "nn_yonly",
                            options = list(est_cis_window = window, cand_num_cand = 30,
                                           cand_nn = 20,
-                                          rec_nn = 10, rec_num_rec = 20))
+                                          rec_nn = 10, rec_num_rec = 20,
+                                          rec_run_diagnostic = T))
 res$options
+res$list_diagnos
 
 par(mfrow = c(1,1), mar = c(5,5,0.5,0.5))
 set.seed(10)
