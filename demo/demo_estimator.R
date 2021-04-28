@@ -32,11 +32,16 @@ res <- chromatin_potential(dat$obs_x, dat$obs_y, df_x = dat$df_x, df_y = dat$df_
                            form_method = "average", est_method = "glmnet",
                            cand_method = "nn_xonly_avg", rec_method = "nn_yonly",
                            options = list(est_cis_window = window, cand_num_cand = 30,
-                                          cand_nn = 20,
-                                          rec_nn = 10, rec_num_rec = 20,
-                                          rec_run_diagnostic = T))
+                                          cand_nn = 20, rec_nn = 10, rec_num_rec = 5,
+                                          rec_run_diagnostic = T, est_switch = F))
 res$options
 res$list_diagnos
+sum(abs(res$res_g$mat_g - mat_g))
+sum(abs(res$res_g$mat_g)); sum(abs(mat_g))
+
+res_diagnos <- diagnos_neigh(res, dat)
+
+######################
 
 par(mfrow = c(1,1), mar = c(5,5,0.5,0.5))
 set.seed(10)
@@ -71,3 +76,57 @@ par(mfrow = c(1,1))
 plot(jitter(res$df_res$order_rec), jitter(res$df_res$num_cand), pch = 16, 
      xlab = "Recruitment index", ylab = "# times considered as candidate",
      col = rgb(0.5,0.5,0.5,0.5))
+
+par(mfrow = c(1,1), mar = c(4,4,4,0.5))
+plot_diagnos_neigh(res, individual_plot = T)
+
+#################################
+
+vec_start <- which(dat$df_info$time <= 0.1) # these are the cells at the start state
+list_end <- list(which(dat$df_info$time >= 0.9)) # these are the cells at the end state
+set.seed(10)
+# run the estimator
+res <- chromatin_potential(dat$obs_x, dat$obs_y, df_x = dat$df_x, df_y = dat$df_y,
+                           vec_start = vec_start, list_end = list_end, 
+                           mat_g_init = mat_g, 
+                           form_method = "average", est_method = "glmnet",
+                           cand_method = "nn_xonly_avg", rec_method = "nn_yonly",
+                           options = list(est_cis_window = window, cand_num_cand = 30,
+                                          cand_nn = 20, rec_nn = 10, rec_num_rec = 5,
+                                          rec_run_diagnostic = T, est_switch = F,
+                                          est_hold_initial = T))
+res_diagnos <- diagnos_neigh(res, dat)
+
+sum(abs(res$res_g$mat_g - mat_g))
+sum(abs(res$res_g$mat_g)); sum(abs(mat_g))
+
+res$list_diagnos[[1]]$recruit$postprocess$df_diag
+res_diagnos[[1]]
+res_diagnos[[90]]
+
+par(mfrow = c(1,1), mar = c(4,4,4,0.5))
+plot_diagnos_neigh(res, individual_plot = T)
+plot_diagnos_neigh(res, individual_plot = F, xlab = "Iteration", main = "Neighboring recuited")
+plot_diagnos_neigh(res, individual_plot = F, only_selected = T,
+                   xlab = "Iteration", main = "Neighboring recuited: Only selected")
+plot_diagnos_neigh(res_diagnos, individual_plot = T)
+plot_diagnos_neigh(res_diagnos, individual_plot = F, xlab = "Iteration",
+                   main = "Neighboring pseudotime")
+
+par(mfrow = c(1,1), mar = c(5,5,0.5,0.5))
+set.seed(10)
+plot_arrow_iteration(res, dat$df_info$time, xlab = "Recruit index",
+                     ylab = "True pseudotime")
+
+par(mfrow = c(1,2), mar = c(5,5,0.5,0.5))
+set.seed(10); plot_umap(dat, ghost_neighbor = res$ht_neighbor, xlab = "UMAP 1", ylab = "UMAP 2") # red to blue
+set.seed(10); plot_umap(res, multiple_to = "ghost", xlab = "UMAP 1", ylab = "UMAP 2")
+
+par(mfrow = c(1,2), mar = c(5,5,3,0.5))
+set.seed(10); plot_umap(res, multiple_to = "ghost", xlab = "UMAP 1", ylab = "UMAP 2", 
+                        percent_arrows = 1, num_col_arrows = 10, col_arrows_by = "order_rec",
+                        main = "Order of recruitment")
+set.seed(10); plot_umap(res, multiple_to = "ghost", xlab = "UMAP 1", ylab = "UMAP 2", 
+                        percent_arrows = 1, col_arrows_by = "direction", vec_time = dat$df_info$time,
+                        main = "Pseudotime direction")
+
