@@ -2,17 +2,17 @@ rm(list=ls())
 len <- 100
 x <- sin(seq(0, 0.75*pi, length.out = len))
 y <- sapply(2:len, function(i){
-  3*x[i]+50*(x[i]-x[i-1])
+  -1*x[i]+50*(x[i]-x[i-1])
 })
-png("../../out/fig/briefnote1/petal.png", height = 1000, width = 2000, res = 300, units = "px")
-par(mfrow = c(1,2), mar = c(4,4,4,0.5))
-plot(x[-1], 3*x[-1], asp = T, pch = 16,
-     col = colorRampPalette(c("red", "blue"))(len-1),
-     xlab = "RNA", ylab = "ATAC", main = "Only linear")
+#png("../../out/fig/briefnote1/petal.png", height = 1000, width = 2000, res = 300, units = "px")
+#par(mfrow = c(1,2), mar = c(4,4,4,0.5))
+# plot(x[-1], 3*x[-1], asp = T, pch = 16,
+#      col = colorRampPalette(c("red", "blue"))(len-1),
+#      xlab = "RNA", ylab = "ATAC", main = "Only linear")
 plot(x[-1], y-min(y), asp = T, pch = 16,
      col = colorRampPalette(c("red", "blue"))(len-1),
      xlab = "RNA", ylab = "ATAC", main = "With previous ATAC")
-graphics.off()
+#graphics.off()
 
 ###################
 
@@ -111,7 +111,9 @@ mat_sin <- sapply(1:len, function(i){
   sin(seq_vec + seq_vec[i])
 })
 mat_sin <- (mat_sin-min(mat_sin))/(diff(range(mat_sin)))
-mat_sin <- 0.1*mat_sin
+split <- 80; scalar <- 0.3
+mat_sin[,1:split] <- scalar*mat_sin[,1:split]
+mat_sin[,(split+1):100] <- 1-scalar*(1-mat_sin[,(split+1):100])
 
 png("../../out/fig/briefnote1/sin_low.png", height = 900, width = 3200, res = 300, units = "px")
 par(mfrow = c(1,4), mar = c(4,4,4,0.5))
@@ -160,6 +162,29 @@ for(i in 1:3){
 graphics.off()
 
 
+###########
 
+len <- 100; seq_vec <- seq(0, 1.5*pi, length.out = len)
+mat_sin <- sapply(1:len, function(i){
+  sin(seq_vec + seq_vec[i])
+})
+mat_sin <- (mat_sin+1)/2; range(mat_sin)
+set.seed(10)
+mat_sin_noise <- mat_sin
+rounds <- 30
+for(i in 1:rounds){
+  idx <- sample(1:nrow(mat_sin))
+  mat_sin_noise <- cbind(mat_sin_noise, 0.5*mat_sin[idx,])
+}
+idx <- (1:ncol(mat_sin_noise))[-(1:len)]
+mat_sin_noise[,idx] <- mat_sin_noise[,sample(idx)]
 
-
+png("../../out/fig/briefnote1/sin_noise.png", height = 900, width = 3200, res = 300, units = "px")
+par(mfrow = c(1,4), mar = c(4,4,4,0.5))
+image(.rotate(mat_sin_noise), asp = nrow(mat_sin_noise)/ncol(mat_sin_noise), zlim = c(0,1), ylab = "Different cells", xlab = "Across genome",
+      main = "Blueprint")
+for(i in 1:3){
+  set.seed(i)
+  generate_graph(mat_sin_noise, main = paste0("Simulation ", i))
+}
+graphics.off()
