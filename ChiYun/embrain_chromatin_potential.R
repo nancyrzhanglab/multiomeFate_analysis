@@ -1,4 +1,56 @@
-# embrain data using share-seq method
+#### embrain data using share-seq method
+#1 generate gene_count and gene_score_atac matrices from seurat linpeaks
+brain=readRDS("/Volumes/Cloud/Projects/multiome_fate/brain/data/obj_seurat_links.rds")
+
+rna=as.matrix(brain@assays$RNA@counts)
+atac=as.matrix(brain@assays$ATAC@counts)
+df=data.frame(gene=brain@assays$ATAC@links$gene, peak=brain@assays$ATAC@links$peak, zscore=brain@assays$ATAC@links$zscore, pvalue=brain@assays$ATAC@links$pvalue, stringsAsFactors = F)
+gene_uni=brain@assays$ATAC@links$gene[!duplicated(brain@assays$ATAC@links$gene)]
+#rm(brain)
+gc()
+gene_count=matrix(nrow=length(gene_uni),ncol=ncol(rna))
+gene_score_atac=matrix(nrow=length(gene_uni),ncol=ncol(rna))
+for(ii in 1:length(gene_uni)){
+  gene_count[ii,]=rna[which(rownames(rna)==gene_uni[ii]),]
+  gene_score_atac[ii,]=colSums(atac[which(rownames(atac) %in% df$peak[which(df$gene==gene_uni[ii])]),, drop=F])
+  print(ii)
+}
+
+rownames(gene_count)=gene_uni
+rownames(gene_score_atac)=gene_uni
+colnames(gene_count)=colnames(rna)
+colnames(gene_score_atac)=colnames(rna)
+
+rm(atac) 
+gc()
+saveRDS(gene_count,"/Volumes/Cloud/Projects/multiome_fate/brain/data/gene_count.rds")
+saveRDS(gene_score_atac,"/Volumes/Cloud/Projects/multiome_fate/brain/data/gene_score_atac.rds")
+
+#2 generate gene_count and gene_score_atac matrices from Nancy's peak selection method
+gene_score_atac=t(myobj$Yhat.cell$regress.significant)
+gene_count=t(myobj$Y.cell)
+
+rownames(gene_count)=myobj$gene.names
+rownames(gene_score_atac)=myobj$gene.names
+#colnames(gene_count)=colnames(rna)
+colnames(gene_score_atac)=colnames(gene_count)
+
+
+genes.hockey=c("Tnc", "Slit3", "Npas3", "Npy", "Foxp2",
+               "Tenm2", "Top2a", "Sox6","Opcml","Apoe", "Sparc",
+               "Fabp7", "Ntng1", "Mki67")
+gene_score_atac=gene_score_atac[which(rownames(gene_score_atac) %in% genes.hockey),]
+gene_count=gene_count[which(rownames(gene_count) %in% genes.hockey),]
+
+
+sel_gene=which(apply(gene_score_atac, 1, function(x) !any(is.na(x))))
+gene_score_atac=gene_score_atac[sel_gene,]
+gene_count=gene_count[sel_gene,]
+
+saveRDS(gene_count,"/Volumes/Cloud/Projects/multiome_fate/brain/data/gene_count_sum.sig.hockey.rds")
+saveRDS(gene_score_atac,"/Volumes/Cloud/Projects/multiome_fate/brain/data/gene_score_atac_sum.sig.regress.hockey.rds")
+
+
 
 # nearest neighbors based on ATAC UMAP embedding from scVelo
 library(FNN)
