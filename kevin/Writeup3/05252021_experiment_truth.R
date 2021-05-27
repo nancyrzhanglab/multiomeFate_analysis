@@ -11,8 +11,8 @@ combn_wave_mat <- simulate_combn_wave_mat(g, idx_root, num_waves = num_waves,
 
 res <- simulate_data_input(combn_wave_mat, 
                            x_exp_baseline = 0.1, x_exp_max = 0.7,
-                           x_sd_biological = 0.5, x_sd_technical = 0.1, 
-                           y_exp_baseline = 0.1, y_sd_technical = 1.5,
+                           x_sd_biological = 0.1, x_sd_technical = 0.5, 
+                           y_exp_baseline = 0.1, y_sd_technical = 2,
                            num_unrelated_x = 100, num_unrelated_y = 50, 
                            time_on = 15, time_windup = 15, 
                            max_lag = 20, min_lag = 10,
@@ -25,20 +25,24 @@ df_cell <- simulate_df_cell(1000, time_max = max(df_y$time_end_scaffold, na.rm =
                             num_branch = 3)
 
 set.seed(10)
-res <- simulate_data(df_x, df_y, list_xnoise, list_ynoise, df_cell,
-                     jitter = 0.01)
-mat_x <- res$mean_x; mat_y <- res$mean_y
+dat <- simulate_data(df_x, df_y, list_xnoise, list_ynoise, df_cell)
+idx <- which(df_cell$time >= 90)
+dat$obs_x <- dat$obs_x[-idx,]; dat$obs_y <- dat$obs_y[-idx,]
+dat$mean_x <- dat$mean_x[-idx,]; dat$mean_y <- dat$mean_y[-idx,]
+df_cell <- df_cell[-idx,]
+
+mat_x <- dat$mean_x; mat_y <- dat$mean_y
 
 ###############################
 
 vec_start <- which(df_cell$time <= 10)
 list_end <- lapply(sort(unique(df_cell$branch)), function(branch){
-  intersect(which(df_cell$branch == branch), which(df_cell$time >= 90))
+  intersect(which(df_cell$branch == branch), which(df_cell$time >= 80))
 })
 # zz <- svd(mat_x); plot(zz$d[1:50])
-rank_x <- 20
+rank_x <- 10
 # zz <- svd(mat_y); plot(zz$d[1:50])
-rank_y <- 20
+rank_y <- 10
 set.seed(10)
 prep_obj <- chromatin_potential_prepare(mat_x, mat_y, df_x, df_y, 
                                         vec_start, list_end,
@@ -67,7 +71,6 @@ png(file = "../../out/fig/writeup3/05252021_true_coefficient_threshold.png",
     height = 1500, width = 1500, res = 300, units = "px")
 plot(res2$res_g$vec_threshold, ylim = range(c(0,res2$res_g$vec_threshold)), pch = 16)
 graphics.off()
-stopifnot(all(apply(pred_y, 2, min) >= res2$res_g$vec_threshold-1e-4))
 
 pred_y <- .predict_yfromx(mat_x, res2$res_g, family = "gaussian")
 png(file = "../../out/fig/writeup3/05252021_true_prediction_correlation.png",
@@ -82,27 +85,21 @@ for(i in 1:nrow(mat_x)){
 }
 graphics.off()
 
-png(file = "../../out/fig/writeup3/05252021_true_prediction.png",
+stopifnot(all(apply(pred_y, 2, min) >= res2$res_g$vec_threshold-1e-4))
+
+
+png(file = "../../out/fig/writeup3/05252021_true_rna_predicted.png",
     height = 1500, width = 1500, res = 300, units = "px")
-image(.rotate(pred_y), zlim = range(mat_y))
+image(.rotate(pred_y))
 graphics.off()
 
-png(file = "../../out/fig/writeup3/05252021_true_obs_x.png",
-    height = 1500, width = 1500, res = 300, units = "px")
-image(.rotate(mat_x))
-graphics.off()
-
-png(file = "../../out/fig/writeup3/05252021_true_obs_y.png",
-    height = 1500, width = 1500, res = 300, units = "px")
-image(.rotate(mat_y))
-graphics.off()
 
 ##################
 
 png(file = "../../out/fig/writeup3/05252021_true_atac_umap_timeoverlay.png",
     height = 3000, width = 3000, res = 300, units = "px")
 set.seed(10)
-mat_umap <- Seurat::RunUMAP(mat_x)@cell.embeddings
+mat_umap <- Seurat::RunUMAP(dat$obs_x)@cell.embeddings
 plot(mat_umap[,1], mat_umap[,2], asp = T, col = df_cell$branch+1, pch = 16)
 for(i in 1:nrow(mat_x)){
   flip <- rbinom(1, 1, 0.3)
@@ -120,7 +117,7 @@ graphics.off()
 png(file = "../../out/fig/writeup3/05252021_true_rna_umap_timeoverlay.png",
     height = 3000, width = 3000, res = 300, units = "px")
 set.seed(10)
-mat_umap <- Seurat::RunUMAP(mat_y)@cell.embeddings
+mat_umap <- Seurat::RunUMAP(dat$obs_y)@cell.embeddings
 plot(mat_umap[,1], mat_umap[,2], asp = T, col = df_cell$branch+1, pch = 16)
 for(i in 1:nrow(mat_x)){
   flip <- rbinom(1, 1, 0.3)
@@ -142,8 +139,11 @@ time_end <- sapply(1:nrow(mat_x), function(i){
   idx_to <- res$ht_neighbor[[as.character(i)]]
   mean(df_cell$time[idx_to])
 })
-time_start <- time_start[order(res$df_res$order_rec)]
-time_end <- time_end[order(res$df_res$order_rec)]
+# [[why are some nan...]]
+idx <- which(is.nan(time_end))
+time_start <- time_start[-idx]; time_end <- time_end[-idx]
+time_start <- time_start[order(res$df_res$order_rec[-idx])]
+time_end <- time_end[order(res$df_res$order_rec[-idx])]
 
 png(file = "../../out/fig/writeup3/05252021_true_time.png",
     height = 1500, width = 1500, res = 300, units = "px")
