@@ -1,4 +1,5 @@
 rm(list=ls())
+set.seed(10)
 g <- igraph::graph_from_edgelist(matrix(c(4,1, 4,5, 2,5, 3,5), nrow = 4, ncol = 2, byrow = T), 
                                  directed = F)
 g <- igraph::set_vertex_attr(g, name = "lag", index = 4, value = 3)
@@ -26,6 +27,9 @@ df_cell <- simulate_df_cell(1000, time_max = max(df_y$time_end_scaffold, na.rm =
 set.seed(10)
 res <- simulate_data(df_x, df_y, list_xnoise, list_ynoise, df_cell)
 mat_x <- res$obs_x; mat_y <- res$obs_y
+
+idx <- which(df_cell$time >= 90)
+mat_x <- mat_x[-idx,]; mat_y <- mat_y[-idx,]; df_cell <- df_cell[-idx,]
 
 ##########################3
 
@@ -76,7 +80,7 @@ plot(zz@cell.embeddings[idx,1], zz@cell.embeddings[idx,2], asp = T, pch = 16,
 
 vec_start <- which(df_cell$time <= 10)
 list_end <- lapply(sort(unique(df_cell$branch)), function(branch){
-  intersect(which(df_cell$branch == branch), which(df_cell$time >= 90))
+  intersect(which(df_cell$branch == branch), which(df_cell$time >= 80))
 })
 # zz <- svd(mat_x); plot(zz$d[1:50])
 rank_x <- 20
@@ -85,10 +89,9 @@ rank_y <- 20
 set.seed(10)
 prep_obj <- chromatin_potential_prepare(mat_x, mat_y, df_x, df_y, 
                                         vec_start, list_end,
-                                        est_method = "threshold_glmnet",
+                                        est_method = "glmnet",
                                         options = list(nn_nn = 10, dim_nlatent_x = rank_x,
-                                                       dim_nlatent_y = rank_y, est_cis_window = 30,
-                                                       est_num_iterations = 4))
+                                                       dim_nlatent_y = rank_y, est_cis_window = 30))
 
 set.seed(10)
 res <- chromatin_potential(prep_obj, verbose = T)
@@ -96,6 +99,8 @@ res <- chromatin_potential(prep_obj, verbose = T)
 ######################################
 plot(res$df_res$order_rec, df_cell$time)
 
+png(file = "../../out/fig/writeup3/05252021_experiment_atac_umap_timeoverlay.png",
+    height = 3000, width = 3000, res = 300, units = "px")
 set.seed(10)
 mat_umap <- Seurat::RunUMAP(mat_x)@cell.embeddings
 plot(mat_umap[,1], mat_umap[,2], asp = T, col = df_cell$branch+1, pch = 16)
@@ -110,7 +115,10 @@ for(i in 1:nrow(mat_x)){
                      x1 = vec_to[1], y1 = vec_to[2], length = 0.05)
   }
 }
+graphics.off()
 
+png(file = "../../out/fig/writeup3/05252021_experiment_rna_umap_timeoverlay.png",
+    height = 3000, width = 3000, res = 300, units = "px")
 set.seed(10)
 mat_umap <- Seurat::RunUMAP(mat_y)@cell.embeddings
 plot(mat_umap[,1], mat_umap[,2], asp = T, col = df_cell$branch+1, pch = 16)
@@ -125,6 +133,7 @@ for(i in 1:nrow(mat_x)){
                      x1 = vec_to[1], y1 = vec_to[2], length = 0.05)
   }
 }
+graphics.off()
 
 
 ###
@@ -137,13 +146,51 @@ time_end <- sapply(1:nrow(mat_x), function(i){
 time_start <- time_start[order(res$df_res$order_rec)]
 time_end <- time_end[order(res$df_res$order_rec)]
 
+png(file = "../../out/fig/writeup3/05252021_experiment_time.png",
+    height = 1500, width = 1500, res = 300, units = "px")
 plot(NA, xlim = c(0,nrow(mat_x)), ylim = range(time_start))
 for(i in 1:length(time_start)){
   if(time_start[i] <= time_end[i]) col = "green" else col = "red"
   graphics::arrows(x0 = i, y0 = time_start[i],
                    x1 = i, y1 = time_end[i], length = 0.05, col = col)
 }
+graphics.off()
+
+###########
 
 
+png(file = "../../out/fig/writeup3/05252021_obs_x.png",
+    height = 1500, width = 1500, res = 300, units = "px")
+image(.rotate(mat_x))
+graphics.off()
 
+png(file = "../../out/fig/writeup3/05252021_obs_y.png",
+    height = 1500, width = 1500, res = 300, units = "px")
+image(.rotate(mat_y))
+graphics.off()
+
+pred_y <- .predict_yfromx(mat_x, res$res_g, family = "gaussian")
+png(file = "../../out/fig/writeup3/05252021_pred_y.png",
+    height = 1500, width = 1500, res = 300, units = "px")
+image(.rotate(pred_y), zlim = range(mat_y))
+graphics.off()
+
+png(file = "../../out/fig/writeup3/05252021_est_coefficient.png",
+    height = 1500, width = 1500, res = 300, units = "px")
+image(.rotate(res$res_g$mat_g))
+graphics.off()
+
+
+pred_y <- .predict_yfromx(mat_x, res$res_g, family = "gaussian")
+png(file = "../../out/fig/writeup3/05252021_est_prediction_correlation.png",
+    height = 1500, width = 1500, res = 300, units = "px")
+xlim <- range(mat_y)
+plot(NA, xlim = xlim, ylim = xlim, asp = T, xlab = "Predicted expression",
+     ylab = "Obs expression")
+for(i in 1:nrow(mat_x)){
+  neigh <- res$ht_neighbor[[as.character(i)]]
+  obs_y <- colMeans(mat_y[neigh,,drop = F])
+  points(x = pred_y[i,], y = obs_y, pch = 16, col = df_cell$branch[i])
+}
+graphics.off()
 

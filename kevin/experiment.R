@@ -1,4 +1,5 @@
 rm(list=ls())
+set.seed(10)
 g <- igraph::graph_from_edgelist(matrix(c(4,1, 4,5, 2,5, 3,5), nrow = 4, ncol = 2, byrow = T), 
                                  directed = F)
 g <- igraph::set_vertex_attr(g, name = "lag", index = 4, value = 3)
@@ -24,18 +25,11 @@ df_cell <- simulate_df_cell(1000, time_max = max(df_y$time_end_scaffold, na.rm =
                             num_branch = 3)
 
 set.seed(10)
-res <- simulate_data(df_x, df_y, list_xnoise, list_ynoise, df_cell)
-mat_x <- res$obs_x; mat_y <- res$obs_y
-idx <- which(df_cell$branch == 1)
-mat_x <- mat_x[idx,]; mat_y <- mat_y[idx,]; df_cell <- df_cell[idx,]
+res <- simulate_data(df_x, df_y, list_xnoise, list_ynoise, df_cell,
+                     jitter = 0.1)
+mat_x <- res$mean_x; mat_y <- res$mean_y
 
-image(.rotate(mat_y))
-image(.rotate(mat_x))
-
-#############################
-
-idx <- which(df_cell$branch == 1)
-mat_x <- mat_x[idx,]; mat_y <- mat_y[idx,]; df_cell <- df_cell[idx,]
+###############################
 
 vec_start <- which(df_cell$time <= 10)
 list_end <- lapply(sort(unique(df_cell$branch)), function(branch){
@@ -49,15 +43,19 @@ set.seed(10)
 prep_obj <- chromatin_potential_prepare(mat_x, mat_y, df_x, df_y, 
                                         vec_start, list_end,
                                         est_method = "threshold_glmnet",
+                                        rec_method = "distant_cor_oracle",
                                         options = list(nn_nn = 10, dim_nlatent_x = rank_x,
                                                        dim_nlatent_y = rank_y, est_cis_window = 30,
                                                        est_num_iterations = 4))
 
 set.seed(10)
-verbose = T
-mat_g_init = NA; vec_g_init = rep(0, ncol(mat_y))
+# res <- chromatin_potential(prep_obj, df_cell = df_cell, verbose = T)
 
-#####################################
+################################
+mat_g_init = NA
+vec_g_init = rep(0, ncol(mat_y))
+verbose = T
+
 mat_x <- prep_obj$mat_x; mat_y <- prep_obj$mat_y
 df_x <- prep_obj$df_x; df_y <- prep_obj$df_y
 df_res <- prep_obj$df_res; dim_reduc_obj <- prep_obj$dim_reduc_obj
@@ -79,99 +77,49 @@ iter <- 1
 
 if(verbose) print(paste0("Iteration ", iter, ": Recruited percentage (", 
                          round(sum(!is.na(df_res$order_rec))/nrow(df_res), 2), ")"))
-## estimate res_g
-if((iter == 1 | est_options$hold_initial) && !any(is.na(mat_g_init)) && !any(is.na(vec_g_init))){
-        res_g <- list(mat_g = mat_g_init, vec_g = vec_g_init)
+# res_g <- .estimate_g(mat_x1, mat_y2, est_options)
+
+########################################
+
+stopifnot(nrow(mat_x1) == nrow(mat_y2))
+if(est_options$enforce_cis) stopifnot(class(est_options$ht_map) == "hash")
+
+p1 <- ncol(mat_x1); p2 <- ncol(mat_y2)
+
+# initialize variables for the loop
+if(!est_options$parallel && future::nbrOfWorkers() == 1){
+        my_lapply <- pbapply::pblapply
+        if(est_options$verbose) pbapply::pboptions(type = "timer") else pbapply::pboptions(type = "none")
 } else {
-        res_g <- .estimate_g(mat_x1, mat_y2, est_options)
+        my_lapply <- future.apply::future_lapply
 }
 
-## construct candidate set
-res_cand <- .candidate_set(mat_x, mat_y, df_res, nn_mat, cand_options)
-df_res <- .update_chrom_df_cand(df_res, res_cand$vec_cand)
-stopifnot(all(is.na(df_res$order_rec[res_cand$vec_cand])))
-list_diagnos[[as.character(iter)]]$candidate <- res_cand$diagnostic
-
-## recruit an element from the candidate set
-enforce_matched <- length(which(df_res$order_rec == 0)) > length(which(df_res$order_rec > 0))
-res_rec <- .recruit_next(mat_x, mat_y, res_cand$vec_cand, res_g, df_res, 
-                         dim_reduc_obj, nn_mat, nn_obj, enforce_matched,
-                         rec_options)
-stopifnot(all(is.na(df_res$order_rec[res_rec$rec$vec_from])))
-list_diagnos[[as.character(iter)]]$recruit <- res_rec$diagnostic
-
-## update
-tmp <- .update_estimation_matrices(mat_x, mat_y, mat_x1, mat_y2, 
-                                   res_rec$rec, form_options)
-mat_x1 <- tmp$mat_x1; mat_y2 <- tmp$mat_y2
-ht_neighbor <- .update_chrom_ht(ht_neighbor, res_rec$rec$vec_from, 
-                                res_rec$rec$list_to, enforce_matched)
-df_res <- .update_chrom_df_rec(df_res, res_rec$rec$vec_from, iter)
-
-iter <- iter+1
-
-####
-
-if(verbose) print(paste0("Iteration ", iter, ": Recruited percentage (", 
-                         round(sum(!is.na(df_res$order_rec))/nrow(df_res), 2), ")"))
-## estimate res_g
-if((iter == 1 | est_options$hold_initial) && !any(is.na(mat_g_init)) && !any(is.na(vec_g_init))){
-        res_g <- list(mat_g = mat_g_init, vec_g = vec_g_init)
+j <- 118
+set.seed(10)
+print(j)
+if(est_options$enforce_cis){
+        ## find the region around each peak
+        idx_x <- est_options$ht_map[[as.character(j)]]
 } else {
-        res_g <- .estimate_g(mat_x1, mat_y2, est_options)
+        #[[note to self: I think there's a cleaner way to write this]]
+        #[[note to self: write a test for this scenario]]
+        idx_x <- 1:p1
 }
+if(length(idx_x) == 0) return(val_int = mean(mat_y2[,j]), vec_coef = rep(0, p1))
 
-## construct candidate set
-res_cand <- .candidate_set(mat_x, mat_y, df_res, nn_mat, cand_options)
-df_res <- .update_chrom_df_cand(df_res, res_cand$vec_cand)
-stopifnot(all(is.na(df_res$order_rec[res_cand$vec_cand])))
-list_diagnos[[as.character(iter)]]$candidate <- res_cand$diagnostic
+idx_y <- j
 
-########
-image(.rotate(abs(res_g$mat_g)))
-plot(res_g$vec_g)
-plot(res_g$vec_threshold)
+print(quantile(mat_y2[,idx_y]))
 
-########
-vec_cand <- res_cand$vec_cand
-pred_y <- .predict_yfromx(mat_x[vec_cand,,drop = F], res_g, rec_options$family)
-
-nn_size <- ncol(nn_mat)
-i <- 1
-cell <- vec_cand[i]
-
-nn_cand <- c(nn_mat[cell, ], cell)
-
-vec <- c(.apply_dimred(mat_x[vec_cand[i],], dim_reduc_obj$x),
-         .apply_dimred(pred_y[i,], dim_reduc_obj$y))
-
-nn_pred <- .distant_nn(cell, nn_mat)
-
-# find all nn's that aren't too close to cell itself
-if(length(setdiff(nn_pred, nn_cand)) > 0) nn_pred <- setdiff(nn_pred, nn_cand)
-df_cell[nn_pred,]
-
-# from this set of cells, find the ones with highest pearson
-# [[note to self: this should be refactored out]]
-pred_diff <- pred_y[i,] - mat_y[vec_cand[i],]
-cor_vec <- sapply(nn_pred, function(j){
-        matched_diff <- mat_y[j,] - mat_y[vec_cand[i],]
-        stats::cor(pred_diff, matched_diff, method = rec_options$cor_method)
-})
-idx <- nn_pred[which.max(cor_vec)]
-
-#######
+## apply glmnet
+res <- .threshold_glmnet_fancy(mat_x1[,idx_x,drop = F], mat_y2[,idx_y],
+                        family = est_options$family, 
+                        switch = est_options$switch, switch_cutoff = est_options$switch_cutoff,
+                        alpha = est_options$alpha, standardize = est_options$standardize, intercept = est_options$intercept,
+                        cv = est_options$cv, nfolds = est_options$nfolds, cv_choice = est_options$cv_choice,
+                        bool_round = est_options$bool_round,
+                        num_iterations = est_options$num_iterations, 
+                        initial_quantile = est_options$initial_quantile)
 
 
-
-xlim <- c(1, ncol(mat_y))
-ylim <- range(c(pred_y, mat_y))
-plot(NA, xlim = xlim, ylim = ylim)
-for(i in 1:nrow(pred_y)){
-        points(pred_y[i,], pch = 16)
-}
-for(i in res_cand$vec_cand){
-        points(mat_y[i,], pch = 16, col = "red")
-}
-
-plot(pred_y[1,], mat_y[1,], asp = T)
+#.transform_est_matrix(list_res, est_options, p1)
