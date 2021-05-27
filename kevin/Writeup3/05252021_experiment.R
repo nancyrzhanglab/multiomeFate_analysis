@@ -71,8 +71,11 @@ plot(zz@cell.embeddings[idx,1], zz@cell.embeddings[idx,2], asp = T, pch = 16,
 
 ##############
 
+# idx <- which(df_cell$branch == 1)
+# mat_x <- mat_x[idx,]; mat_y <- mat_y[idx,]; df_cell <- df_cell[idx,]
+
 vec_start <- which(df_cell$time <= 10)
-list_end <- lapply(1:3, function(branch){
+list_end <- lapply(sort(unique(df_cell$branch)), function(branch){
   intersect(which(df_cell$branch == branch), which(df_cell$time >= 90))
 })
 # zz <- svd(mat_x); plot(zz$d[1:50])
