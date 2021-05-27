@@ -46,7 +46,8 @@ prep_obj <- chromatin_potential_prepare(mat_x, mat_y, df_x, df_y,
                                         rec_method = "distant_cor_oracle",
                                         options = list(nn_nn = 10, dim_nlatent_x = rank_x,
                                                        dim_nlatent_y = rank_y, est_cis_window = 30,
-                                                       est_num_iterations = 4))
+                                                       est_num_iterations = 4,
+                                                       rec_bool_pred_nn = F))
 
 set.seed(10)
 res <- chromatin_potential(prep_obj, df_cell = df_cell, verbose = T, bool_oracle = T)
@@ -117,13 +118,18 @@ time_end <- sapply(1:nrow(mat_x), function(i){
   idx_to <- res$ht_neighbor[[as.character(i)]]
   mean(df_cell$time[idx_to])
 })
-time_start <- time_start[order(res$df_res$order_rec)]
-time_end <- time_end[order(res$df_res$order_rec)]
+# [[note to self: ... why are some of res$ht_neighbor empty?]]
+idx <- which(is.nan(time_end)); time_start <- time_start[-idx]; time_end <- time_end[-idx]
+time_start <- time_start[order(res$df_res$order_rec[-idx])]
+time_end <- time_end[order(res$df_res$order_rec[-idx])]
 
+png(file = "../../out/fig/writeup3/05252021_true_time.png",
+    height = 1500, width = 1500, res = 300, units = "px")
 plot(NA, xlim = c(0,nrow(mat_x)), ylim = range(time_start))
 for(i in 1:length(time_start)){
   if(time_start[i] <= time_end[i]) col = "green" else col = "red"
   graphics::arrows(x0 = i, y0 = time_start[i],
                    x1 = i, y1 = time_end[i], length = 0.05, col = col)
 }
+graphics.off()
 
