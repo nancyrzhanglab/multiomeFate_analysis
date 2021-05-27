@@ -44,10 +44,10 @@ prep_obj <- chromatin_potential_prepare(mat_x, mat_y, df_x, df_y,
                                         vec_start, list_end,
                                         est_method = "threshold_glmnet",
                                         rec_method = "distant_cor_oracle",
-                                        options = list(nn_nn = 10, dim_nlatent_x = rank_x,
+                                        options = list(nn_nn = 20, dim_nlatent_x = rank_x,
                                                        dim_nlatent_y = rank_y, est_cis_window = 30,
                                                        est_num_iterations = 4,
-                                                       rec_bool_pred_nn = F))
+                                                       rec_bool_pred_nn = T))
 
 set.seed(10)
 res <- chromatin_potential(prep_obj, df_cell = df_cell, verbose = T, bool_oracle = T)
@@ -63,7 +63,10 @@ png(file = "../../out/fig/writeup3/05252021_true_coefficient.png",
 image(.rotate(res2$res_g$mat_g))
 graphics.off()
 
-plot(res2$res_g$vec_threshold, ylim = range(c(0,res2$res_g$vec_threshold)))
+png(file = "../../out/fig/writeup3/05252021_true_coefficient_threshold.png",
+    height = 1500, width = 1500, res = 300, units = "px")
+plot(res2$res_g$vec_threshold, ylim = range(c(0,res2$res_g$vec_threshold)), pch = 16)
+graphics.off()
 stopifnot(all(apply(pred_y, 2, min) >= res2$res_g$vec_threshold-1e-4))
 
 pred_y <- .predict_yfromx(mat_x, res2$res_g, family = "gaussian")
@@ -96,6 +99,8 @@ graphics.off()
 
 ##################
 
+png(file = "../../out/fig/writeup3/05252021_true_atac_umap_timeoverlay.png",
+    height = 3000, width = 3000, res = 300, units = "px")
 set.seed(10)
 mat_umap <- Seurat::RunUMAP(mat_x)@cell.embeddings
 plot(mat_umap[,1], mat_umap[,2], asp = T, col = df_cell$branch+1, pch = 16)
@@ -110,6 +115,25 @@ for(i in 1:nrow(mat_x)){
                      x1 = vec_to[1], y1 = vec_to[2], length = 0.05)
   }
 }
+graphics.off()
+
+png(file = "../../out/fig/writeup3/05252021_true_rna_umap_timeoverlay.png",
+    height = 3000, width = 3000, res = 300, units = "px")
+set.seed(10)
+mat_umap <- Seurat::RunUMAP(mat_y)@cell.embeddings
+plot(mat_umap[,1], mat_umap[,2], asp = T, col = df_cell$branch+1, pch = 16)
+for(i in 1:nrow(mat_x)){
+  flip <- rbinom(1, 1, 0.3)
+  if(flip == 1){
+    vec_from <- mat_umap[i,]
+    idx_to <- res$ht_neighbor[[as.character(i)]]
+    vec_to <- colMeans(mat_umap[idx_to,,drop=F])
+    
+    graphics::arrows(x0 = vec_from[1], y0 = vec_from[2],
+                     x1 = vec_to[1], y1 = vec_to[2], length = 0.05)
+  }
+}
+graphics.off()
 
 ###
 
@@ -118,10 +142,8 @@ time_end <- sapply(1:nrow(mat_x), function(i){
   idx_to <- res$ht_neighbor[[as.character(i)]]
   mean(df_cell$time[idx_to])
 })
-# [[note to self: ... why are some of res$ht_neighbor empty?]]
-idx <- which(is.nan(time_end)); time_start <- time_start[-idx]; time_end <- time_end[-idx]
-time_start <- time_start[order(res$df_res$order_rec[-idx])]
-time_end <- time_end[order(res$df_res$order_rec[-idx])]
+time_start <- time_start[order(res$df_res$order_rec)]
+time_end <- time_end[order(res$df_res$order_rec)]
 
 png(file = "../../out/fig/writeup3/05252021_true_time.png",
     height = 1500, width = 1500, res = 300, units = "px")
