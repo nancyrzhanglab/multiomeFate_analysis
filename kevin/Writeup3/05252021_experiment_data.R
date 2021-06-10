@@ -8,6 +8,7 @@ idx_root <- 4; num_waves <- 10; num_per_wave <- 5; distinct_waves <- 2
 combn_wave_mat <- simulate_combn_wave_mat(g, idx_root, num_waves = num_waves,
                                           num_per_wave = num_per_wave, 
                                           distinct_waves = distinct_waves)
+plot(g)
 
 res <- simulate_data_input(combn_wave_mat, 
                            x_exp_baseline = 0.1, x_exp_max = 0.7,
@@ -20,6 +21,7 @@ res <- simulate_data_input(combn_wave_mat,
                            x_unrelated_max = 0.1, y_unrelated_max = 2)
 df_x <- res$df_x; df_y <- res$df_y
 list_xnoise <- res$list_xnoise; list_ynoise <- res$list_ynoise
+head(df_x); head(df_y)
 
 df_cell <- simulate_df_cell(1000, time_max = max(df_y$time_end_scaffold, na.rm = T),
                             num_branch = 3)
@@ -32,6 +34,15 @@ res$mean_x <- res$mean_x[-idx,]; res$mean_y <- res$mean_y[-idx,]
 df_cell <- df_cell[-idx,]
 
 #########################
+
+png(file = "../../out/fig/writeup3/05252021_data_atac_blueprint.png",
+    height = 1000, width = 2500, res = 300, units = "px")
+par(mfrow = c(1,3))
+for(i in 1:3){
+  image(.rotate(res$blueprint_x[[i]]), main = paste0("Branch ", i), xlab = "Peak", ylab = "Cells")
+  
+}
+graphics.off()
 
 png(file = "../../out/fig/writeup3/05252021_data_atacrna_umap_colbybranch.png",
     height = 1200, width = 2500, res = 300, units = "px")

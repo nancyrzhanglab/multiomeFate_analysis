@@ -55,8 +55,6 @@ prep_obj <- chromatin_potential_prepare(mat_x, mat_y, df_x, df_y,
 
 set.seed(10)
 res <- chromatin_potential(prep_obj, verbose = T)
-set.seed(10)
-res2 <- chromatin_potential_refine(res, iter_max = 10)
 
 save.image(file = "../../out/writeup3/05252021_est.RData")
 
@@ -131,6 +129,16 @@ png(file = "../../out/fig/writeup3/05252021_est_rna_predicted.png",
     height = 1500, width = 1500, res = 300, units = "px")
 image(.rotate(pred_y), zlim = range(mat_y))
 graphics.off()
+
+
+for(i in 1:length(res$list_diagnos)){
+  tmp <- res$list_diagnos[[i]]$recruit$pred_y
+  png(file = paste0("../../out/fig/writeup3/05252021_est_rna_predicted_", i, ".png"),
+      height = 1500, width = 1500, res = 300, units = "px")
+  image(.rotate(tmp), zlim = range(mat_y))
+  graphics.off()
+}
+
 
 png(file = "../../out/fig/writeup3/05252021_est_coefficient.png",
     height = 1500, width = 1500, res = 300, units = "px")
@@ -242,4 +250,17 @@ pred_y <- .predict_yfromx(mat_x, res$res_g, family = "gaussian")
 png(file = "../../out/fig/writeup3/05252021_est_trueg_rna_predicted.png",
     height = 1500, width = 1500, res = 300, units = "px")
 image(.rotate(pred_y), zlim = range(mat_y))
+graphics.off()
+
+pred_y <- .predict_yfromx(mat_x, res$res_g, family = "gaussian")
+png(file = "../../out/fig/writeup3/05252021_est_trueg_prediction_correlation.png",
+    height = 1500, width = 1500, res = 300, units = "px")
+xlim <- range(mat_y)
+plot(NA, xlim = xlim, ylim = xlim, asp = T, xlab = "Predicted expression",
+     ylab = "Obs expression")
+for(i in 1:nrow(mat_x)){
+  neigh <- res$ht_neighbor[[as.character(i)]]
+  obs_y <- colMeans(mat_y[neigh,,drop = F])
+  points(x = pred_y[i,], y = obs_y, pch = 16, col = df_cell$branch[i])
+}
 graphics.off()
