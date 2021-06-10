@@ -47,32 +47,30 @@ set.seed(10)
 prep_obj <- chromatin_potential_prepare(mat_x, mat_y, df_x, df_y, 
                                         vec_start, list_end,
                                         form_method = "average",
-                                        est_method = "threshold_glmnet",
+                                        est_method = "glmnet",
                                         rec_method = "distant_cor",
                                         options = list(nn_nn = 20, dim_nlatent_x = rank_x,
                                                        dim_nlatent_y = rank_y, est_cis_window = 30,
-                                                       est_num_iterations = 4,
-                                                       rec_bool_pred_nn = T,
-                                                       est_cv_choice = "lambda.min"))
+                                                       rec_bool_pred_nn = T))
 
 set.seed(10)
 res <- chromatin_potential(prep_obj,  verbose = T, bool_oracle = F)
-save.image("../../out/writeup3/06092021_estimator.RData")
+save.image("../../out/writeup3/06092021_estimator_nothres.RData")
 
 ###################
 
 pred_y <- .predict_yfromx(mat_x, res$res_g, family = "gaussian")
-png(file = paste0("../../out/fig/writeup3/06092021_est_rna_prediction.png"),
+png(file = paste0("../../out/fig/writeup3/06092021_est_rna_prediction_nothres.png"),
     height = 1500, width = 1500, res = 300, units = "px")
 image(.rotate(pred_y), zlim = range(mat_y))
 graphics.off()
 
-png(file = "../../out/fig/writeup3/06092021_est_coefficient_threshold.png",
+png(file = "../../out/fig/writeup3/06092021_est_coefficient_threshold_nothres.png",
     height = 1500, width = 1500, res = 300, units = "px")
 plot(res$res_g$vec_threshold, ylim = range(c(0,res$res_g$vec_threshold)), pch = 16)
 graphics.off()
 
-png(file = "../../out/fig/writeup3/06092021_est_prediction_correlation.png",
+png(file = "../../out/fig/writeup3/06092021_est_prediction_correlation_nothres.png",
     height = 1500, width = 1500, res = 300, units = "px")
 plot(as.numeric(pred_y), as.numeric(mat_y), pch = 16, asp = T,
      xlab = "Predicted gene exp.", ylab = "Observed gene exp.",
@@ -90,7 +88,7 @@ tmp <- do.call(cbind, lapply(1:length(res$list_diagnos), function(iter){
   })
 }))
 
-png(file = "../../out/fig/writeup3/06092021_est_time.png",
+png(file = "../../out/fig/writeup3/06092021_est_time_nothres.png",
     height = 1500, width = 1500, res = 300, units = "px")
 plot(NA, xlim = c(0,ncol(tmp)), ylim = range(tmp))
 for(i in 1:ncol(tmp)){
@@ -100,56 +98,10 @@ for(i in 1:ncol(tmp)){
 }
 graphics.off()
 
-
-##
-
-
-purity_mat <- do.call(cbind, lapply(1:length(res$list_diagnos), function(iter){
-  sapply(1:length(res$list_diagnos[[iter]]$recruit$postprocess), function(i){
-    idx_from <- res$list_diagnos[[iter]]$recruit$postprocess[[i]]$from
-    idx_to <- res$list_diagnos[[iter]]$recruit$postprocess[[i]]$to
-    
-    tab_from <- table(df_cell$branch[idx_from])
-    tab_to<- table(df_cell$branch[idx_to])
-    c(branch_from = as.numeric(names(which.max(tab_from))), 
-      percentage_from = max(tab_from)/sum(tab_from), 
-      time_from = mean(df_cell$time[idx_from]),
-      branch_to = as.numeric(names(which.max(tab_to))), 
-      percentage_to = max(tab_to)/sum(tab_to), 
-      time_to = mean(df_cell$time[idx_to]))
-  })
-}))
-
-png(file = "../../out/fig/writeup3/06092021_est_purity.png",
-    height = 1000, width = 8000, res = 300, units = "px")
-plot(NA, xlim = c(1,ncol(purity_mat)), ylim = c(1/3,1), xlab = "Time",
-     ylab = "Purity")
-lines(c(-1e5, 1e5), rep(1/2, 2), lty = 2)
-lines(c(-1e5, 1e5), rep(2/3, 2), lty = 2)
-for(i in 1:ncol(purity_mat)){
-  bool1 <-  purity_mat["branch_from",i] ==  purity_mat["branch_to",i]
-  bool2 <-  purity_mat["percentage_to",i] >= purity_mat["percentage_from",i]
-  bool3 <-  purity_mat["percentage_from",i] <= 1/2
-  if((bool1|bool3) & bool2) col = "green" else col = "red"
-  
-  graphics::arrows(x0 = i, 
-                   y0 = purity_mat["percentage_from",i],
-                   x1 = i, 
-                   y1 = purity_mat["percentage_to",i], 
-                   length = 0.05, col = col)
-  graphics::points(i, purity_mat["percentage_from",i],
-                   col = purity_mat["branch_from",i]+1, pch = 16,
-                   cex = 0.5)
-  graphics::points(i, purity_mat["percentage_to",i],
-                   col = purity_mat["branch_to",i]+1, pch = 16,
-                   cex = 0.5)
-}
-graphics.off()
-
 #######
 
 
-png(file = "../../out/fig/writeup3/06092021_est_atac_umap_timeoverlay.png",
+png(file = "../../out/fig/writeup3/06092021_est_atac_umap_timeoverlay_nothres.png",
     height = 3000, width = 6000, res = 300, units = "px")
 par(mfrow = c(1,2))
 set.seed(10)
