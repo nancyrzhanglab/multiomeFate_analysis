@@ -48,11 +48,11 @@ prep_obj <- multiomeFate::chromatin_potential_prepare(mat_x, mat_y, df_x, df_y,
                                                       cand_method = "nn_any",
                                                       rec_method = "distant_cor",
                                                       ht_map = ht_map,
-                                                      options = list(nn_nn = 10, nn_metric = "cosine",
+                                                      options = list(nn_nn = 5, nn_metric = "cosine",
                                                                      dim_dims_x = 2:rank_x,
                                                                      dim_dims_y = 1:rank_y, 
                                                                      nn_include_x = T,
-                                                                     nn_include_y = T,
+                                                                     nn_include_y = F,
                                                                      est_num_iterations = 4,
                                                                      rec_bool_pred_nn = T,
                                                                      est_cv_choice = "lambda.min",
@@ -63,10 +63,11 @@ prep_obj <- multiomeFate::chromatin_potential_prepare(mat_x, mat_y, df_x, df_y,
 
 ##########
 
+time_start <- Sys.time()
 set.seed(10)
 res <- multiomeFate::chromatin_potential(prep_obj, verbose = T, bool_oracle = F,
                                          filepath = "../../../../out/kevin/Writeup3c/20210823_10x_embryo_result_tmp.RData")
-
+time_end <- Sys.time()
 
 save.image("../../../../out/kevin/Writeup3c/20210823_10x_embryo_result.RData")
 

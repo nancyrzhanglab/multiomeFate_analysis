@@ -47,7 +47,7 @@ de_list <- lapply(1:length(terminal_list), function(i){
                        cells.2 = unlist(cell_terminal_list[-i]), only.pos = T)
 })
 names(de_list) <- c("Oligo_vs_terminal", "Forebrain_vs_terminal",
-                    "Cortical1_vs_terminal", "Cortical2_vs_termina")
+                    "Cortical1_vs_terminal", "Cortical2_vs_terminal")
 de_list2 <- lapply(1:length(terminal_list), function(i){
   set.seed(10)
   Seurat:::FindMarkers(mbrain3[["SCT"]], cells.1 = cell_terminal_list[[i]],

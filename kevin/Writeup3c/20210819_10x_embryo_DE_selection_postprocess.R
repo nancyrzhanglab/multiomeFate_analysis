@@ -80,4 +80,3 @@ plot1 <- plot1 + ggplot2::ggtitle("Mouse embryo (10x)\nWNN (Celltype)")
 plot1 <- plot1 + ggplot2::theme(legend.text = ggplot2::element_text(size = 5))
 ggplot2::ggsave(filename = "../../../../out/figures/Writeup3c/Writeup3c_10x_embryo_umap_seurat_de_wnn.png", 
                 plot1, device = "png", width = 6, height = 5, units = "in")
-
