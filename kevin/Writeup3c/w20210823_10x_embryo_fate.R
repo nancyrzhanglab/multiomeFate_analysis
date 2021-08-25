@@ -32,7 +32,7 @@ df_y <- data.frame(name = colnames(mat_y))
 ############
 
 celltype <- mbrain3@meta.data$new_seurat_clusters
-vec_start <- which(celltype == 3) #glioblast
+vec_start <- which(celltype == 15) #radial
 list_end <- list(which(celltype == 16), #oligodendrocyte
                  which(celltype == 6), #forebrain gabaergic
                  which(celltype %in% c(1,2,4)), #one of cortical
