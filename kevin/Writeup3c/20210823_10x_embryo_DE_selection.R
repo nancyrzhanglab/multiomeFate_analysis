@@ -37,7 +37,7 @@ terminal_list <- list(16, 6, c(1,2,4), 9)
 cell_terminal_list <- lapply(terminal_list, function(x){
   rownames(mbrain3@meta.data)[which(mbrain3@meta.data$new_seurat_clusters %in% x)]
 })
-initial_celltype <- 3
+initial_celltype <- 15
 cell_initial_vec <- rownames(mbrain3@meta.data)[which(mbrain3@meta.data$new_seurat_clusters %in% initial_celltype)]
 
 Seurat::DefaultAssay(mbrain3) <- "SCT"

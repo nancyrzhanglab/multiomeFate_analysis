@@ -76,13 +76,3 @@ tmp2 <- cowplot::plot_grid(plot1, plot2, plot3, plot4)
 cowplot::save_plot(filename =  "../../../../out/figures/Writeup3c/Writeup3c_10x_embryo_de_fateprob_naive.png",
                    tmp2, ncol = 2, nrow = 2, base_height = 3.5, base_asp = 4/3, device = "png")
 
-##################################
-
-Seurat::DefaultAssay(mbrain3) <- "SCT"
-for(i in 1:length(de_combined)){
-  gene_vec <- rownames(de_combined[[i]])[which(rownames(de_combined[[i]])[1:50] %in% colnames(mat_y))]
-  gene_vec <- gene_vec[1:min(length(gene_vec), 9)]
-  plot1 <- Seurat::FeaturePlot(mbrain3, features = gene_vec, reduction = "wnn.umap")
-  ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup3c/Writeup3c_10x_embryo_de_", names(de_combined)[i], ".png"), 
-                  plot1, device = "png", width = 12, height = 10, units = "in")
-}
