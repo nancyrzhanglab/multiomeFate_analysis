@@ -35,5 +35,8 @@ form_snn_graph <- function(dat, k, distance){
   adj_mat[adj_mat > 0] <- 1
   diag(adj_mat) <- 0
   
+  rownames(adj_mat) <- rownames(dat)
+  colnames(adj_mat) <- rownames(dat)
+  
   adj_mat
 }

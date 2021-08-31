@@ -18,26 +18,28 @@ plot_metacell_graph <- function(embedding, clustering, adj_mat,
   
   median_coord <- compute_median_coords(embedding, clustering)
   
-  for(i in 1:3){
-    graphics::plot(NA, 
-                   xlim = range(embedding[,1]),
-                   ylim = range(embedding[,2]),
-                   asp = asp,
-                   ...)
-    
-    for(j in 1:nrow(clust_mat)){
-      idx <- which(adj_mat[j,] != 0)
-      for(j2 in idx){
-        lines(median_coord[c(j,j2),])
-      }
+  graphics::plot(NA, 
+                 xlim = range(embedding[,1]),
+                 ylim = range(embedding[,2]),
+                 asp = asp,
+                 ...)
+  
+  for(j in 1:nrow(adj_mat)){
+    idx <- which(adj_mat[j,] != 0)
+    for(j2 in idx){
+      lines(median_coord[c(j,j2),])
     }
-    
-    for(k in 1:length(uniq_clust)){
-      points(median_coord[k,1], median_coord[k,2], 
-             pch = 16, 
-             cex = 2, 
-             col = col_vec[k])
-    }
+  }
+  
+  for(k in 1:length(uniq_clust)){
+    points(median_coord[k,1], median_coord[k,2], 
+           pch = 16, 
+           cex = 2.5, 
+           col = "black")
+    points(median_coord[k,1], median_coord[k,2], 
+           pch = 16, 
+           cex = 2, 
+           col = col_vec[k])
   }
   
   invisible()
@@ -54,10 +56,11 @@ plot_legend <- function(zlim,
                         ylim = c(0,1),
                         offset = 0.5,
                         cex = 1,
+                        sig_digs = 2,
                         ...){
   col_ramp <- grDevices::colorRampPalette(c("white", base_color))(bins)
   
-  legend_image <- as.raster(matrix(col_ramp, ncol=1))
+  legend_image <- as.raster(matrix(rev(col_ramp), ncol=1))
   plot(NA,
        xlim = xlim,
        ylim = ylim,
@@ -69,7 +72,7 @@ plot_legend <- function(zlim,
        ...)
   text(x = xlim[2]+offset, 
        y = seq(ylim[1], ylim[2], l=spacing), 
-       labels = seq(zlim[1], zlim[2], l=spacing),
+       labels = round(seq(zlim[1], zlim[2], l=spacing), sig_digs),
        cex = cex)
   rasterImage(legend_image, 
               legend_coords[1], 
@@ -90,7 +93,7 @@ compute_median_coords <- function(embedding, clustering){
     idx <- which(clustering == clust)
     apply(embedding[idx,,drop = F], 2, median)
   }))
-  rownames(median_coord) <- clustering
+  rownames(median_coord) <- uniq_clust
   
   median_coord
 }

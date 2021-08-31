@@ -2,7 +2,12 @@ form_transition <- function(adj_mat, normalize = T){
   P <- adj_mat
   tmp <- matrixStats::rowSums2(P)
   if(normalize) P <- diag(1/tmp) %*% P %*% diag(1/tmp)
-  diag(1/matrixStats::rowSums2(P)) %*% P
+  P <- diag(1/matrixStats::rowSums2(P)) %*% P
+  
+  rownames(P) <- rownames(adj_mat)
+  colnames(P) <- colnames(adj_mat)
+  
+  P
 }
 
 extract_eigen <- function(P, check = F){
