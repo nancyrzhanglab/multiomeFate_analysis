@@ -1,4 +1,4 @@
-plot_metacell_graph <- function(embedding, clustering, adj_mat,
+plot_metacell_graph <- function(embedding, adj_mat,
                                 feature_vec = NA,
                                 zlim = range(feature_vec),
                                 base_color = grDevices::rgb(0.803, 0.156, 0.211),
@@ -6,6 +6,8 @@ plot_metacell_graph <- function(embedding, clustering, adj_mat,
                                 asp = T,
                                 bins = 100,
                                 ...){
+  stopifnot(nrow(embedding) == nrow(adj_mat))
+  
   if(all(!is.na(feature_vec))){
     stopifnot(length(feature_vec) == nrow(adj_mat))
     col_ramp <- grDevices::colorRampPalette(c("white", base_color))(bins)
@@ -16,8 +18,6 @@ plot_metacell_graph <- function(embedding, clustering, adj_mat,
     col_vec <- col_ramp[col_idx]
   }
   
-  median_coord <- compute_median_coords(embedding, clustering)
-  
   graphics::plot(NA, 
                  xlim = range(embedding[,1]),
                  ylim = range(embedding[,2]),
@@ -27,16 +27,16 @@ plot_metacell_graph <- function(embedding, clustering, adj_mat,
   for(j in 1:nrow(adj_mat)){
     idx <- which(adj_mat[j,] != 0)
     for(j2 in idx){
-      lines(median_coord[c(j,j2),])
+      lines(embedding[c(j,j2),])
     }
   }
   
-  for(k in 1:length(uniq_clust)){
-    points(median_coord[k,1], median_coord[k,2], 
+  for(k in 1:nrow(embedding)){
+    points(embedding[k,1], embedding[k,2], 
            pch = 16, 
            cex = 2.5, 
            col = "black")
-    points(median_coord[k,1], median_coord[k,2], 
+    points(embedding[k,1], embedding[k,2], 
            pch = 16, 
            cex = 2, 
            col = col_vec[k])

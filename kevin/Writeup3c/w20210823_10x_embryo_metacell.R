@@ -141,6 +141,7 @@ sapply(end_vec, function(end){
 # https://academic.oup.com/bioinformatics/article/31/18/2989/241305
 # https://arxiv.org/pdf/1406.0013.pdf
 # https://mathworld.wolfram.com/LeftEigenvector.html
+# https://mathworld.wolfram.com/Eigenvector.html
 # left and right eigenvalues
 n <- nrow(P)
 P <- adj_mat

@@ -27,7 +27,9 @@ mbrain3 <- Seurat::FindClusters(
 clustering <- as.character(mbrain3@meta.data$ATAC_snn_res.10)
 metacell_mat <- form_metacell_matrix(mbrain3[["lsi"]]@cell.embeddings, clustering)
 adj_mat <- form_snn_graph(metacell_mat, k = 10, distance = "cosine")
-P <- form_transition(adj_mat, normalize = T)
+P <- form_transition(adj_mat, normalize = T,
+                     lazy_param = 0.5,
+                     teleport_param = 0.99)
 res <- extract_eigen(P, check = T)
 
 target_vec <- c("4", # radial
@@ -45,7 +47,7 @@ dist_mat <- sapply(target_vec, function(target){
   i <- which(rownames(metacell_mat) == target)
   sapply(1:nrow(metacell_mat), function(j){
     diffusion_distance(res$eigenvalues, res$right_vector,
-                       i, j, time_vec = c(1:3))
+                       i, j)
   })
 })
 rownames(dist_mat) <- rownames(metacell_mat)
@@ -54,8 +56,9 @@ png(paste0("../../../../out/figures/Writeup3c/Writeup3c_10x_embryo_metacell_knn_
     height = 4500, width = 4500, res = 300, units = "px")
 par(mfrow = c(3,3))
 for(i in 1:length(target_vec)){
-  plot_metacell_graph(mbrain3[["wnn.umap"]]@cell.embeddings,
-                      clustering,
+  median_embedding <- compute_median_coords(mbrain3[["wnn.umap"]]@cell.embeddings, clustering)
+  
+  plot_metacell_graph(median_embedding,
                       adj_mat,
                       feature_vec = dist_mat[,i],
                       zlim = range(dist_mat[dist_mat > 1e-6]),
@@ -69,7 +72,31 @@ graphics.off()
 
 ###############################
 
-tmp <- rbind(1:3, function(i){
-  
-})
+tmp <- do.call(rbind, lapply(1:3, function(i){
+  val <- 10*(i-1)+1
+  cbind(val:(val+8), (val+1):(val+9))
+}))
+tmp <- rbind(tmp, c(1,11), c(1,21))
+n <- max(tmp)
+adj_mat <- matrix(0, n, n)
+for(i in 1:nrow(tmp)){
+  adj_mat[tmp[i,1], tmp[i,2]] <- 1
+}
+adj_mat <- adj_mat + t(adj_mat)
+svd_res <- svd(adj_mat)
+embedding <- svd_res$u[,1:2] %*% diag(svd_res$d[1:2])
+P <- form_transition(adj_mat, normalize = T,
+                     lazy_param = 0.5,
+                     teleport_param = 0.99)
+res <- extract_eigen(P, check = T)
 
+target_vec <- c(1, 10, 20, 30)
+dist_mat <- sapply(target_vec, function(i){
+  sapply(1:nrow(adj_mat), function(j){
+    diffusion_distance(res$eigenvalues, res$right_vector,
+                       i, j)
+  })
+})
+colnames(dist_mat) <- target_vec
+rownames(dist_mat) <- 1:n
+dist_mat
