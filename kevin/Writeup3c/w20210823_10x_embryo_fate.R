@@ -56,7 +56,7 @@ prep_obj <- multiomeFate::chromatin_potential_prepare(mat_x, mat_y, df_x, df_y,
                                                                      est_num_iterations = 4,
                                                                      rec_bool_pred_nn = T,
                                                                      est_cv_choice = "lambda.min",
-                                                                     form_bool_include_start = F,
+                                                                     form_bool_include_start = T,
                                                                      form_stepsize = 1,
                                                                      est_verbose = T,
                                                                      rec_verbose = T))

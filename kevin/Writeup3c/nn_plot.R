@@ -80,3 +80,71 @@ dirnn_plot <- function(seurat_obj, list_diagnos, celltype, end_states){
   
   list(g = g, cowplot = tmp2)
 }
+
+compute_nndist <- function(mat_x, mat_y, dim_method = "pca", nn_method = "annoy",
+                           form_method = "average", est_method = "glmnet",
+                           cand_method = "nn_any", rec_method = "distant_cor",
+                           options){
+  full_options <- multiomeFate:::.chrom_options(dim_method, nn_method,
+                                 form_method, est_method, 
+                                 cand_method, rec_method, 
+                                 options)
+  dim_options <- full_options$dim_options; nn_options <- full_options$nn_options
+  
+  set.seed(10)
+  dim_reduc_obj <- vector("list", 0)
+  tmp <- multiomeFate:::dimension_reduction(mat_x, mode = "x", dim_options)
+  x_scores <- tmp$scores; dim_reduc_obj$x <- tmp$dim_reduc_obj
+  tmp <- multiomeFate:::dimension_reduction(mat_y, mode = "y", dim_options)
+  y_scores <- tmp$scores; dim_reduc_obj$y <- tmp$dim_reduc_obj
+  
+  # form the nn
+  n <- nrow(mat_x)
+  if(nn_options$include_x & nn_options$include_y){
+    all_scores <- cbind(x_scores, y_scores)
+  } else if(nn_options$include_x){
+    all_scores <- x_scores
+  } else{
+    all_scores <- y_scores
+  }
+  
+  set.seed(10)
+  nn_obj <- multiomeFate:::.nearest_neighbor_annoy(all_scores, nn_options)
+  
+  vec <- sapply(1:n, function(i){
+    tmp <- nn_obj$getNNsByItemList(i-1, nn_options$nn+1, earch_k = -1, include_distances = T)
+    max(tmp$distance)
+  })
+  
+  list(all_scores = all_scores, vec = vec)
+}
+
+density_plot <- function(seurat_obj, mat_x, mat_y,
+                         nn_vec, include_x = T, include_y = T, 
+                         nn_metric = "cosine",
+                         rank_x = 50, rank_y = 30){
+  stopifnot(length(nn_vec) == 4)
+  
+  dens_mat <- sapply(nn_vec, function(nn){
+    compute_nndist(mat_x, mat_y, options = list(nn_nn = nn, nn_metric = nn_metric,
+                                                dim_dims_x = 2:rank_x,
+                                                dim_dims_y = 1:rank_y, 
+                                                nn_include_x = include_x,
+                                                nn_include_y = include_y))$vec
+  })
+  
+  
+  rownames(dens_mat) <- rownames(seurat_obj@meta.data)
+  colnames(dens_mat) <- paste0("dens_", 1:ncol(dens_mat))
+  seurat_obj[["dens"]] <- Seurat::CreateDimReducObject(embedding = dens_mat, key = "dens_")
+  
+  plot_list <- lapply(1:ncol(dens_mat), function(i){
+    plot1 <- Seurat::FeaturePlot(seurat_obj, features = paste0("dens_", i), reduction = "wnn.umap")
+    plot1 <- plot1 + ggplot2::labs(title = paste0("Density to ", nn_vec[i], " NN"))
+    plot1
+  })
+  
+  tmp2 <- cowplot::plot_grid(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]])
+  
+  list(dens_mat = dens_mat, cowplot = tmp2)
+}
