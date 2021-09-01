@@ -1,0 +1,156 @@
+.initialize_matches <- function(mat_x, 
+                                mat_y, 
+                                df_res,
+                                snn,
+                                diffusion_dist){
+  # find all the initial and terminal states
+  r <- max(df_res$init_state, na.rm = T)
+  initial_vec <- which(df_res$init_state == -1)
+  terminal_list <- lapply(1:r, function(k){
+    which(df_res$init_state == k)
+  })
+  steady_list <- terminal_list
+  steady_list[[length(steady_list)+1]] <- initial_vec
+  names(steady_list) <- as.character(c(1:r, "-1"))
+  steady_vec <- c(initial_vec, unlist(terminal_list))
+  
+  # for each terminal states, 
+  # rank each metacells based on the diffusion distance to all the other 
+  # metacells in other initial&termainal states. 
+  # Then take the mean among the rankings.
+  # Similarly, each initial state, compute the 
+  # mean-rank each metacell based on diffusion distance to
+  # all the terminal states.
+  # Here, smaller rank (closer to 0) means it's closer to all the other cells
+  ranking_list <- lapply(1:length(steady_list), function(k){
+    idx <- steady_list[[k]]
+    other_vec <- setdiff(steady_vec, idx)
+    ranking_mat <- diffusion_dist[idx, other_vec]
+    ranking_mat <- apply(ranking_mat, 2, rank)
+    ranking_vec <- rank(apply(ranking_mat, 1, mean))
+    
+    data.frame(idx = idx, 
+               rank = ranking_vec)
+  })
+  
+  # Look at snn -- form arrows based on which neighboring
+  # metacell has a higher mean-ranking, and if the metacall has
+  # the highest rank among its neighbors, it points to itself
+  matches_mat <- do.call(rbind, lapply(1:length(steady_list), function(k){
+    idx <- steady_list[[k]][,"idx"]
+    t(sapply(idx, function(i){
+      neigh_vec <- intersect(idx, which(snn[i,] != 0))
+      neigh_vec <- setdiff(neigh_vec, i)
+      
+      cell_rank <- steady_list[[k]][which(idx == i), "rank"]
+      neigh_rank <- sapply(neigh_vec, function(j){
+        steady_list[[k]][which(idx == j), "rank"]
+      })
+      
+      if(length(neigh_rank) > 0){
+        if(names(steady_list) == "-1"){
+          # if initial, we want cells to point to cells that are closer to other cells
+          neigh_vec <- neigh_vec[neigh_rank < cell_rank]
+        } else {
+          # if initial, we want cells to point to cells that are further to other cells
+          neigh_vec <- neigh_vec[neigh_rank > cell_rank]
+        }
+      }
+     
+      if(length(neigh_vec) > 0){
+        cbind(i, neigh_vec)
+      } else {
+        if(names(steady_list) == "-1"){
+          # do not point initial metacell to itself
+          numeric(0)
+        } else {
+          # point terminal metacell to itself
+          c(i, i)
+        }
+      }
+    }))
+  }))
+  colnames(matches_mat) <- c("tail", "head")
+  weight_vec <- sapply(1:nrow(matches_mat), function(i){
+    nn <- length(which(snn[matches_mat[i,"tail"]] != 0))
+    1/nn
+  })
+  matches_mat <- cbind(matches_mat, weight_vec)
+  colnames(matches_mat)[3] <- "weight"
+  # run a check
+  stopifnot(length(unique(matches_mat[,c("tail", "head")])) == length(steady_vec))
+  
+  # do a first-round of regression
+  # (we won't actually return this regression -- its just to get weights)
+  tmp <- .form_regression_mat(mat_x, mat_y, matches_mat)
+  mat_x1 <- tmp$mat_x1; mat_y1 <- tmp$mat_y1; mat_y2 <- tmp$mat_y2
+  res <- .estimate_g2(mat_x1, 
+                      mat_y2, 
+                      matches_mat)
+  
+  # extract the correlations
+  pred_mat <- multiomeFate:::.predict_yfromx(mat_x1, 
+                                             res$res_g, 
+                                             family = "gaussian")
+  cor_vec <- sapply(1:nrow(mat_y2), function(i){
+    stats::cor(pred_mat[i,] - mat_y1[i,], 
+               mat_y2[i,] - mat_y1[i,], 
+               method = "spearman")
+  })
+  
+  # overwrite the weights -- recompute the weights
+  uniq_tail <- unique(matches_mat[,"tail"])
+  matches_mat <- do.call(rbind, lapply(uniq_tail, function(i){
+    row_idx <- which(matches_mat[,"tail"] == i)
+    head_idx <- matches_mat[row_idx, "head"]
+    nn <- length(which(snn[i,]) != 0)
+    tmp_cor <- cor_vec[row_idx]
+    
+    tmp_cor <- .correlation_to_weight(tmp_cor)
+    weight_vec <- weight_vec/sum(weight_vec)
+    weight_vec <- weight_vec * (1/nn)
+    weight_vec
+    
+    tmp <- cbind(matches_mat[row_idx,c("tail", "head")], 
+                 cor_vec[row_idx],
+                 tmp_cor,
+                 weight_vec)
+    colnames(tmp) <- c("tail", 
+                       "head", 
+                       "correlation", 
+                       "exp_cor",
+                       "weight")
+    tmp
+  }))
+  
+  # form the 6-column matrix: tail, head, correlation,
+  # exp-cor-weight (using exp(2*x)), regression-weight 
+  # (which is exp-cor-weight*1/(nn), used for just the regression),
+  # and initial-boolean (which is used only to not count the 
+  # initial states as already being matched in df_res, and that
+  # the weights learned here will be overwritten in by the "actual"
+  # matches in the postprocessing)
+  matches_df <- data.frame(tail = matches_mat[,"tail"],
+                           head = matches_mat[,"head"],
+                           correlation = matches_mat[,"correlation"],
+                           exp_cor = matches_mat[,"exp_cor"],
+                           weight = matches_mat[,"weight"])
+  initial_bool <- sapply(1:nrow(matches_df), function(i){
+    matches_df[i,c("tail", "head")] %in% initial_vec
+  })
+  matches_df[,"initial_bool"] <- initial_bool
+  
+  matches_df
+}
+
+.update_matches_df <- function(matches_df,
+                               res_rec){
+  # simply append the rows
+  rbind(matches_df, res_rec)
+}
+
+###########3
+
+.correlation_to_weight <- function(vec){
+  exp(2*vec)
+}

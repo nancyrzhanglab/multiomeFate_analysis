@@ -1,8 +1,8 @@
 # see https://github.com/ShobiStassen/VIA/blob/master/VIA/core.py#L1094
 # https://igraph.org/r/doc/page_rank.html
 form_transition <- function(adj_mat, 
-                            lazy_param = 0.95,
-                            teleport_param = 0.85,
+                            lazy_param = 0.5,
+                            teleport_param = 0.99,
                             normalize = T){
   n <- nrow(adj_mat)
   P <- adj_mat
