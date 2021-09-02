@@ -1,10 +1,10 @@
-form_metacell_matrix <- function(dat, clustering){
+form_metacell_matrix <- function(dat, clustering, func = median){
   stopifnot(is.character(clustering), length(clustering) == nrow(dat))
   
   uniq_clust <- sort(unique(clustering))
   clust_mat <- t(sapply(uniq_clust, function(clust){
     idx <- which(clustering == clust)
-    apply(dat[idx,,drop = F], 2, median)
+    apply(dat[idx,,drop = F], 2, func)
   }))
   rownames(clust_mat) <- uniq_clust
   

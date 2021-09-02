@@ -116,8 +116,10 @@
                                              res$res_g, 
                                              family = "gaussian")
   cor_vec <- sapply(1:nrow(mat_y2), function(i){
+    residual_vec <- mat_y2[i,] - mat_y1[i,]
+    if(sum(abs(residual_vec)) <= 1e-6) residual_vec <- stats::runif(length(residual_vec))
     stats::cor(pred_mat[i,] - mat_y1[i,], 
-               mat_y2[i,] - mat_y1[i,], 
+               residual_vec, 
                method = "spearman")
   })
   
@@ -126,15 +128,15 @@
   matches_mat <- do.call(rbind, lapply(uniq_tail, function(i){
     row_idx <- which(matches_mat[,"tail"] == i)
     head_idx <- matches_mat[row_idx, "head"]
-    nn <- length(which(snn[i,]) != 0)
+    nn <- length(which(snn[i,] != 0))
     tmp_cor <- cor_vec[row_idx]
     
     tmp_cor <- .correlation_to_weight(tmp_cor)
-    weight_vec <- weight_vec/sum(weight_vec)
+    weight_vec <- tmp_cor/sum(tmp_cor)
     weight_vec <- weight_vec * (1/nn)
     weight_vec
     
-    tmp <- cbind(matches_mat[row_idx,c("tail", "head")], 
+    tmp <- cbind(matches_mat[row_idx,c("tail", "head"), drop = F], 
                  cor_vec[row_idx],
                  tmp_cor,
                  weight_vec)
@@ -159,7 +161,7 @@
                            exp_cor = matches_mat[,"exp_cor"],
                            weight = matches_mat[,"weight"])
   initial_bool <- sapply(1:nrow(matches_df), function(i){
-    matches_df[i,c("tail", "head")] %in% initial_vec
+    any(matches_df[i,c("tail", "head")] %in% initial_vec)
   })
   matches_df[,"initial_bool"] <- initial_bool
   

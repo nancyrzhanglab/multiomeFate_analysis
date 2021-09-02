@@ -60,8 +60,8 @@ peak_names <- sort(unique(mbrain3[["ATAC"]]@links$peak))
 gene_names <- sort(unique(mbrain3[["ATAC"]]@links$gene))
 mat_x <- mat_x[,which(colnames(mat_x) %in% peak_names)]
 mat_y <- mat_y[,which(colnames(mat_y) %in% gene_names)]
-mat_x <- form_metacell_matrix(mat_x, clustering)
-mat_y <- form_metacell_matrix(mat_y, clustering)
+mat_x <- form_metacell_matrix(mat_x, clustering, func = mean)
+mat_y <- form_metacell_matrix(mat_y, clustering, func = mean)
 
 # create the hash map
 p1 <- ncol(mat_x); p2 <- ncol(mat_y); n <- nrow(mat_x)

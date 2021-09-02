@@ -26,7 +26,7 @@
 #########
 
 .dummy_est_options <- function(){
-  list(method = "glmnet",
+  list(method = "threshold_glmnet",
        family = "gaussian", 
        enforce_cis = T, 
        cis_window = 200,
