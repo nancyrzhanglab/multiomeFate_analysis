@@ -101,7 +101,8 @@ rm(list = c("gene_name", "gene_names", "i", "idx",
 rm(list = ls()[!ls() %in% c("diffusion_dist", 
                             "mat_x", "mat_y",
                             "snn", "vec_start",
-                            "list_end", "ht_map", "load_func")])
+                            "list_end", "ht_map", "load_func",
+                            "de_combined")])
 load_func()
 
 #############################

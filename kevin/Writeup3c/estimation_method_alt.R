@@ -209,9 +209,9 @@
     for(j in 1:p2){
       threshold <- res_g$vec_threshold[j]
       val <- res_g$vec_midpoint[j]
-      res[res[,j] <= threshold, j] <- val
+      nat_param[nat_param[,j] <= threshold, j] <- val
     }
   }
   
-  pmax(res, 0)
+  pmax(nat_param, 0)
 }

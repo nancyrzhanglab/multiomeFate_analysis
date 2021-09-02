@@ -106,7 +106,7 @@
   # (we won't actually return this regression -- its just to get weights)
   tmp <- .form_regression_mat(mat_x, mat_y, matches_mat)
   mat_x1 <- tmp$mat_x1; mat_y1 <- tmp$mat_y1; mat_y2 <- tmp$mat_y2
-  res <- .estimate_g2(mat_x1, 
+  res_g <- .estimate_g2(mat_x1, 
                       mat_y2, 
                       ht_map,
                       matches_mat)
