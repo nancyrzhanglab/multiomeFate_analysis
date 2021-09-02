@@ -115,4 +115,9 @@ prep_obj <- chromatin_potential_prepare2(mat_x,
                                          list_end,
                                          ht_map)
 
+res <- chromatin_potential_alt(prep_obj)
+tmp <- res$matches_df
+tmp[,1] <- colnames(diffusion_dist)[tmp[,1]]
+tmp[,2] <- colnames(diffusion_dist)[tmp[,2]]
+tmp
 
