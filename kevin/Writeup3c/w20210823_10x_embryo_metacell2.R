@@ -72,31 +72,31 @@ graphics.off()
 
 ###############################
 
-tmp <- do.call(rbind, lapply(1:3, function(i){
-  val <- 10*(i-1)+1
-  cbind(val:(val+8), (val+1):(val+9))
-}))
-tmp <- rbind(tmp, c(1,11), c(1,21))
-n <- max(tmp)
-adj_mat <- matrix(0, n, n)
-for(i in 1:nrow(tmp)){
-  adj_mat[tmp[i,1], tmp[i,2]] <- 1
-}
-adj_mat <- adj_mat + t(adj_mat)
-svd_res <- svd(adj_mat)
-embedding <- svd_res$u[,1:2] %*% diag(svd_res$d[1:2])
-P <- form_transition(adj_mat, normalize = T,
-                     lazy_param = 0.5,
-                     teleport_param = 0.99)
-res <- extract_eigen(P, check = T)
-
-target_vec <- c(1, 10, 20, 30)
-dist_mat <- sapply(target_vec, function(i){
-  sapply(1:nrow(adj_mat), function(j){
-    diffusion_distance(res$eigenvalues, res$right_vector,
-                       i, j)
-  })
-})
-colnames(dist_mat) <- target_vec
-rownames(dist_mat) <- 1:n
-dist_mat
+# tmp <- do.call(rbind, lapply(1:3, function(i){
+#   val <- 10*(i-1)+1
+#   cbind(val:(val+8), (val+1):(val+9))
+# }))
+# tmp <- rbind(tmp, c(1,11), c(1,21))
+# n <- max(tmp)
+# adj_mat <- matrix(0, n, n)
+# for(i in 1:nrow(tmp)){
+#   adj_mat[tmp[i,1], tmp[i,2]] <- 1
+# }
+# adj_mat <- adj_mat + t(adj_mat)
+# svd_res <- svd(adj_mat)
+# embedding <- svd_res$u[,1:2] %*% diag(svd_res$d[1:2])
+# P <- form_transition(adj_mat, normalize = T,
+#                      lazy_param = 0.5,
+#                      teleport_param = 0.99)
+# res <- extract_eigen(P, check = T)
+# 
+# target_vec <- c(1, 10, 20, 30)
+# dist_mat <- sapply(target_vec, function(i){
+#   sapply(1:nrow(adj_mat), function(j){
+#     diffusion_distance(res$eigenvalues, res$right_vector,
+#                        i, j)
+#   })
+# })
+# colnames(dist_mat) <- target_vec
+# rownames(dist_mat) <- 1:n
+# dist_mat

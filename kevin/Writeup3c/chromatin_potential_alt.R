@@ -1,8 +1,8 @@
-chromatin_potential_alt <- function(prep_obj, verbose = T,
-                                    filepath = NA){
+chromatin_potential_alt <- function(prep_obj){
   # pull the appropriate objects for convenience
   mat_x <- prep_obj$mat_x; mat_y <- prep_obj$mat_y
   df_x <- prep_obj$df_x; df_y <- prep_obj$df_y
+  ht_map <- prep_obj$ht_map
   df_res <- prep_obj$df_res
   snn <- prep_obj$snn
   diffusion_dist <- prep_obj$diffusion_dist
@@ -13,18 +13,11 @@ chromatin_potential_alt <- function(prep_obj, verbose = T,
   #: we'll record all the matches and weight-information
   matches_df <- .initialize_matches(mat_x, 
                                     mat_y, 
+                                    ht_map,
                                     df_res,
                                     snn,
                                     diffusion_dist)
   iter <- 1
-  
-  if(!is.na(filepath)) {
-    save(mat_x, 
-         mat_y, 
-         df_res, 
-         matches_df, 
-         file = filepath)
-  }
   
   # while:
   while(any(is.na(df_res$order_rec))){
@@ -35,6 +28,7 @@ chromatin_potential_alt <- function(prep_obj, verbose = T,
     ## estimate res_g
     res <- .estimate_g2(mat_x, 
                         mat_y, 
+                        ht_map,
                         matches_df)
     res_g <- res$res_g
     
@@ -69,15 +63,6 @@ chromatin_potential_alt <- function(prep_obj, verbose = T,
     df_res <- .update_chrom_df_rec2(df_res, 
                                     res_rec, 
                                     iter)
-    
-    if(!is.na(filepath)) {
-      save(mat_x, 
-           mat_y, 
-           df_res, 
-           matches_df, 
-           res_g,
-           file = filepath)
-    }
     
     iter <- iter+1
   }

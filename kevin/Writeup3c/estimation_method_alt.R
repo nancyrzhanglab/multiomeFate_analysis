@@ -1,8 +1,10 @@
 .estimate_g2 <- function(mat_x, 
                          mat_y, 
+                         ht_map,
                          matches_df){
   # prepare est_options
   est_options <- .dummy_est_options()
+  est_options$ht_map <- ht_map
   
   # form the corresponding regression's X and Y
   tmp <- .form_regression_mat(mat_x, mat_y, matches_df)

@@ -1,5 +1,6 @@
 .initialize_matches <- function(mat_x, 
                                 mat_y, 
+                                ht_map,
                                 df_res,
                                 snn,
                                 diffusion_dist){
@@ -24,10 +25,30 @@
   # Here, smaller rank (closer to 0) means it's closer to all the other cells
   ranking_list <- lapply(1:length(steady_list), function(k){
     idx <- steady_list[[k]]
-    other_vec <- setdiff(steady_vec, idx)
-    ranking_mat <- diffusion_dist[idx, other_vec]
-    ranking_mat <- apply(ranking_mat, 2, rank)
-    ranking_vec <- rank(apply(ranking_mat, 1, mean))
+    
+    if(names(steady_list)[k] == "-1"){
+      other_vec <- initial_vec
+    } else {
+      other_vec <- setdiff(steady_vec, idx)
+    }
+    
+    ranking_mat <- diffusion_dist[idx, other_vec, drop = F]
+    
+    prob_vec <- rep(0, length(other_vec))
+    uniq_steady <- unique(df_res[other_vec,"init_state"])
+    for(k2 in uniq_steady){
+      tmp <- which(df_res[other_vec,"init_state"] == k2)
+      prob_vec[tmp] <- 1/length(tmp)
+    }
+    
+    ranking_mat <- diffusion_dist[idx, other_vec, drop = F]
+    for(j in 1:ncol(ranking_mat)){
+      ranking_mat[,j] <- rank(ranking_mat[,j])
+    }
+    for(j in 1:nrow(ranking_mat)){
+      ranking_mat[j,] <- prob_vec * ranking_mat[j,]
+    }
+    ranking_vec <- rank(apply(ranking_mat, 1, sum))
     
     data.frame(idx = idx, 
                rank = ranking_vec)
@@ -42,18 +63,18 @@
       neigh_vec <- intersect(idx, which(snn[i,] != 0))
       neigh_vec <- setdiff(neigh_vec, i)
       
-      cell_rank <- steady_list[[k]][which(idx == i), "rank"]
+      cell_rank <- ranking_list[[k]][which(idx == i), "rank"]
       neigh_rank <- sapply(neigh_vec, function(j){
-        steady_list[[k]][which(idx == j), "rank"]
+        ranking_list[[k]][which(idx == j), "rank"]
       })
       
       if(length(neigh_rank) > 0){
         if(names(steady_list) == "-1"){
           # if initial, we want cells to point to cells that are closer to other cells
-          neigh_vec <- neigh_vec[neigh_rank < cell_rank]
+          neigh_vec <- neigh_vec[neigh_rank <= cell_rank]
         } else {
           # if initial, we want cells to point to cells that are further to other cells
-          neigh_vec <- neigh_vec[neigh_rank > cell_rank]
+          neigh_vec <- neigh_vec[neigh_rank >= cell_rank]
         }
       }
      
@@ -86,6 +107,7 @@
   mat_x1 <- tmp$mat_x1; mat_y1 <- tmp$mat_y1; mat_y2 <- tmp$mat_y2
   res <- .estimate_g2(mat_x1, 
                       mat_y2, 
+                      ht_map,
                       matches_mat)
   
   # extract the correlations
