@@ -25,11 +25,10 @@ chromatin_potential_alt <- function(prep_obj){
                              round(sum(!is.na(df_res$order_rec))/nrow(df_res), 2), "), Total: ",
                              sum(!is.na(df_res$order_rec)), " cells"))
     ## estimate res_g
-    res <- .estimate_g2(mat_x, 
+    res_g <- .estimate_g2(mat_x, 
                         mat_y, 
                         ht_map,
                         matches_df)
-    res_g <- res$res_g
     
     ## construct candidate set
     print("Constructing candidate set")

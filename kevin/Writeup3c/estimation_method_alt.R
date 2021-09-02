@@ -8,7 +8,7 @@
   mat_x1 <- tmp$mat_x1
   mat_y2 <- tmp$mat_y2
   
-  if("weight" %in% matches_df) weights <- matches_df[,"weight"]
+  if("weight" %in% colnames(matches_df)) weights <- matches_df[,"weight"]
   
   # use the multiomeFate function
   res_g <- .estimate_g_glmnet2(mat_x1, 
@@ -16,8 +16,7 @@
                                weights, 
                                ht_map)
   
-  list(res_g = res_g, 
-       est_options = est_options)
+  res_g
 }
 
 #########
@@ -45,11 +44,11 @@
   
   # initialize variables for the loop
   my_lapply <- pbapply::pblapply
-  if(verbose) pbapply::pboptions(type = "timer") else pbapply::pboptions(type = "none")
+  # if(verbose) pbapply::pboptions(type = "timer") else pbapply::pboptions(type = "none")
   
   list_res <- my_lapply(1:p2, function(j){
-    idx_x <- est_options$ht_map[[as.character(j)]]
-    if(length(idx_x) == 0) return(val_int = mean(mat_y2[,j]), 
+    idx_x <- ht_map[[as.character(j)]]
+    if(length(idx_x) == 0) return(val_int = sum(weights*mat_y2[,j])/sum(weights), 
                                   vec_coef = rep(0, p1))
     idx_y <- j
     
@@ -70,7 +69,8 @@
   n <- length(y); p <- ncol(x)
   
   if(nrow(x) == 1 || all(matrixStats::colSds(x) <= tol) || stats::sd(y) <= tol){
-    return(list(val_int = mean(y), vec_coef = rep(0, ncol(x))))
+    return(list(val_int = sum(weights*y)/sum(weights), 
+                vec_coef = rep(0, ncol(x))))
   }
   
   # use LM
@@ -78,16 +78,26 @@
   colnames(df) <- c("y", paste0("x", 1:ncol(x)))
   lm_formula <- stats::as.formula("y ~ .")
   lm_fit <- stats::lm(lm_formula, data = df, weights = weights)
+  coef_vec <- lm_fit$coefficients
+  stopifnot(length(coef_vec) == ncol(x)+1)
   
-  list(val_int = as.numeric(lm$coefficients[1]), 
-       vec_coef = as.numeric(lm$coefficients[-1]))
+  # resolve colinearity issues
+  coef_vec[is.na(coef_vec)] <- 0
+  
+  list(val_int = as.numeric(coef_vec[1]), 
+       vec_coef = as.numeric(coef_vec[-1]))
 }
 
 .threshold_glmnet_fancy2 <- function(x, y, 
                                     weights, 
+                                    initial_quantile = 0.25,
+                                    num_iterations = 4,
                                     tol = 1e-2){
   if(nrow(x) == 1 || all(matrixStats::colSds(x) <= tol) || stats::sd(y) <= tol){
-    return(list(val_int = mean(y), vec_coef = rep(0, ncol(x)), val_threshold = 0))
+    return(list(val_int = sum(weights*y)/sum(weights), 
+                vec_coef = rep(0, ncol(x)), 
+                val_threshold = 0,
+                val_midpoint = 0))
   }
   
   prev_threshold <- stats::quantile(y, probs = initial_quantile)
@@ -99,7 +109,7 @@
   while(iter <= num_iterations){
     # update the regression
     idx <- which(y > prev_threshold)
-    if(length(idx) > ncol(x)){
+    if(length(idx) > 2*ncol(x)){
       res_glm <- .glmnet_fancy2(x[idx,,drop = F], y[idx], weights[idx])
     } else {
       return(list(val_int = res_glm$val_int, 
@@ -117,8 +127,10 @@
     iter <- iter+1
   }
   
-  list(val_int = res_glm$val_int, vec_coef = res_glm$vec_coef,
-       val_threshold = next_threshold)
+  list(val_int = res_glm$val_int, 
+       vec_coef = res_glm$vec_coef,
+       val_threshold = next_threshold,
+       val_midpoint = next_midpoint)
 }
 
 .update_threshold_glmnet2 <- function(x, y, weights, res_glm, tol = 1e-6){
@@ -148,7 +160,7 @@
   val_threshold <- stats::optimize(f, interval = c(min(y), max(y)), maximum = F,
                   y = y, pred_y = pred_y)$minimum
   if(any(y <= val_threshold)){
-    idx <- which(pred_y <= val_threshold)
+    idx <- which(y <= val_threshold)
     y2 <- y[idx]
     weights2 <- weights[idx]
     val_midpoint <- sum(weights2*y2)/sum(weights2)

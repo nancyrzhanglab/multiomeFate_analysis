@@ -97,8 +97,7 @@ sapply(1:length(list_end), function(i){
 
 rm(list = c("gene_name", "gene_names", "i", "idx",
             "metacell_mat", "n", "P",
-            "p1", "p2", "peak_names", "res", "terminal_list",
-            "de_combined"))
+            "p1", "p2", "peak_names", "res", "terminal_list"))
 rm(list = ls()[!ls() %in% c("diffusion_dist", 
                             "mat_x", "mat_y",
                             "snn", "vec_start",

@@ -94,7 +94,7 @@
   }))
   colnames(matches_mat) <- c("tail", "head")
   weight_vec <- sapply(1:nrow(matches_mat), function(i){
-    nn <- length(which(snn[matches_mat[i,"tail"]] != 0))
+    nn <- length(which(snn[matches_mat[i,"tail"],] != 0))
     1/nn
   })
   matches_mat <- cbind(matches_mat, weight_vec)
@@ -112,8 +112,7 @@
                       matches_mat)
   
   # extract the correlations
-  pred_mat <- .predict_yfromx2(mat_x1, 
-                               res$res_g)
+  pred_mat <- .predict_yfromx2(mat_x1, res_g)
   cor_vec <- sapply(1:nrow(mat_y2), function(i){
     residual_vec <- mat_y2[i,] - mat_y1[i,]
     if(sum(abs(residual_vec)) <= 1e-6) residual_vec <- stats::runif(length(residual_vec))

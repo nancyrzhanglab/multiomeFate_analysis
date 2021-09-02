@@ -9,189 +9,114 @@ diffusion_dist <- prep_obj$diffusion_dist
 n <- nrow(mat_x)
 
 #: we'll record all the matches and weight-information
-matches_df <- .initialize_matches(mat_x, 
-                                  mat_y, 
-                                  ht_map,
-                                  df_res,
-                                  snn,
-                                  diffusion_dist)
-iter <- 1
+# matches_df <- .initialize_matches(mat_x, 
+#                                   mat_y, 
+#                                   ht_map,
+#                                   df_res,
+#                                   snn,
+#                                   diffusion_dist)
 
-print(paste0("Iteration ", iter, ": Recruited percentage (", 
-             round(sum(!is.na(df_res$order_rec))/nrow(df_res), 2), "), Total: ",
-             sum(!is.na(df_res$order_rec)), " cells"))
-## estimate res_g
-res <- .estimate_g2(mat_x, 
-                    mat_y, 
-                    ht_map,
-                    matches_df)
-res_g <- res$res_g
-
-## construct candidate set
-print("Constructing candidate set")
-res_cand <- .candidate_set2(mat_x, 
-                            mat_y, 
-                            df_res, 
-                            snn,
-                            matches_df)
-df_res <- multiomeFate:::.update_chrom_df_cand(df_res, 
-                                               res_cand$vec_cand)
-stopifnot(all(is.na(df_res$order_rec[res_cand$vec_cand])))
-
-## recruit an element from the candidate se
-print("Recruiting cells")
-#[NOTE: Rebrand this step as matching]
-#[NOTE: Is it possible that cell-level information would help with this step?]
-res_rec <- .make_matches(mat_x, 
-                         mat_y, 
-                         res_cand$vec_cand,
-                         res_g,
-                         df_res,
-                         snn,
-                         diffusion_dist)
-
-##############################
-
-factor <- 1.5
-vec_cand <- res_cand$vec_cand
-len <- length(vec_cand)
-
-# for each candidate metacell, look at its diffusion distance to 
-# terminal/initial states
-uniq_steady <- unique(df_res[!is.na(df_res[,"init_state"]), "init_state"])
-steady_list <- lapply(uniq_steady, function(i){
-  which(df_res[,"init_state"] == i)
+##############
+r <- max(df_res$init_state, na.rm = T)
+initial_vec <- which(df_res$init_state == -1)
+terminal_list <- lapply(1:r, function(k){
+  which(df_res$init_state == k)
 })
-names(steady_list) <- uniq_steady
-dist_to_steady <- sapply(steady_list, function(steady_vec){
-  matrixStats::rowMeans2(diffusion_dist[vec_cand, steady_vec, drop = F])
-})
-rownames(dist_to_steady) <- vec_cand
-colnames(dist_to_steady) <- uniq_steady
-close_mat <- t(sapply(1:len, function(i){
-  idx <- which.min(dist_to_steady[i,])
-  bool <- dist_to_steady[i,idx] <= min(dist_to_steady[i,-idx])/factor
-  if(bool){
-    c(1, uniq_steady[idx])
-  } else {
-    c(0, NA)
-  }
-}))
-close_df <- data.frame(bool = as.logical(close_mat[,1]),
-                       steady_label = close_mat[,2])
-cbind(close_df, as.numeric(colnames(diffusion_dist)[vec_cand]))
+steady_list <- terminal_list
+steady_list[[length(steady_list)+1]] <- initial_vec
+names(steady_list) <- as.character(c(1:r, "-1"))
+steady_vec <- c(initial_vec, unlist(terminal_list))
 
-
-pred_mat <- multiomeFate:::.predict_yfromx(mat_x[vec_cand,,drop = F], 
-                                           res_g, 
-                                           family = "gaussian")
-
-potential_list <- lapply(1:len, function(i){
-  print(i)
-  idx <- vec_cand[i]
-  nn <- which(snn[idx,] != 0)
+# for each terminal states, 
+# rank each metacells based on the diffusion distance to all the other 
+# metacells in other initial&termainal states. 
+# Then take the mean among the rankings.
+# Similarly, each initial state, compute the 
+# mean-rank each metacell based on diffusion distance to
+# all the terminal states.
+# Here, smaller rank (closer to 0) means it's closer to all the other cells
+ranking_list <- lapply(1:length(steady_list), function(k){
+  idx <- steady_list[[k]]
   
-  # if it's closer to one terminal state than any other terminal
-  # state or initial state (say, by a factor of 1.5),
-  # then only consider neighboring metacells with
-  # closer diffusion distance to said terminal state
-  if(close_df[i,"bool"] && (is.na(df_res[idx,"init_state"]) || df_res[idx,"init_state"] != "-1")){
-    print("Case 1")
-    steady_label <- close_df[i,"steady_label"]
-    steady_vec <- steady_list[[which(names(steady_list) == steady_label)]]
-    steady_dist <- matrixStats::rowMeans2(diffusion_dist[nn, steady_vec, drop = F])
+  if(names(steady_list)[k] == "-1"){
+    other_vec <- initial_vec
+  } else {
+    other_vec <- setdiff(steady_vec, idx)
+  }
+  
+  ranking_mat <- diffusion_dist[idx, other_vec, drop = F]
+  
+  prob_vec <- rep(0, length(other_vec))
+  uniq_steady <- unique(df_res[other_vec,"init_state"])
+  for(k2 in uniq_steady){
+    tmp <- which(df_res[other_vec,"init_state"] == k2)
+    prob_vec[tmp] <- 1/length(tmp)
+  }
+  
+  ranking_mat <- diffusion_dist[idx, other_vec, drop = F]
+  for(j in 1:ncol(ranking_mat)){
+    ranking_mat[,j] <- rank(ranking_mat[,j])
+  }
+  for(j in 1:nrow(ranking_mat)){
+    ranking_mat[j,] <- prob_vec * ranking_mat[j,]
+  }
+  ranking_vec <- rank(apply(ranking_mat, 1, sum))
+  
+  data.frame(idx = idx, 
+             rank = ranking_vec)
+})
+names(ranking_list) <- names(steady_list)
+
+# Look at snn -- form arrows based on which neighboring
+# metacell has a higher mean-ranking, and if the metacall has
+# the highest rank among its neighbors, it points to itself
+matches_mat <- do.call(rbind, lapply(1:length(steady_list), function(k){
+  idx <- ranking_list[[k]][,"idx"]
+  do.call(rbind, (lapply(idx, function(i){
+    neigh_vec <- intersect(idx, which(snn[i,] != 0))
+    neigh_vec <- setdiff(neigh_vec, i)
     
-    if(steady_label != "-1"){
-      if(any(steady_dist < min(dist_to_steady[i,]))){
-        nn <- nn[which(steady_dist < min(dist_to_steady[i,]))]
-      } 
-    } else {
-      # OTHERWISE 1: if the metacell is closer to the initial 
-      # state than any other terminal state (using the same heuristic),
-      # it can only point to cells further way from the initial
-      # state in diffusion-distance
-      if(any(steady_dist > min(dist_to_steady[i,]))){
-        nn <- nn[steady_dist > min(dist_to_steady[i,])]
-      } 
-    }
-    
-    # OTHERWISE 2: if the metacell is an initial state, can
-    # only point to neighboring metacells that are 1) closer to
-    # the terminal states based on diffusion distance or 2)
-    # cells that are not an initial state
-  } else if(!is.na(df_res[idx,"init_state"]) && df_res[idx,"init_state"] == "-1"){
-    print("Case 2")
-    dist_vec <- sapply(steady_list, function(steady_vec){
-      matrixStats::rowMeans2(diffusion_dist[nn, steady_vec, drop = F])
+    cell_rank <- ranking_list[[k]][which(idx == i), "rank"]
+    neigh_rank <- sapply(neigh_vec, function(j){
+      ranking_list[[k]][which(idx == j), "rank"]
     })
     
-    if(any(dist_vec < min(dist_to_steady[i,]))){
-      nn <- nn[dist_vec < min(dist_to_steady[i,])]
+    if(length(neigh_rank) > 0){
+      if(names(ranking_list)[k] == "-1"){
+        # if initial, we want cells to point to cells that are closer to other cells
+        neigh_vec <- neigh_vec[neigh_rank <= cell_rank]
+      } else {
+        # if initial, we want cells to point to cells that are further to other cells
+        neigh_vec <- neigh_vec[neigh_rank >= cell_rank]
+      }
     }
     
-    # OTHERWISE 3:, consider all neighboring metacells that 
-    # are NOT in the initial state
-  } else {
-    print("Case 3")
-    init_idx <- which(df_res[nn,"init_state"] == "-1")
-    if(length(init_idx) > 0 & length(init_idx) < length(nn)){
-      nn <- nn[-init_idx]
+    if(length(setdiff(neigh_vec, i)) > 0){
+      cbind(i, setdiff(neigh_vec, i))
+    } else {
+      if(names(ranking_list)[k] == "-1"){
+        # do not point initial metacell to itself
+        numeric(0)
+      } else {
+        # point terminal metacell to itself
+        c(i, i)
+      }
     }
-  }
-  
-  as.numeric(nn)
-})
-stopifnot(all(sapply(potential_list, length) > 0))
-tmp <- lapply(potential_list, function(x){
-  colnames(diffusion_dist)[x]
-})
-names(tmp) <- colnames(diffusion_dist)[vec_cand]
-tmp
-
-cor_list <- lapply(1:len, function(i){
-  residual_vec1 <- pred_mat[i,] - mat_y[vec_cand[i],,drop = F]
-  nn_idx <- potential_list[[i]]
-  sapply(nn_idx, function(j){
-    residual_vec2 <- mat_y[j,] - mat_y[vec_cand[i],,drop = F]
-    
-    # compute the correlation among the difference vectors
-    stats::cor(as.numeric(residual_vec1), 
-               as.numeric(residual_vec2),
-               method = "spearman")
-  })
-})
-names(cor_list) <- names(tmp)
-
-weights <- vector("list", length = len)
-for(i in 1:len){
-  idx <- which(cor_list[[i]] < 0)
-  if(length(idx) > 0){
-    potential_list[[i]] <- potential_list[[i]][-idx]
-    cor_list[[i]] <- cor_list[[i]][-idx]
-  }
-  
-  nn <- length(which(snn[vec_cand[i],] != 0))
-  tmp <- .correlation_to_weight(cor_list[[i]])
-  weights[[i]] <- (tmp/sum(tmp))*(1/nn)
-}
-
-matches_mat <- do.call(rbind, lapply(1:len, function(i){
-  cbind(rep(vec_cand[i], length(potential_list[[i]])),
-        potential_list[[i]],
-        cor_list[[i]],
-        .correlation_to_weight(cor_list[[i]]),
-        weights[[i]])
+  })))
 }))
-matches_df <- as.data.frame(matches_mat)
-colnames(matches_df) <- c("tail",
-                          "head",
-                          "correlation",
-                          "exp_cor",
-                          "weight")
-matches_df[,"initial_bool"] <- rep(F, nrow(matches_df))
+colnames(matches_mat) <- c("tail", "head")
+weight_vec <- sapply(1:nrow(matches_mat), function(i){
+  nn <- length(which(snn[matches_mat[i,"tail"],] != 0))
+  1/nn
+})
+matches_mat <- cbind(matches_mat, weight_vec)
+colnames(matches_mat)[3] <- "weight"
+# run a check
+stopifnot(length(unique(as.numeric(matches_mat[,c("tail", "head")]))) == length(steady_vec))
 
-matches_df
-tmp <- matches_df
-tmp[,1] <- colnames(diffusion_dist)[tmp[,1]]
-tmp[,2] <- colnames(diffusion_dist)[tmp[,2]]
-tmp
+tmp <- .form_regression_mat(mat_x, mat_y, matches_mat)
+mat_x1 <- tmp$mat_x1; mat_y1 <- tmp$mat_y1; mat_y2 <- tmp$mat_y2
+res <- .estimate_g2(mat_x1, 
+                    mat_y2, 
+                    ht_map,
+                    matches_mat)
