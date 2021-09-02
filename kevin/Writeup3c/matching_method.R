@@ -144,7 +144,7 @@
                                   iter){
   # mark all metacells that got matched
   idx <- which(is.na(df_res[,"order_rec"]))
-  idx <- setdiff(idx, res_rec[,"tail"])
+  idx <- intersect(idx, res_rec[,"tail"])
   df_res[idx,"order_rec"] <- iter
   
   df_res
