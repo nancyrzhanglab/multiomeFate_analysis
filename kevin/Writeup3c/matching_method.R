@@ -38,7 +38,6 @@
                                res_g)
   
   potential_list <- lapply(1:len, function(i){
-    print(i)
     idx <- vec_cand[i]
     nn <- which(snn[idx,] != 0)
     
