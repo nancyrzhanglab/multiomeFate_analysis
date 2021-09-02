@@ -34,11 +34,11 @@
   
   # compute this metacell's predicted RNA expression
   # and compute the change in RNA expression
-  pred_mat <- multiomeFate:::.predict_yfromx(mat_x[vec_cand,,drop = F], 
-                                             res_g, 
-                                             family = "gaussian")
+  pred_mat <- .predict_yfromx2(mat_x[vec_cand,,drop = F], 
+                               res_g)
   
   potential_list <- lapply(1:len, function(i){
+    print(i)
     idx <- vec_cand[i]
     nn <- which(snn[idx,] != 0)
     
@@ -46,7 +46,7 @@
     # state or initial state (say, by a factor of 1.5),
     # then only consider neighboring metacells with
     # closer diffusion distance to said terminal state
-    if(close_df[i,"bool"] & df_res[idx,"init_state"] != "-1"){
+    if(close_df[i,"bool"] && (is.na(df_res[idx,"init_state"]) || df_res[idx,"init_state"] != "-1")){
       steady_label <- close_df[i,"steady_label"]
       steady_vec <- steady_list[[which(names(steady_list) == steady_label)]]
       steady_dist <- matrixStats::rowMeans2(diffusion_dist[nn, steady_vec, drop = F])
@@ -64,12 +64,12 @@
           nn <- nn[steady_dist > min(dist_to_steady[i,])]
         } 
       }
-    
+      
       # OTHERWISE 2: if the metacell is an initial state, can
       # only point to neighboring metacells that are 1) closer to
       # the terminal states based on diffusion distance or 2)
       # cells that are not an initial state
-    } else if(df_res[idx,"init_state"] == "-1"){
+    } else if(!is.na(df_res[idx,"init_state"]) && df_res[idx,"init_state"] == "-1"){
       dist_vec <- sapply(steady_list, function(steady_vec){
         matrixStats::rowMeans2(diffusion_dist[nn, steady_vec, drop = F])
       })
@@ -82,23 +82,26 @@
       # are NOT in the initial state
     } else {
       init_idx <- which(df_res[nn,"init_state"] == "-1")
-      if(length(init_idx) < length(nn)){
+      if(length(init_idx) > 0 & length(init_idx) < length(nn)){
         nn <- nn[-init_idx]
       }
     }
+    
+    as.numeric(nn)
   })
   stopifnot(all(sapply(potential_list, length) > 0))
   
   # among all considered neighboring metacells, compare their
   # RNA expression - this metacell's RNA
   cor_list <- lapply(1:len, function(i){
-    residual_vec1 <- pred_mat[i,] - mat_y[vec_cand[i,],,drop = F]
-    sapply(potential_list[[i]], function(nn_idx){
-      residual_vec2 <- mat_y[nn_idx,] - mat_y[vec_cand[i,],,drop = F]
+    residual_vec1 <- pred_mat[i,] - mat_y[vec_cand[i],,drop = F]
+    nn_idx <- potential_list[[i]]
+    sapply(nn_idx, function(j){
+      residual_vec2 <- mat_y[j,] - mat_y[vec_cand[i],,drop = F]
       
       # compute the correlation among the difference vectors
-      stats::cor(residual_vec1, 
-                 residual_vec2,
+      stats::cor(as.numeric(residual_vec1), 
+                 as.numeric(residual_vec2),
                  method = "spearman")
     })
   })

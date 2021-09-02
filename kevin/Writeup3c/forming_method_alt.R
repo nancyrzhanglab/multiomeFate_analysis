@@ -112,9 +112,8 @@
                       matches_mat)
   
   # extract the correlations
-  pred_mat <- multiomeFate:::.predict_yfromx(mat_x1, 
-                                             res$res_g, 
-                                             family = "gaussian")
+  pred_mat <- .predict_yfromx2(mat_x1, 
+                               res$res_g)
   cor_vec <- sapply(1:nrow(mat_y2), function(i){
     residual_vec <- mat_y2[i,] - mat_y1[i,]
     if(sum(abs(residual_vec)) <= 1e-6) residual_vec <- stats::runif(length(residual_vec))

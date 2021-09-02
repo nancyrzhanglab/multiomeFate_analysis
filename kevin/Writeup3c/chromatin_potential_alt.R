@@ -21,10 +21,9 @@ chromatin_potential_alt <- function(prep_obj){
   
   # while:
   while(any(is.na(df_res$order_rec))){
-    if(verbose) print(paste0("Iteration ", iter, ": Recruited percentage (", 
+    print(paste0("Iteration ", iter, ": Recruited percentage (", 
                              round(sum(!is.na(df_res$order_rec))/nrow(df_res), 2), "), Total: ",
                              sum(!is.na(df_res$order_rec)), " cells"))
-    if(verbose & !any(is.na(weights))) print(paste0("Weights range from ", round(min(weights),2), " to ", round(max(weights),2)))
     ## estimate res_g
     res <- .estimate_g2(mat_x, 
                         mat_y, 
@@ -33,7 +32,7 @@ chromatin_potential_alt <- function(prep_obj){
     res_g <- res$res_g
     
     ## construct candidate set
-    if(verbose) print("Constructing candidate set")
+    print("Constructing candidate set")
     res_cand <- .candidate_set2(mat_x, 
                                 mat_y, 
                                 df_res, 
@@ -44,8 +43,7 @@ chromatin_potential_alt <- function(prep_obj){
     stopifnot(all(is.na(df_res$order_rec[res_cand$vec_cand])))
     
     ## recruit an element from the candidate se
-    if(verbose) print("Recruiting cells")
-    enforce_matched <- length(which(df_res$order_rec == 0)) > length(which(df_res$order_rec > 0)) & !bool_oracle
+    print("Recruiting cells")
     #[NOTE: Rebrand this step as matching]
     #[NOTE: Is it possible that cell-level information would help with this step?]
     res_rec <- .make_matches(mat_x, 
@@ -57,7 +55,7 @@ chromatin_potential_alt <- function(prep_obj){
                              diffusion_dist)
     
     ## update
-    if(verbose) print("Updating matrices")
+    print("Updating matrices")
     matches_df <- .update_matches_df(matches_df, 
                                      res_rec)
     df_res <- .update_chrom_df_rec2(df_res, 
