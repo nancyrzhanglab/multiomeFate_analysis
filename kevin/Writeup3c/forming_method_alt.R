@@ -53,13 +53,14 @@
     data.frame(idx = idx, 
                rank = ranking_vec)
   })
+  names(ranking_list) <- names(steady_list)
   
   # Look at snn -- form arrows based on which neighboring
   # metacell has a higher mean-ranking, and if the metacall has
   # the highest rank among its neighbors, it points to itself
   matches_mat <- do.call(rbind, lapply(1:length(steady_list), function(k){
-    idx <- steady_list[[k]][,"idx"]
-    t(sapply(idx, function(i){
+    idx <- ranking_list[[k]][,"idx"]
+    do.call(rbind, (lapply(idx, function(i){
       neigh_vec <- intersect(idx, which(snn[i,] != 0))
       neigh_vec <- setdiff(neigh_vec, i)
       
@@ -69,7 +70,7 @@
       })
       
       if(length(neigh_rank) > 0){
-        if(names(steady_list) == "-1"){
+        if(names(ranking_list)[k] == "-1"){
           # if initial, we want cells to point to cells that are closer to other cells
           neigh_vec <- neigh_vec[neigh_rank <= cell_rank]
         } else {
@@ -77,11 +78,11 @@
           neigh_vec <- neigh_vec[neigh_rank >= cell_rank]
         }
       }
-     
-      if(length(neigh_vec) > 0){
-        cbind(i, neigh_vec)
+      
+      if(length(setdiff(neigh_vec, i)) > 0){
+        cbind(i, setdiff(neigh_vec, i))
       } else {
-        if(names(steady_list) == "-1"){
+        if(names(ranking_list)[k] == "-1"){
           # do not point initial metacell to itself
           numeric(0)
         } else {
@@ -89,7 +90,7 @@
           c(i, i)
         }
       }
-    }))
+    })))
   }))
   colnames(matches_mat) <- c("tail", "head")
   weight_vec <- sapply(1:nrow(matches_mat), function(i){
@@ -99,7 +100,7 @@
   matches_mat <- cbind(matches_mat, weight_vec)
   colnames(matches_mat)[3] <- "weight"
   # run a check
-  stopifnot(length(unique(matches_mat[,c("tail", "head")])) == length(steady_vec))
+  stopifnot(length(unique(as.numeric(matches_mat[,c("tail", "head")]))) == length(steady_vec))
   
   # do a first-round of regression
   # (we won't actually return this regression -- its just to get weights)

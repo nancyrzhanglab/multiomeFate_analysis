@@ -26,23 +26,24 @@
 #########
 
 .dummy_est_options <- function(){
-  list(est_family = "gaussian", 
-       est_enforce_cis = T, 
-       est_cis_window = 200,
-       est_switch = F, 
-       est_switch_cutoff = 10,
-       est_alpha = 1, 
-       est_standardize = F, 
-       est_intercept = T,
-       est_cv = T, 
-       est_nfolds = 5, 
-       est_initial_quantile = 0.25,
-       est_run_diagnostic = F, 
-       est_hold_initial = F, 
-       est_parallel = F,
-       est_num_iterations = 4,
-       est_cv_choice = "lambda.min",
-       est_verbose = T)
+  list(method = "glmnet",
+       family = "gaussian", 
+       enforce_cis = T, 
+       cis_window = 200,
+       switch = F, 
+       switch_cutoff = 10,
+       alpha = 1, 
+       standardize = F, 
+       intercept = T,
+       cv = T, 
+       nfolds = 5, 
+       initial_quantile = 0.25,
+       run_diagnostic = F, 
+       hold_initial = F, 
+       parallel = F,
+       num_iterations = 4,
+       cv_choice = "lambda.min",
+       verbose = T)
 }
 
 

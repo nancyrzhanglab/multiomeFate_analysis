@@ -4,8 +4,7 @@ chromatin_potential_prepare2 <- function(mat_x, mat_y,
                                          vec_start, list_end,
                                          ht_map){
   # [[NOTE: mat_x and mat_y here are the expressions of the metacells here]]
-  stopifnot(nrow(mat_x) == nrow(mat_y), ncol(mat_x) == nrow(df_x), 
-            ncol(mat_y) == nrow(df_y),
+  stopifnot(nrow(mat_x) == nrow(mat_y),
             length(unlist(list_end)) > 0)
   stopifnot(all(mat_x >= 0), all(mat_y >= 0))
   n <- nrow(mat_x); p1 <- ncol(mat_x)

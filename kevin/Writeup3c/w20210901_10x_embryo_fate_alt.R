@@ -4,15 +4,18 @@ load("../../../../out/kevin/Writeup3c/10x_mbrain_fate_preprocessed_de.RData")
 
 library(Seurat); library(Signac); library(multiomeFate)
 
-source("candidate_method_alt.R")
-source("chromatin_potential_alt.R")
-source("chromatin_potential_preparation_alt.R")
-source("diffusion_functions.R")
-source("estimation_method_alt.R")
-source("forming_method_alt.R")
-source("matching_method.R")
-source("metacell_construction.R")
-source("metacell_graph_plot.R")
+load_func <- function(){
+  source("candidate_method_alt.R")
+  source("chromatin_potential_alt.R")
+  source("chromatin_potential_preparation_alt.R")
+  source("diffusion_functions.R")
+  source("estimation_method_alt.R")
+  source("forming_method_alt.R")
+  source("matching_method.R")
+  source("metacell_construction.R")
+  source("metacell_graph_plot.R")
+}
+load_func()
 
 Seurat::DefaultAssay(mbrain3) <- "ATAC"
 mbrain3 <- Seurat::FindNeighbors(
@@ -93,9 +96,15 @@ sapply(1:length(list_end), function(i){
 })
 
 rm(list = c("gene_name", "gene_names", "i", "idx",
-            "idx2", "metacell_mat", "n", "P",
+            "metacell_mat", "n", "P",
             "p1", "p2", "peak_names", "res", "terminal_list",
             "de_combined"))
+rm(list = ls()[!ls() %in% c("diffusion_dist", 
+                            "mat_x", "mat_y",
+                            "snn", "vec_start",
+                            "list_end", "ht_map", "load_func")])
+load_func()
+
 #############################
 
 prep_obj <- chromatin_potential_prepare2(mat_x, 
