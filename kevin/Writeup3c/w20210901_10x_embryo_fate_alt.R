@@ -7,6 +7,7 @@ library(Seurat); library(Signac); library(multiomeFate)
 load_func <- function(){
   source("candidate_method_alt.R")
   source("chromatin_potential_alt.R")
+  source("chromatin_potential_postprocess2.R")
   source("chromatin_potential_preparation_alt.R")
   source("diffusion_functions.R")
   source("estimation_method_alt.R")
@@ -133,10 +134,31 @@ for(i in 1:5){
 }
 gene_weights <- gene_weights*length(gene_weights)/sum(gene_weights)
 
-res <- chromatin_potential_alt(prep_obj,
+chrom_obj <- chromatin_potential_alt(prep_obj,
                                gene_weights = gene_weights)
-tmp <- res$matches_df
+
+fate_prob <- chromatin_potential_postprocess(chrom_obj)
+tmp <- round(fate_prob, 2); tmp[order(tmp[,4]),]
+
+tmp <- chrom_obj$matches_df
 tmp[,1] <- colnames(diffusion_dist)[tmp[,1]]
 tmp[,2] <- colnames(diffusion_dist)[tmp[,2]]
 tmp
+tmp[which(tmp[,1] == "27"),]
 
+###############
+
+i <- 3
+idx <- which(de_combined_mapping %in% i)
+gene_names <- unique(unlist(lapply(idx, function(j){
+  rownames(de_combined[[j]])[1:50]
+})))
+gene_idx <- which(colnames(mat_y) %in% gene_names)
+peak_list <- lapply(gene_idx, function(x){
+  ht_map[[as.character(x)]]
+})
+
+for(i in 1:length(gene_idx)){
+  print(gene_names[i])
+  print(chrom_obj$res_g$mat_g[peak_list[[i]],gene_idx[i]])
+}

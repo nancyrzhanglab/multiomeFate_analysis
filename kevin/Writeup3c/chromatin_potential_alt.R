@@ -4,6 +4,7 @@ chromatin_potential_alt <- function(prep_obj, gene_weights){
   df_x <- prep_obj$df_x; df_y <- prep_obj$df_y
   ht_map <- prep_obj$ht_map
   df_res <- prep_obj$df_res
+  adj_mat <- prep_obj$adj_mat
   snn <- prep_obj$snn
   diffusion_dist <- prep_obj$diffusion_dist
   
@@ -15,7 +16,7 @@ chromatin_potential_alt <- function(prep_obj, gene_weights){
                                     mat_y, 
                                     ht_map,
                                     df_res,
-                                    snn,
+                                    adj_mat,
                                     diffusion_dist,
                                     gene_weights)
   iter <- 1
@@ -36,7 +37,7 @@ chromatin_potential_alt <- function(prep_obj, gene_weights){
     res_cand <- .candidate_set2(mat_x, 
                                 mat_y, 
                                 df_res, 
-                                snn,
+                                adj_mat,
                                 matches_df)
     df_res <- multiomeFate:::.update_chrom_df_cand(df_res, 
                                                    res_cand$vec_cand)
@@ -51,7 +52,7 @@ chromatin_potential_alt <- function(prep_obj, gene_weights){
                              res_cand$vec_cand,
                              res_g,
                              df_res,
-                             snn,
+                             adj_mat,
                              diffusion_dist,
                              gene_weights)
     
@@ -74,6 +75,7 @@ chromatin_potential_alt <- function(prep_obj, gene_weights){
                  df_x = df_x, 
                  df_y = df_y, 
                  df_res = df_res, 
+                 adj_mat = adj_mat,
                  snn = snn,
                  diffusion_dist = diffusion_dist,
                  options = options),

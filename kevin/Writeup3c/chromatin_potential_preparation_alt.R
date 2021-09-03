@@ -1,4 +1,5 @@
 chromatin_potential_prepare2 <- function(mat_x, mat_y, 
+                                         adj_mat,
                                          snn,
                                          diffusion_dist,
                                          vec_start, list_end,
@@ -17,6 +18,7 @@ chromatin_potential_prepare2 <- function(mat_x, mat_y,
                  mat_y = mat_y,
                  ht_map = ht_map,
                  df_res = df_res, 
+                 adj_mat = adj_mat,
                  snn = snn,
                  diffusion_dist = diffusion_dist),
             class = "chromatin_potential_prep")

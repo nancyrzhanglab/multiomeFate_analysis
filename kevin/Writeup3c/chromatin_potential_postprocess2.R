@@ -1,4 +1,4 @@
-chromatin_potential_postprocess <- function(chrom_obj, max_iter = 100){
+chromatin_potential_postprocess <- function(chrom_obj){
   matches_df <- chrom_obj$matches_df
   df_res <- chrom_obj$df_res
   snn <- chrom_obj$snn
@@ -28,6 +28,7 @@ chromatin_potential_postprocess <- function(chrom_obj, max_iter = 100){
     adj_mat[i,] <- adj_mat[i,]/sum(adj_mat[i,])
   }
   
+  r <- max(df_res$init_state, na.rm = T)
   terminal_list <- lapply(1:r, function(k){
     which(df_res$init_state == k)
   })
