@@ -35,6 +35,8 @@ mbrain3 <- Seurat::FindClusters(
 ###############################
 
 # grab the relevant genes and peaks
+clustering <- as.character(mbrain3@meta.data$ATAC_snn_res.10)
+
 mat_x <- as.matrix(Matrix::t(mbrain3[["ATAC"]]@data))
 mat_y <- as.matrix(Matrix::t(mbrain3[["SCT"]]@data))
 peak_names <- sort(unique(mbrain3[["ATAC"]]@links$peak))
@@ -67,9 +69,12 @@ terminal_list <- list(c("28", "36", "19", "11"), #forebrain
 
 ###############################
 
-clustering <- as.character(mbrain3@meta.data$ATAC_snn_res.10)
 metacell_mat <- form_metacell_matrix(mbrain3[["lsi"]]@cell.embeddings, clustering)
-snn <- form_snn_graph(metacell_mat, initial_vec, terminal_list)
+res <- form_snn_graph(metacell_mat, 
+                      initial_vec, 
+                      terminal_list,
+                      k_fixed = NA)
+snn <- res$snn; adj_mat <- res$adj_mat
 P <- form_transition(snn, 
                      lazy_param = 0.85,
                      teleport_param = 0.99)
@@ -88,14 +93,41 @@ colnames(diffusion_dist) <- rownames(metacell_mat)
 
 rm(list = c("gene_name", "gene_names", "i", "idx",
             "metacell_mat", "n", "P",
-            "p1", "p2", "peak_names", "res", "terminal_list"))
+            "p1", "p2", "peak_names", "res"))
 rm(list = ls()[!ls() %in% c("diffusion_dist", 
                             "mat_x", "mat_y",
-                            "snn", "vec_start",
-                            "list_end", "ht_map", "load_func",
-                            "de_combined", "chiyun")])
+                            "snn", "initial_vec", "adj_mat",
+                            "terminal_list", "ht_map", "load_func",
+                            "de_combined", "chiyun",
+                            "mbrain3", "clustering")])
 load_func()
 
 #######################
 
+target_vec <- c("4", # radial
+                "46", # oligo
+                "11", # forebrain
+                "1", "8", #cortical1, cortical2
+                "31", "5", # neuroblast1, neuroblast2
+                "27") #glio
+target_name_vec <- c("Radial", "Oligo", "Forebrain", 
+                     "Cortical1", "Cortical2", "Neuro1", "Neuro2",
+                     "Glio")
 
+png(paste0("../../../../out/figures/Writeup3c/w20210901_10x_embryo_metacell_knn_diffusion.png"),
+    height = 4500, width = 4500, res = 300, units = "px")
+par(mfrow = c(3,3))
+for(i in 1:length(target_vec)){
+  median_embedding <- compute_median_coords(mbrain3[["wnn.umap"]]@cell.embeddings, clustering)
+  
+  plot_metacell_graph(median_embedding,
+                      adj_mat,
+                      feature_vec = diffusion_dist[,which(colnames(diffusion_dist) == target_vec[i])],
+                      zlim = range(diffusion_dist[diffusion_dist > 1e-6]),
+                      xlab = "wnnUMAP_1",
+                      ylab = "wnnUMAP_2",
+                      main = paste0("(Norm.) Diffusion dist to ", target_name_vec[i]))
+}
+plot_legend(zlim = range(diffusion_dist[diffusion_dist > 1e-6]),
+            offset = -0.75)
+graphics.off()

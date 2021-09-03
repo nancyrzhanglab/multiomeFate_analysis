@@ -11,7 +11,8 @@ form_metacell_matrix <- function(dat, clustering, func = median){
   clust_mat
 }
 
-form_snn_graph <- function(dat, initial_vec, terminal_list){
+form_snn_graph <- function(dat, initial_vec, terminal_list,
+                           k_fixed = 2){
   stopifnot(is.character(initial_vec), all(sapply(terminal_list, is.character)))
   n <- nrow(dat)
   
@@ -28,13 +29,20 @@ form_snn_graph <- function(dat, initial_vec, terminal_list){
   mst_edge_mat <- igraph::as_edgelist(g2)
   
   # ensures enough edges to start with
-  nn_res2 <- knn.covertree::find_knn(dat, 
-                                     k = 3,
-                                     distance = "cosine")
+  if(!is.na(k_fixed)){
+    nn_res2 <- knn.covertree::find_knn(dat, 
+                                       k = k_fixed,
+                                       distance = "cosine")
+    fixed_edges <- nn_res2$index
+  } else {
+    fixed_edges <- NA
+  }
+  
   
   # now ensure that the terminal states are connected
-  k <- 3
+  k <- 1
   while(TRUE){
+    print(k)
     set.seed(10)
     nn_res <- knn.covertree::find_knn(dat, 
                                       k = k,
@@ -42,7 +50,7 @@ form_snn_graph <- function(dat, initial_vec, terminal_list){
     
     adj_mat <- .form_snn_from_edgelists(n, 
                                         mst_edge_mat, 
-                                        nn_res2$index,
+                                        fixed_edges,
                                         nn_res$index,
                                         rownames(dat))
     
@@ -81,12 +89,14 @@ form_snn_graph <- function(dat, initial_vec, terminal_list){
   }
   
   adj_mat2 <- matrix(0, n, n)
-  for(i in 1:nrow(knn2_edge_mat)){
-    adj_mat2[i, knn2_edge_mat[i,]] <- 1
+  if(!all(is.na(knn2_edge_mat))){
+    for(i in 1:nrow(knn2_edge_mat)){
+      adj_mat2[i, knn2_edge_mat[i,]] <- 1
+    }
+    diag(adj_mat2) <- 0
+    adj_mat2 <- adj_mat2 + t(adj_mat2)
   }
-  diag(adj_mat2) <- 0
-  adj_mat2 <- adj_mat2 + t(adj_mat2)
-  
+
   adj_mat3 <- matrix(0, n, n)
   for(i in 1:nrow(knn_edge_mat)){
     adj_mat3[i, knn_edge_mat[i,]] <- 1
