@@ -56,25 +56,14 @@ for(i in 1:p2){
 
 initial_vec <- c("4", "48")
 terminal_list <- list(c("28", "36", "19", "11"), #forebrain
-                 c("46"), # oligo
-                 c("52", "6", "0", "8"), #cortical2
-                 c("1", "2", "3", "7", #cortical1
-                   "14", "18", 
-                   "24", "25", "29", 
-                   "30", "32", "37", "39",
-                   "40", "42","44", "47",
-                   "53"))
-
-# check the assignments
-length(intersect(which(mbrain3@meta.data$ATAC_snn_res.10 %in% vec_start),
-                 which(mbrain3@meta.data$new_seurat_clusters == 15)))/
-  length(which(mbrain3@meta.data$new_seurat_clusters == 15))
-terminal_list2 <- list("6", "16", "9", c("1", "2", "4"))
-sapply(1:length(terminal_list), function(i){
-  length(intersect(which(mbrain3@meta.data$ATAC_snn_res.10 %in% terminal_list2[[i]]),
-            which(mbrain3@meta.data$new_seurat_clusters %in% terminal_list[[i]])))/
-  length(which(mbrain3@meta.data$new_seurat_clusters %in% terminal_list2[[i]]))
-})
+                      c("46"), # oligo
+                      c("52", "6", "0", "8"), #cortical2
+                      c("1", "2", "3", "7", #cortical1
+                        "14", "18", 
+                        "24", "25", "29", 
+                        "30", "32", "37", "39",
+                        "40", "42","44", "47",
+                        "53"))
 
 ###############################
 
@@ -107,19 +96,6 @@ rm(list = ls()[!ls() %in% c("diffusion_dist",
                             "de_combined", "chiyun")])
 load_func()
 
-#############################
+#######################
 
-prep_obj <- chromatin_potential_prepare2(mat_x, 
-                                         mat_y, 
-                                         snn,
-                                         diffusion_dist,
-                                         vec_start, 
-                                         list_end,
-                                         ht_map)
-
-res <- chromatin_potential_alt(prep_obj)
-tmp <- res$matches_df
-tmp[,1] <- colnames(diffusion_dist)[tmp[,1]]
-tmp[,2] <- colnames(diffusion_dist)[tmp[,2]]
-tmp
 

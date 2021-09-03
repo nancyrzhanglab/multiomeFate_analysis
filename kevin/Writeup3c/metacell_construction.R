@@ -60,7 +60,8 @@ form_snn_graph <- function(dat, initial_vec, terminal_list){
   rownames(snn) <- rownames(dat)
   colnames(snn) <- rownames(dat)
   
-  snn
+  # snn has non-zero values that represent the distance
+  list(snn = snn, adj_mat = adj_mat)
 }
 
 ###########################
