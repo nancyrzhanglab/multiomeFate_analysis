@@ -99,9 +99,9 @@
       residual_vec2 <- mat_y[j,] - mat_y[vec_cand[i],,drop = F]
       
       # compute the correlation among the difference vectors
-      stats::cor(as.numeric(residual_vec1), 
-                 as.numeric(residual_vec2),
-                 method = "spearman")
+      wCor::weightedCorr(as.numeric(residual_vec1), 
+                         as.numeric(residual_vec2),
+                         method = "Pearson")
     })
   })
   

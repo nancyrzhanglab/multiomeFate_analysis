@@ -34,25 +34,6 @@ mbrain3 <- Seurat::FindClusters(
 
 ###############################
 
-clustering <- as.character(mbrain3@meta.data$ATAC_snn_res.10)
-metacell_mat <- form_metacell_matrix(mbrain3[["lsi"]]@cell.embeddings, clustering)
-snn <- form_snn_graph(metacell_mat, k = 10, distance = "cosine")
-P <- form_transition(snn, normalize = T,
-                     lazy_param = 0.85,
-                     teleport_param = 0.99)
-res <- extract_eigen(P, check = T)
-n <- nrow(metacell_mat)
-diffusion_dist <- sapply(1:n, function(i){
-  sapply(1:n, function(j){
-    diffusion_distance(res$eigenvalues, res$right_vector,
-                       i, j)
-  })
-})
-rownames(diffusion_dist) <- rownames(metacell_mat)
-colnames(diffusion_dist) <- rownames(metacell_mat)
-
-###############################
-
 # grab the relevant genes and peaks
 mat_x <- as.matrix(Matrix::t(mbrain3[["ATAC"]]@data))
 mat_y <- as.matrix(Matrix::t(mbrain3[["SCT"]]@data))
@@ -73,8 +54,8 @@ for(i in 1:p2){
   ht_map[[as.character(i)]] <- which(colnames(mat_x) %in% peak_names)
 }
 
-vec_start <- c("4", "48")
-list_end <- list(c("28", "36", "19", "11"), #forebrain
+initial_vec <- c("4", "48")
+terminal_list <- list(c("28", "36", "19", "11"), #forebrain
                  c("46"), # oligo
                  c("52", "6", "0", "8"), #cortical2
                  c("1", "2", "3", "7", #cortical1
@@ -88,12 +69,33 @@ list_end <- list(c("28", "36", "19", "11"), #forebrain
 length(intersect(which(mbrain3@meta.data$ATAC_snn_res.10 %in% vec_start),
                  which(mbrain3@meta.data$new_seurat_clusters == 15)))/
   length(which(mbrain3@meta.data$new_seurat_clusters == 15))
-terminal_list <- list("6", "16", "9", c("1", "2", "4"))
-sapply(1:length(list_end), function(i){
-  length(intersect(which(mbrain3@meta.data$ATAC_snn_res.10 %in% list_end[[i]]),
+terminal_list2 <- list("6", "16", "9", c("1", "2", "4"))
+sapply(1:length(terminal_list), function(i){
+  length(intersect(which(mbrain3@meta.data$ATAC_snn_res.10 %in% terminal_list2[[i]]),
             which(mbrain3@meta.data$new_seurat_clusters %in% terminal_list[[i]])))/
-  length(which(mbrain3@meta.data$new_seurat_clusters %in% terminal_list[[i]]))
+  length(which(mbrain3@meta.data$new_seurat_clusters %in% terminal_list2[[i]]))
 })
+
+###############################
+
+clustering <- as.character(mbrain3@meta.data$ATAC_snn_res.10)
+metacell_mat <- form_metacell_matrix(mbrain3[["lsi"]]@cell.embeddings, clustering)
+snn <- form_snn_graph(metacell_mat, initial_vec, terminal_list)
+P <- form_transition(snn, 
+                     lazy_param = 0.85,
+                     teleport_param = 0.99)
+res <- extract_eigen(P, check = T)
+n <- nrow(metacell_mat)
+diffusion_dist <- sapply(1:n, function(i){
+  sapply(1:n, function(j){
+    diffusion_distance(res$eigenvalues, res$right_vector,
+                       i, j)
+  })
+})
+rownames(diffusion_dist) <- rownames(metacell_mat)
+colnames(diffusion_dist) <- rownames(metacell_mat)
+
+#####################
 
 rm(list = c("gene_name", "gene_names", "i", "idx",
             "metacell_mat", "n", "P",

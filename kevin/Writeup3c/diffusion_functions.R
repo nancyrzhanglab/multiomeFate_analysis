@@ -1,13 +1,17 @@
 # see https://github.com/ShobiStassen/VIA/blob/master/VIA/core.py#L1094
 # https://igraph.org/r/doc/page_rank.html
-form_transition <- function(adj_mat, 
-                            lazy_param = 0.5,
-                            teleport_param = 0.99,
-                            normalize = T){
-  n <- nrow(adj_mat)
-  P <- adj_mat
-  tmp <- matrixStats::rowSums2(P)
-  if(normalize) P <- diag(1/tmp) %*% P %*% diag(1/tmp)
+form_transition <- function(snn, 
+                            lazy_param = 0.85,
+                            teleport_param = 0.99){
+  n <- nrow(snn)
+  P <- snn
+  
+  for(i in 1:n){
+    idx <- which(P[i,] != 0)
+    min_val <- min(P[i,idx])
+    max_val <- max(P[i,idx])
+    P[i,idx] <- exp(-(P[i,idx]- min_val)/max_val)
+  }
   P <- diag(1/matrixStats::rowSums2(P)) %*% P
   
   P <- lazy_param*P + (1-lazy_param)*diag(ncol(P))
