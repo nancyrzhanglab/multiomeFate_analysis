@@ -113,11 +113,28 @@ prep_obj <- chromatin_potential_prepare2(mat_x,
                                          mat_y, 
                                          snn,
                                          diffusion_dist,
-                                         vec_start, 
-                                         list_end,
+                                         initial_vec, 
+                                         terminal_list,
                                          ht_map)
 
-res <- chromatin_potential_alt(prep_obj)
+de_combined_mapping <- c(3,2,5,4, 3,2,5,4, 1)
+steady_size <- c(length(initial_vec), sapply(terminal_list, length))
+gene_weights <- rep(0, ncol(mat_y))
+for(i in 1:5){
+  tmp_size <- steady_size[i]
+  idx <- which(de_combined_mapping %in% i)
+  gene_names <- unique(unlist(lapply(idx, function(j){
+    rownames(de_combined[[j]])[1:50]
+  })))
+  gene_idx <- which(colnames(mat_y) %in% gene_names)
+  gene_size <- length(gene_idx)
+  
+  gene_weights[gene_idx] <- pmax(gene_weights[gene_idx], (1/tmp_size) * (1/gene_size))
+}
+gene_weights <- gene_weights*length(gene_weights)/sum(gene_weights)
+
+res <- chromatin_potential_alt(prep_obj,
+                               gene_weights = gene_weights)
 tmp <- res$matches_df
 tmp[,1] <- colnames(diffusion_dist)[tmp[,1]]
 tmp[,2] <- colnames(diffusion_dist)[tmp[,2]]

@@ -3,7 +3,8 @@
                                 ht_map,
                                 df_res,
                                 snn,
-                                diffusion_dist){
+                                diffusion_dist,
+                                gene_weights){
   # find all the initial and terminal states
   r <- max(df_res$init_state, na.rm = T)
   initial_vec <- which(df_res$init_state == -1)
@@ -116,9 +117,10 @@
   cor_vec <- sapply(1:nrow(mat_y2), function(i){
     residual_vec <- mat_y2[i,] - mat_y1[i,]
     if(sum(abs(residual_vec)) <= 1e-6) residual_vec <- stats::runif(length(residual_vec))
-    stats::cor(pred_mat[i,] - mat_y1[i,], 
+    wCorr::weightedCorr(pred_mat[i,] - mat_y1[i,], 
                residual_vec, 
-               method = "spearman")
+               weights = gene_weights,
+               method = "Pearson")
   })
   
   # overwrite the weights -- recompute the weights

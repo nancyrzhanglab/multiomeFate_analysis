@@ -1,4 +1,4 @@
-chromatin_potential_alt <- function(prep_obj){
+chromatin_potential_alt <- function(prep_obj, gene_weights){
   # pull the appropriate objects for convenience
   mat_x <- prep_obj$mat_x; mat_y <- prep_obj$mat_y
   df_x <- prep_obj$df_x; df_y <- prep_obj$df_y
@@ -16,7 +16,8 @@ chromatin_potential_alt <- function(prep_obj){
                                     ht_map,
                                     df_res,
                                     snn,
-                                    diffusion_dist)
+                                    diffusion_dist,
+                                    gene_weights)
   iter <- 1
   
   # while:
@@ -51,7 +52,8 @@ chromatin_potential_alt <- function(prep_obj){
                              res_g,
                              df_res,
                              snn,
-                             diffusion_dist)
+                             diffusion_dist,
+                             gene_weights)
     
     ## update
     print("Updating matrices")

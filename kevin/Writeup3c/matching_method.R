@@ -5,6 +5,7 @@
                           df_res,
                           snn,
                           diffusion_dist,
+                          gene_weights,
                           factor = 1.5){
   len <- length(vec_cand)
   
@@ -99,8 +100,9 @@
       residual_vec2 <- mat_y[j,] - mat_y[vec_cand[i],,drop = F]
       
       # compute the correlation among the difference vectors
-      wCor::weightedCorr(as.numeric(residual_vec1), 
+      wCorr::weightedCorr(as.numeric(residual_vec1), 
                          as.numeric(residual_vec2),
+                         weights = gene_weights,
                          method = "Pearson")
     })
   })

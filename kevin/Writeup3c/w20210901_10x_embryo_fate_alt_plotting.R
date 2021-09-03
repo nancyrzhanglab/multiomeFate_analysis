@@ -131,3 +131,12 @@ for(i in 1:length(target_vec)){
 plot_legend(zlim = range(diffusion_dist[diffusion_dist > 1e-6]),
             offset = -0.75)
 graphics.off()
+
+##############################
+
+oligo_genes <- rownames(de_combined[[1]][1:50,])
+mat_y[,which(colnames(mat_y) %in% oligo_genes)]
+idx1 <- which(colnames(mat_y) %in% oligo_genes)
+idx2 <- ht_map[[as.character(idx1)[1]]]
+mat_x[,idx2]
+
