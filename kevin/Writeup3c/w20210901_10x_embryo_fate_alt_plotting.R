@@ -7,6 +7,7 @@ library(Seurat); library(Signac); library(multiomeFate)
 load_func <- function(){
   source("candidate_method_alt.R")
   source("chromatin_potential_alt.R")
+  source("chromatin_potential_postprocess2.R")
   source("chromatin_potential_preparation_alt.R")
   source("diffusion_functions.R")
   source("estimation_method_alt.R")
@@ -70,11 +71,11 @@ terminal_list <- list(c("28", "36", "19", "11"), #forebrain
 ###############################
 
 metacell_mat <- form_metacell_matrix(mbrain3[["lsi"]]@cell.embeddings, clustering)
-res <- form_snn_graph(metacell_mat, 
+tmp <- form_snn_graph(metacell_mat, 
                       initial_vec, 
                       terminal_list,
                       k_fixed = NA)
-snn <- res$snn; adj_mat <- res$adj_mat
+snn <- tmp$snn; adj_mat <- tmp$adj_mat
 P <- form_transition(snn, 
                      lazy_param = 0.85,
                      teleport_param = 0.99)
@@ -130,6 +131,17 @@ for(i in 1:length(target_vec)){
 }
 plot_legend(zlim = range(diffusion_dist[diffusion_dist > 1e-6]),
             offset = -0.75)
+graphics.off()
+
+
+png(paste0("../../../../out/figures/Writeup3c/w20210901_10x_embryo_metacell_knn.png"),
+    height = 2000, width = 2000, res = 300, units = "px")
+median_embedding <- compute_median_coords(mbrain3[["wnn.umap"]]@cell.embeddings, clustering)
+plot_metacell_graph(median_embedding,
+                    adj_mat,
+                    xlab = "wnnUMAP_1",
+                    ylab = "wnnUMAP_2",
+                    main = "SNN of metacells")
 graphics.off()
 
 ##############################

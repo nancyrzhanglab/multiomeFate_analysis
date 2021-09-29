@@ -17,8 +17,8 @@ form_transition <- function(snn,
   P <- lazy_param*P + (1-lazy_param)*diag(ncol(P))
   P <- teleport_param*P + (1-teleport_param)*matrix(1/n, n, n)
   
-  rownames(P) <- rownames(adj_mat)
-  colnames(P) <- colnames(adj_mat)
+  rownames(P) <- rownames(snn)
+  colnames(P) <- colnames(snn)
   
   P
 }
@@ -33,8 +33,8 @@ form_transition <- function(snn,
 extract_eigen <- function(P, check = F){
   right_eigen <- eigen(P, symmetric = F)
   left_eigen <- eigen(t(P), symmetric = F)
-  if(any(left_eigen$vectors[,1] < 0)) left_eigen$vectors[,1] <- -left_eigen$vectors[,1]
-  eigenvalues <- left_eigen$values 
+  if(any(Re(left_eigen$vectors[,1]) < 0)) left_eigen$vectors[,1] <- -left_eigen$vectors[,1]
+  eigenvalues <- Re(left_eigen$values)
   
   if(check){
     n <- nrow(P)
@@ -48,11 +48,11 @@ extract_eigen <- function(P, check = F){
   }
   
   # normalize
-  left_vector <- left_eigen$vectors
+  left_vector <- Re(left_eigen$vectors)
   for(i in 2:ncol(left_vector)){
     left_vector[,i] <- left_vector[,i]*sqrt(left_vector[,1])
   }
-  right_vector <- right_eigen$vectors
+  right_vector <- Re(right_eigen$vectors)
   for(i in 1:ncol(right_vector)){
     right_vector[,i] <- right_vector[,i]/sqrt(left_vector[,1])
   }

@@ -4,6 +4,9 @@ load("../../../../out/kevin/Writeup3c/10x_mbrain_fate_preprocessed_de.RData")
 chiyun <- readRDS("../../../../out/kevin/Writeup3c/chiyun_08282021_oligo_linkpeaks.rds")
 library(Seurat); library(Signac); library(multiomeFate)
 
+set.seed(10)
+date_of_run <- Sys.time()
+
 load_func <- function(){
   source("candidate_method_alt.R")
   source("chromatin_potential_alt.R")
@@ -34,6 +37,8 @@ mbrain3 <- Seurat::FindClusters(
 )
 
 ###############################
+
+clustering <- as.character(mbrain3@meta.data$ATAC_snn_res.10)
 
 # grab the relevant genes and peaks
 mat_x <- as.matrix(Matrix::t(mbrain3[["ATAC"]]@data))
@@ -79,9 +84,12 @@ sapply(1:length(terminal_list), function(i){
 
 ###############################
 
-clustering <- as.character(mbrain3@meta.data$ATAC_snn_res.10)
 metacell_mat <- form_metacell_matrix(mbrain3[["lsi"]]@cell.embeddings, clustering)
-snn <- form_snn_graph(metacell_mat, initial_vec, terminal_list)
+tmp <- form_snn_graph(metacell_mat, 
+                      initial_vec, 
+                      terminal_list,
+                      k_fixed = NA)
+snn <- tmp$snn; adj_mat <- tmp$adj_mat
 P <- form_transition(snn, 
                      lazy_param = 0.85,
                      teleport_param = 0.99)
@@ -100,18 +108,21 @@ colnames(diffusion_dist) <- rownames(metacell_mat)
 
 rm(list = c("gene_name", "gene_names", "i", "idx",
             "metacell_mat", "n", "P",
-            "p1", "p2", "peak_names", "res", "terminal_list"))
+            "p1", "p2", "peak_names", "res"))
 rm(list = ls()[!ls() %in% c("diffusion_dist", 
                             "mat_x", "mat_y",
-                            "snn", "vec_start",
-                            "list_end", "ht_map", "load_func",
-                            "de_combined", "chiyun")])
+                            "snn", "initial_vec", "adj_mat",
+                            "terminal_list", "ht_map", "load_func",
+                            "de_combined", "chiyun",
+                            "mbrain3", "clustering",
+                            "date_of_run")])
 load_func()
 
 #############################
 
 prep_obj <- chromatin_potential_prepare2(mat_x, 
                                          mat_y, 
+                                         adj_mat,
                                          snn,
                                          diffusion_dist,
                                          initial_vec, 
@@ -138,7 +149,12 @@ chrom_obj <- chromatin_potential_alt(prep_obj,
                                gene_weights = gene_weights)
 
 fate_prob <- chromatin_potential_postprocess(chrom_obj)
-tmp <- round(fate_prob, 2); tmp[order(tmp[,4]),]
+rm(list = c("i", "idx", "tmp", "tmp_size"))
+save.image("../../../../out/kevin/Writeup3c/w20210901_10x_mbrain_fate_alt_results.RData")
+
+###########################
+
+tmp <- round(fate_prob, 2); tmp[order(tmp[,2]),]
 
 tmp <- chrom_obj$matches_df
 tmp[,1] <- colnames(diffusion_dist)[tmp[,1]]
@@ -150,10 +166,13 @@ tmp[which(tmp[,1] == "27"),]
 
 i <- 3
 idx <- which(de_combined_mapping %in% i)
-gene_names <- unique(unlist(lapply(idx, function(j){
-  rownames(de_combined[[j]])[1:50]
-})))
-gene_idx <- which(colnames(mat_y) %in% gene_names)
+# gene_names <- unique(unlist(lapply(idx, function(j){
+#   rownames(de_combined[[j]])[1:50]
+# })))
+gene_names <- c("Pdgfra", "Sox10", "Cspg4", "Atp10b")
+gene_idx <- sapply(gene_names, function(x){
+  which(colnames(mat_y) == x)
+})
 peak_list <- lapply(gene_idx, function(x){
   ht_map[[as.character(x)]]
 })

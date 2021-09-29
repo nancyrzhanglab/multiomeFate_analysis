@@ -1,8 +1,12 @@
-plot_metacell_graph <- function(embedding, adj_mat,
+plot_metacell_graph <- function(embedding, 
+                                adj_mat,
                                 feature_vec = NA,
+                                xlim = range(embedding[,1]),
+                                ylim = range(embedding[,2]),
                                 zlim = range(feature_vec),
                                 base_color = grDevices::rgb(0.803, 0.156, 0.211),
-                                col_vec = scales::hue_pal()(length(unique(clustering))),
+                                missing_color = "gray50",
+                                col_vec = scales::hue_pal()(nrow(adj_mat)),
                                 asp = T,
                                 bins = 100,
                                 ...){
@@ -13,14 +17,17 @@ plot_metacell_graph <- function(embedding, adj_mat,
     col_ramp <- grDevices::colorRampPalette(c("white", base_color))(bins)
     val_vec <- seq(zlim[1], zlim[2], length = bins)
     col_idx <- sapply(feature_vec, function(x){
+      if(x <= zlim[1]) return(NA)
       which.min(abs(x - val_vec))
     })
-    col_vec <- col_ramp[col_idx]
+    col_vec <- col_idx
+    col_vec[!is.na(col_idx)] <- col_ramp[col_idx[!is.na(col_idx)]]
+    col_vec[is.na(col_idx)] <- missing_color
   }
   
   graphics::plot(NA, 
-                 xlim = range(embedding[,1]),
-                 ylim = range(embedding[,2]),
+                 xlim = xlim,
+                 ylim = ylim,
                  asp = asp,
                  ...)
   
@@ -47,7 +54,8 @@ plot_metacell_graph <- function(embedding, adj_mat,
 
 # https://stackoverflow.com/questions/13355176/gradient-legend-in-base
 plot_legend <- function(zlim,
-                        base_color = grDevices::rgb(0.803, 0.156, 0.211),
+                        high_color = grDevices::rgb(0.803, 0.156, 0.211),
+                        low_color = "white",
                         bins = 100, 
                         legend_coords = c(0,0,1,1),
                         spacing = 5,
@@ -58,7 +66,7 @@ plot_legend <- function(zlim,
                         cex = 1,
                         sig_digs = 2,
                         ...){
-  col_ramp <- grDevices::colorRampPalette(c("white", base_color))(bins)
+  col_ramp <- grDevices::colorRampPalette(c(low_color, high_color))(bins)
   
   legend_image <- as.raster(matrix(rev(col_ramp), ncol=1))
   plot(NA,
