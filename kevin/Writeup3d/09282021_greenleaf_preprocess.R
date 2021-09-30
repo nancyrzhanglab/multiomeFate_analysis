@@ -24,7 +24,7 @@ rm(list=ls())
 
 #####################
 # compare/contrast with https://github.com/GreenleafLab/brainchromatin/blob/main/R/Load_Environment.R, but I don't see much from this...
-library(Seurat)
+library(Seurat); library(Signac)
 load("../../../../data/Greenleaf_humancortex/GSE162170_multiome_atac_counts.RData")
 load("../../../../data/Greenleaf_humancortex/GSE162170_multiome_rna_counts.RData")
 cell_metadata <- read.table("../../../../data/Greenleaf_humancortex/GSE162170_multiome_cell_metadata.txt",
