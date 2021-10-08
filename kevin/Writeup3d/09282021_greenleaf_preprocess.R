@@ -31,6 +31,8 @@ cell_metadata <- read.table("../../../../data/Greenleaf_humancortex/GSE162170_mu
                             header = T)
 cluster_info <- read.table("../../../../data/Greenleaf_humancortex/GSE162170_multiome_cluster_names.txt",
                            header = T, sep = "\t")
+atac_peaks <- read.table("../../../../data/Greenleaf_humancortex/GSE162170_multiome_atac_consensus_peaks.txt",
+                         header = T)
 
 # create a new Seurat object
 cortex <- Seurat::CreateSeuratObject(counts = rna_mat)
@@ -43,11 +45,20 @@ for(i in unique(celltype)){
   celltype[idx] <- label
 }
 cortex[["celltype"]] <- celltype
+keep_vec <- rep(1, ncol(cortex))
+atac_sum <- sparseMatrixStats::colSums2(atac_mat)
+keep_vec[which(atac_sum <= 1000)] <- 0
+keep_vec[which(atac_sum >= 50000)] <- 0
+cortex[["keep"]] <- keep_vec
+cortex <- subset(cortex, keep == 1)
 
 Seurat::DefaultAssay(cortex) <- "RNA"
 set.seed(10)
-cortex <- Seurat::SCTransform(cortex)
-cortex <- Seurat::RunPCA(cortex, verbose = FALSE)
+cortex <- Seurat::NormalizeData(cortex, normalization.method = "LogNormalize", scale.factor = 10000)
+cortex <- Seurat::FindVariableFeatures(cortex, selection.method = "vst", nfeatures = 2000)
+cortex <- Seurat::ScaleData(cortex)
+cortex <- Seurat::RunPCA(cortex, features = Seurat::VariableFeatures(object = cortex),
+                         verbose = FALSE)
 set.seed(10)
 cortex <- Seurat::RunUMAP(cortex, dims = 1:50, 
                           reduction.name = 'umap.rna', 
@@ -56,10 +67,11 @@ cortex <- Seurat::RunUMAP(cortex, dims = 1:50,
 Seurat::DefaultAssay(cortex) <- "ATAC"
 set.seed(10)
 cortex <- Signac::RunTFIDF(cortex)
-cortex <- Signac::FindTopFeatures(cortex, min.cutoff = 'q0')
-cortex <- Signac::RunSVD(cortex)
+# cortex <- Seurat::FindVariableFeatures(cortex, selection.method = "vst", nfeatures = 50000)
+cortex <- Signac::FindTopFeatures(cortex, min.cutoff = 'q90')
+cortex <- Signac::RunSVD(cortex, features = Seurat::VariableFeatures(object = cortex))
 set.seed(10)
-cortex <- Seurat::RunUMAP(cortex, reduction = 'lsi', dims = 2:50, 
+cortex <- Seurat::RunUMAP(cortex, reduction = 'lsi', dims = 1:10, 
                           reduction.name = "umap.atac", 
                           reduction.key = "atacUMAP_")
 
