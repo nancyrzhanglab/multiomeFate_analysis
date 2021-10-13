@@ -22,6 +22,7 @@
   mat@i[(val1+1):val2]+1
 }
 
+.l2norm <- function(x){sqrt(sum(x^2))}
 
 .rotate = function(a) { t(a[nrow(a):1,]) }
 
