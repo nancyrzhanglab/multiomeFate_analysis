@@ -1,7 +1,6 @@
 rm(list=ls())
 library(Seurat)
 load("../../../../out/kevin/Writeup3d/09302021_sydney_basic_preprocess.RData")
-
 gene_names <- rownames(all_data)
 all_data <- Seurat::SCTransform(all_data,
                                 residual.features = gene_names,
@@ -13,51 +12,17 @@ save(all_data,
      file = "../../../../out/kevin/Writeup3e/10122021_sydney_sctransform_preprocess.RData")
 
 ###############
+load("../../../../out/kevin/Writeup3e/10122021_sydney_sctransform_preprocess.RData")
+source("../Writeup3d/funcs.R")
 
-lin_mat <- all_data[["lineage"]]@counts
-tmp <- Matrix::t(lin_mat)
-lin_idx_list <- lapply(1:ncol(tmp), function(j){
-  .nonzero_col(tmp, j)
-})
-names(lin_idx_list) <- colnames(tmp)
-factor_vec <- as.factor(all_data@meta.data$Original_condition)
-tabulate_mat <- t(sapply(lin_idx_list, function(idx){
-  table(factor_vec[idx])
-}))
-rownames(tabulate_mat) <- colnames(tmp)
-tabulate_mat <- tabulate_mat[order(tabulate_mat[,"naive"], decreasing = T),]
-head(tabulate_mat)
-quantile(tabulate_mat[,"naive"], probs = seq(0.9,1,length.out=11))
-tmp <- tabulate_mat[,"cocl2"]/tabulate_mat[,"naive"]
-tmp[is.infinite(tmp)] <- 0
-lineage_idx <- intersect(which(tmp > 1), which(tabulate_mat[,"naive"] >= 50))
-length(lineage_idx)
-lineage_selected <-  rownames(tabulate_mat)[lineage_idx]
-length(lineage_selected)
-
-# find all the relevant terminal cells in preparation for a differential expression
-celltypes <- unique(all_data@meta.data$Original_condition)
-cell_terminal <- which(all_data@meta.data$Original_condition == "cocl2")
-tmp <- Matrix::t(lin_mat)
-all_cell_names <- unique(unlist(lapply(lineage_selected, function(lineage){
-  j <- which(colnames(tmp) == lineage)
-  rownames(tmp)[.nonzero_col(tmp, j)]
-})))
-only_naive <- rownames(all_data@meta.data)[which(all_data@meta.data$Original_condition == "naive")]
-naive_terminal <- all_cell_names[which(all_cell_names %in% only_naive)]
-length(naive_terminal)
-length(only_naive)
-
-##############################
-
-# set up identities
-newgroup <- all_data@meta.data$Original_condition
-names(newgroup) <- rownames(all_data@meta.data)
-newgroup[naive_terminal] <- "naive_surviveCoCl2"
-newgroup[setdiff(only_naive, naive_terminal)] <- "naive_noCoCl2"
-all_data[["cocl2Status"]] <- newgroup
 Seurat::Idents(all_data) <- "Original_condition"
 table(Seurat::Idents(all_data))
+
+tabulate_mat <- .tabulate_lineages(all_data)
+head(tabulate_mat)
+quantile(tabulate_mat[,"naive"], probs = seq(0.9,1,length.out=11))
+max_val <- sapply(1:nrow(tabulate_mat), function(i){max(tabulate_mat[i,-5])})
+tabulate_mat <- tabulate_mat[order(max_val, decreasing = T),]
 
 ##############################
 
@@ -87,70 +52,83 @@ for(i in 1:length(marker_genes)){
 }
 
 mean(all_data[["SCT"]]@scale.data["EGFR",])
-############################
 
-# now do the among-naive comparisons
-Seurat::Idents(all_data) <- "cocl2Status"
-table(Seurat::Idents(all_data))
+###########################3
 
-set.seed(10)
-seurat_de <- Seurat::FindMarkers(all_data,
-                                 assay = "SCT",
-                                 slot = "scale.data",
-                                 ident.1 = "naive_surviveCoCl2",
-                                 ident.2 = "naive_noCoCl2",
-                                 logfc.threshold = 0.1,
-                                 min.pct = 0.05,
-                                 verbose = T)
-seurat_de[1:50,]
+# first up -- cocl2
+treatment_vec <- c("cocl2", "acid", "dab", "tram")
+pval_thres <- c(1e-3, 1e-3, 1e-3, 1e-2)
+de_list <- vector("list", 4)
 
-tentative_genes <- rownames(seurat_de)[which(seurat_de$p_val_adj <= 1e-3)]
-length(tentative_genes)
-idx <- which(all_data@meta.data$Original_condition == "naive")
-mat <- all_data[["SCT"]]@scale.data[tentative_genes,idx]
+table(all_data@meta.data$Original_condition)
+for(kk in 1:length(treatment_vec)){
+  print(treatment_vec[kk])
+  treatment <- treatment_vec[kk]
+  
+  # set up identities
+  res <- .select_expansion_naives(all_data, 
+                                  tabulate_mat, 
+                                  treatment = treatment)
+  newgroup <- all_data@meta.data$Original_condition
+  names(newgroup) <- rownames(all_data@meta.data)
+  newgroup[res$naive_terminal] <- paste0("naive_survive", treatment)
+  newgroup[setdiff(res$naive_all, res$naive_terminal)] <- paste0("naive_no", treatment)
+  all_data[[paste0(treatment, "Status")]] <- newgroup
+  Seurat::Idents(all_data) <- paste0(treatment, "Status")
 
-# see if there's a clear separation between low and high thresholds
-cells.1 <- which(colnames(mat) %in% naive_terminal)
-cells.2 <- setdiff(1:ncol(mat), cells.1)
-proportion_mat <- lapply(1:nrow(mat), function(j){
-  vec <- mat[j,]
-  min_val <- max(vec[vec <= 0])
-  max_val <- min(vec[vec >= 0])
-  sd1 <- stats::sd(vec[vec <= 0])
-  sd2 <- stats::sd(vec[vec > 0])
-  sd_val <- min(c(sd1, sd2))
+  set.seed(10)
+  seurat_de <- Seurat::FindMarkers(all_data,
+                                   assay = "SCT",
+                                   slot = "scale.data",
+                                   ident.1 = paste0("naive_survive", treatment),
+                                   ident.2 = paste0("naive_no", treatment),
+                                   logfc.threshold = 0.1,
+                                   min.pct = 0.05,
+                                   verbose = T)
+  de_list[[kk]] <- seurat_de
   
-  bool <- abs(min_val - max_val) >= 3*sd_val
-  if(!bool || sd1 > sd2) return(list(mat = NA, pval = 1))
+  tentative_genes <- rownames(seurat_de)[which(seurat_de$p_val_adj <= pval_thres[kk])]
+  proportion_list <- .order_genes_by_threshold(genes = tentative_genes,
+                                               naive_terminal = res$naive_terminal,
+                                               seurat_obj = all_data)
   
-  res_mat <- matrix(0, 2, 2)
-  colnames(res_mat) <- c("survive", "die")
-  rownames(res_mat) <- c("low", "high")
-  res_mat[1,1] <- length(which(vec[cells.1] <= 0))
-  res_mat[2,1] <- length(which(vec[cells.1] > 0))
-  
-  res_mat[1,2] <- length(which(vec[cells.2] <= 0))
-  res_mat[2,2] <- length(which(vec[cells.2] > 0))
-  
-  prop_test <- stats::prop.test(x = res_mat[2,], n = colSums(res_mat))
-  
-  list(mat = res_mat, pval = prop_test$p.value)
-})
-names(proportion_mat) <- rownames(mat)
-marker_genes <- names(proportion_mat)[order(sapply(proportion_mat, function(x){
-  if(!all(is.na(x$mat))){
-    max(x$mat[2,1]/x$mat[2,2], x$mat[2,2]/x$mat[2,1])
-  } else {
-    0
+  marker_genes <- unique(c(names(proportion_list)[1:min(length(proportion_list), 15)], "AXL", "EGFR", "NRG1"))
+  for(i in 1:length(marker_genes)){
+    vec <- all_data[["SCT"]]@scale.data[ marker_genes[i],]
+    idx1 <- which(Seurat::Idents(all_data) == paste0("naive_no", treatment))
+    percentage1 <- round(length(which(vec[idx1] > 0))/length(idx1),2)
+    idx2 <- which(Seurat::Idents(all_data) == paste0("naive_survive", treatment))
+    percentage2 <- round(length(which(vec[idx2] > 0))/length(idx2),2)
+    idx3 <- which(Seurat::Idents(all_data) == treatment)
+    percentage3 <- round(length(which(vec[idx3] > 0))/length(idx3),2)
+
+    plot1 <- Seurat::VlnPlot(all_data, features = marker_genes[i],
+                             idents = c(paste0("naive_no", treatment), paste0("naive_survive", treatment), treatment),
+                             assay = "SCT",
+                             slot = "scale.data") + ggplot2::theme_classic()
+    plot1 <- plot1 + ggplot2::scale_x_discrete(labels = c(
+      paste0("naive - will not survive\n(",percentage1, ")"),
+      paste0("naive - will survive\n(",percentage2, ")"),
+      paste0(treatment, "\n(",percentage3, ")")))
+    plot1 <- plot1 + Seurat::NoLegend()
+    ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup3e/Writeup3e_sydney_naive_within", treatment, "_vln_", marker_genes[i], ".png"),
+                    plot1, device = "png", width = 6, height = 5, units = "in")
   }
-}), decreasing = T)[1:15]]
-
-marker_genes <- unique(c(marker_genes, "AXL", "EGFR", "NRG1"))
-for(i in 1:length(marker_genes)){
-  plot1 <- Seurat::VlnPlot(all_data, features = marker_genes[i],
-                           idents = c("naive_surviveCoCl2", "naive_noCoCl2"),
-                           assay = "SCT",
-                           slot = "scale.data") + ggplot2::theme_classic()
-  ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup3e/Writeup3e_sydney_naive_withinCocl2_vln_", marker_genes[i], ".png"),
-                  plot1, device = "png", width = 6, height = 5, units = "in")
 }
+
+#############################
+
+tabulate_mat2 <- tabulate_mat
+tabulate_mat2 <- tabulate_mat2[which(tabulate_mat2[,"naive"] > 2),]
+# tabulate_mat2 <- tabulate_mat2[,which(colnames(tabulate_mat2) != "naive")]
+tabulate_mat2 <- tabulate_mat2[which(apply(tabulate_mat2, 1, max) >= 100),]
+tabulate_mat2 <- log1p(tabulate_mat2)
+tabulate_mat2 <- as.data.frame(tabulate_mat2)
+
+plot1 <- GGally::ggpairs(tabulate_mat2)
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup3e/Writeup3e_sydney_pairs.png"),
+                plot1, device = "png", width = 7, height = 7, units = "in")
+
+#############################
+
+

@@ -45,6 +45,7 @@ while(TRUE){
   if(any(sum_vec == 0)) bool <- FALSE
   lin_mat <- lin_mat[,sum_vec > 0] 
   
+  tabulate_mat <- tabulate_mat[rownames(tabulate_mat) %in% rownames(lin_mat),]
   if(bool) break()
 }
 
