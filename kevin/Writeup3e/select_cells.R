@@ -46,9 +46,11 @@
 
 .order_genes_by_threshold <- function(genes, 
                                       naive_terminal,
-                                      seurat_obj){
+                                      seurat_obj,
+                                      assay){
   cell_idx <- which(seurat_obj@meta.data$Original_condition == "naive")
-  mat <- seurat_obj[["SCT"]]@scale.data[genes, cell_idx]
+  stopifnot(all(genes %in% rownames(seurat_obj[[assay]]@scale.data)))
+  mat <- seurat_obj[[assay]]@scale.data[genes, cell_idx]
   
   cells.1 <- which(colnames(mat) %in% naive_terminal)
   cells.2 <- setdiff(1:ncol(mat), cells.1)
