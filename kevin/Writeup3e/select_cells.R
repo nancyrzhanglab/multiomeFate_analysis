@@ -17,12 +17,13 @@
 
 .select_expansion_naives <- function(seurat_obj,
                                      tabulate_mat,
-                                     treatment){
+                                     treatment, 
+                                     threshold = 2){
   stopifnot(treatment != "naive", treatment %in% colnames(tabulate_mat))
   
   tmp <- tabulate_mat[,treatment]/tabulate_mat[,"naive"]
   tmp[is.infinite(tmp)] <- 0
-  lineage_idx <- intersect(which(tmp > 1), which(tabulate_mat[,"naive"] >= 50))
+  lineage_idx <- which(tmp > threshold)
   length(lineage_idx)
   lineage_selected <-  rownames(tabulate_mat)[lineage_idx]
   

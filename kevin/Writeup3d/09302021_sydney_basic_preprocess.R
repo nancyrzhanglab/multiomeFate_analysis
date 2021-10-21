@@ -14,7 +14,6 @@ sum_vec <- sparseMatrixStats::colSums2(lin_mat)
 lin_mat <- lin_mat[,sum_vec > 0] 
 dim(lin_mat)
 
-
 while(TRUE){
   print(dim(lin_mat))
   bool <- TRUE
