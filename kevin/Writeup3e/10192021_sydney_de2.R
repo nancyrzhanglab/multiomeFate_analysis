@@ -20,6 +20,7 @@ head(tabulate_mat)
 quantile(tabulate_mat[,"naive"], probs = seq(0,1,length.out=11))
 max_val <- sapply(1:nrow(tabulate_mat), function(i){max(tabulate_mat[i,-5])})
 tabulate_mat <- tabulate_mat[order(max_val, decreasing = T),]
+write.csv(tabulate_mat, file = "../../../../out/kevin/Writeup3e/10192021_sydney_tabulate_lineage.csv")
 
 #################
 

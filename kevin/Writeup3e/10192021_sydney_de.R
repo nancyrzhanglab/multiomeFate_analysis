@@ -10,10 +10,7 @@ Seurat::Idents(all_data) <- "Original_condition"
 table(Seurat::Idents(all_data))
 
 tabulate_mat <- .tabulate_lineages(all_data)
-head(tabulate_mat)
-quantile(tabulate_mat[,"naive"], probs = seq(0,1,length.out=11))
-max_val <- sapply(1:nrow(tabulate_mat), function(i){max(tabulate_mat[i,-5])})
-tabulate_mat <- tabulate_mat[order(max_val, decreasing = T),]
+tabulate_mat[1:15,]
 
 #################
 
