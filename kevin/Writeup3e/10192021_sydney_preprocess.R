@@ -1,12 +1,13 @@
 rm(list=ls())
 library(Seurat)
 source("../Writeup3d/funcs.R")
+source("select_cells.R")
 
 load("../../../../data/Sydney_stressors_2021-09-24/all_data_SCT.RData")
 
 # keep only lineages with more than 5 counts
 lin_mat <- all_data[["lineage"]]@counts
-counts_vec <- sparseMatrixStats::rowSums2(lin_mat)
+counts_vec <- sparseMatrixStats::rowMaxs(lin_mat)
 lin_mat <- lin_mat[counts_vec >= 5, ]
 depth_vec <- sparseMatrixStats::colSums2(lin_mat)
 lin_mat <- lin_mat[,depth_vec > 0]
@@ -64,9 +65,9 @@ while(TRUE){
   lin_mat3 <- all_data2[["lineage"]]@counts
   tabulate_mat <- .tabulate_lineages(all_data2)
   
-  # make sure lineages only have between 1 and 10 naive cells
+  # make sure lineages only have between 2 and 10 naive cells
   lineage_keep <- rownames(tabulate_mat)[intersect(
-    which(tabulate_mat[,"naive"] > 0), 
+    which(tabulate_mat[,"naive"] >= 2), 
     which(tabulate_mat[,"naive"] <= 10)
   )]
   if(length(lineage_keep) != nrow(lin_mat3)) bool1 <- FALSE
@@ -96,8 +97,8 @@ all_data2[["lineage"]]@data <- all_data2[["lineage"]]@counts
 tabulate_mat <- .tabulate_lineages(all_data2)
 head(tabulate_mat)
 dim(tabulate_mat)
-# make sure lineages only have between 1 and 10 naive cells
-stopifnot(all(tabulate_mat[,"naive"] > 0),
+# make sure lineages only have between 2 and 10 naive cells
+stopifnot(all(tabulate_mat[,"naive"] >= 2),
           all(tabulate_mat[,"naive"] <= 10))
 # make sure each cell is assigned to a lineage
 stopifnot(all(sparseMatrixStats::colSums2(all_data2[["lineage"]]@counts) > 0))
@@ -111,15 +112,15 @@ all_data <- all_data2
 save(all_data, 
      file = "../../../../out/kevin/Writeup3e/10192021_sydney_preprocess.RData")
 
-head(all_data@meta.data)
-gene_names <- rownames(all_data)
-all_data <- Seurat::SCTransform(all_data,
-                                residual.features = gene_names,
-                                do.center = F,
-                                verbose = T)
-dim(all_data[["SCT"]]@scale.data)
-save(all_data, 
-     file = "../../../../out/kevin/Writeup3e/10192021_sydney_preprocess.RData")
+# head(all_data@meta.data)
+# gene_names <- rownames(all_data)
+# all_data <- Seurat::SCTransform(all_data,
+#                                 residual.features = gene_names,
+#                                 do.center = F,
+#                                 verbose = T)
+# dim(all_data[["SCT"]]@scale.data)
+# save(all_data, 
+#      file = "../../../../out/kevin/Writeup3e/10192021_sydney_preprocess.RData")
 
 
 ###########################
