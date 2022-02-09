@@ -10,6 +10,9 @@ source("../multiomeFate_analysis/kevin/Writeup3e/select_cells.R")
 
 load("../../dbox_MultiomeFate/data/ShafferLab/10192021_kevin_preprocess/10192021_sydney_preprocess.RData")
 tabulate_mat <- .tabulate_lineages(all_data)
+max_val <- sapply(1:nrow(tabulate_mat), function(i){max(tabulate_mat[i,-5])})
+tabulate_mat2 <- tabulate_mat[order(max_val, decreasing = T),]
+head(tabulate_mat2)
 
 ###########
 

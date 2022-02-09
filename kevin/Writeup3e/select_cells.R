@@ -1,11 +1,12 @@
-.tabulate_lineages <- function(seurat_obj){
+.tabulate_lineages <- function(seurat_obj, 
+                               condition_var = "Original_condition"){
   lin_mat <- seurat_obj[["lineage"]]@counts
   tmp <- Matrix::t(lin_mat)
   lin_idx_list <- lapply(1:ncol(tmp), function(j){
     .nonzero_col(tmp, j)
   })
   names(lin_idx_list) <- colnames(tmp)
-  factor_vec <- as.factor(seurat_obj@meta.data$Original_condition)
+  factor_vec <- as.factor(seurat_obj@meta.data[,condition_var])
   tabulate_mat <- t(sapply(lin_idx_list, function(idx){
     table(factor_vec[idx])
   }))
