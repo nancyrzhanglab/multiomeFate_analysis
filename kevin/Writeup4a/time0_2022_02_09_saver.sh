@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -N t0_saver
 #$ -j y
-#$ -o ../../../../out/Writeup4a/qsub/
+#$ -o ../../../../out/kevin/Writeup4a/qsub/
 #$ -l m_mem_free=100G
 
 Rscript --no-save time0_2022_02_09_saver.R
