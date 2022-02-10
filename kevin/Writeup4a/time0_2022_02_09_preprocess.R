@@ -31,21 +31,34 @@ graphics.off()
 
 ##################
 
-t0_obj <- Seurat::SCTransform(t0_obj)
-t0_obj <- Seurat::RunPCA(t0_obj, npcs = 50, verbose = FALSE)
 set.seed(10)
-t0_obj <- Seurat::RunUMAP(t0_obj, reduction = "pca", dims = 1:50)
-t0_obj <- Seurat::FindNeighbors(t0_obj, reduction = "pca", dims = 1:50, verbose = FALSE)
+tmp <- Seurat::SCTransform(t0_obj)
+
+jackpot_genes <- c("SOX10", "MITF", "FN1", "AXL", "EGFR", "NT5E",
+                   "C1S", "FRZB", "SERPINB2", "SERPINE1", "NGFR",
+                   "SERPINE2", "FN1", "NDRG1", "FEZF1", "EGR3", "VGF",
+                   "WNT5A", "POSTN", "PDGFRB", "NRG1", "VEGFC", "FOSL1",
+                   "RUNX2", "LOXL2", "JUN", "PDGFRC")
+jackpot_genes <-  intersect(rownames(t0_obj[["RNA"]]), jackpot_genes)
+gene_vec <- unique(c(Seurat::VariableFeatures(tmp, assay = "SCT"),
+                     jackpot_genes))
+set.seed(10)
+t0_obj <- Seurat::SCTransform(t0_obj, 
+                              residual.features = gene_vec)
+t0_obj <- Seurat::RunPCA(t0_obj, npcs = 30, verbose = FALSE)
+set.seed(10)
+t0_obj <- Seurat::RunUMAP(t0_obj, reduction = "pca", dims = 1:30)
+t0_obj <- Seurat::FindNeighbors(t0_obj, reduction = "pca", dims = 1:30, verbose = FALSE)
 t0_obj <- Seurat::FindClusters(t0_obj, resolution = 1, verbose = FALSE)
 
 plot1 <- Seurat::DimPlot(t0_obj, 
-                      reduction = "umap", 
-                      group.by = "seurat_clusters", 
-                      label = TRUE,
-                      repel = TRUE)
+                         reduction = "umap", 
+                         group.by = "seurat_clusters", 
+                         label = TRUE,
+                         repel = TRUE)
 plot2 <- Seurat::FeaturePlot(t0_obj, 
-                          reduction = "umap", 
-                          features = "nCount_RNA")
+                             reduction = "umap", 
+                             features = "nCount_RNA")
 lineage_cutoff <- t0_obj$nCount_Lineage
 lineage_cutoff[lineage_cutoff > 1] <- 2
 t0_obj$Lineage_cutoff <- lineage_cutoff
@@ -85,7 +98,7 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4a/2022-02-09_
 
 ############
 
-res <- test_barcode_assignment(seurat_obj = t0_obj)
+res <- barcode_assignment(seurat_obj = t0_obj)
 t0_obj <- res$seurat_obj
 lineage_preprocessing_outs <- res
 lineage_preprocessing_outs$seurat_obj <- NULL
@@ -99,4 +112,54 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4a/2022-02-09_
 plot1 <- plot_lineage_barcodecounts(t0_obj)
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4a/2022-02-09_lineage_count.png"),
                 plot1, device = "png", width = 5, height = 5, units = "in")
+
+###################
+
+col_vec <- scales::hue_pal()(14)
+names(col_vec) <- as.character(0:13)
+col_vec <- col_vec[c("13","9","4","8","10","3","1","6","5","2","0","7","12","11")] # THIS IS HARD-CODED
+plot1 <- Seurat::VlnPlot(t0_obj, 
+                         features = "mt.ratio.sctransform", 
+                         group.by = "seurat_clusters", 
+                         sort = TRUE,
+                         pt.size = 0.1, 
+                         cols = col_vec)
+plot1 <- plot1 + Seurat::NoLegend()
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4a/2022-02-09_mitochondria_violin.png"),
+                plot1, device = "png", width = 8, height = 5, units = "in")
+
+jackpot_genes1 <- c("SOX10", "NGFR", "FN1", "AXL", "EGFR", "NT5E")
+jackpot_genes2 <- c("C1S", "FRZB", "SERPINB2", "SERPINE1", "MITF",
+                    "SERPINE2", "NDRG1", "FEZF1", "EGR3", "VGF",
+                    "WNT5A", "POSTN", "PDGFRB", "NRG1", "VEGFC", "FOSL1",
+                    "RUNX2", "LOXL2", "JUN", "PDGFRC")
+jackpot_genes1 <-  intersect(Seurat::VariableFeatures(t0_obj, assay = "SCT"), jackpot_genes1)
+jackpot_genes2 <-  intersect(Seurat::VariableFeatures(t0_obj, assay = "SCT"), jackpot_genes2)
+
+Seurat::DefaultAssay(t0_obj) <- "SCT"
+plot1 <- Seurat::FeaturePlot(t0_obj, 
+                             slot = "scale.data",
+                             reduction = "umap",
+                             features = sort(jackpot_genes1),
+                             ncol = 3)
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4a/2022-02-09_jackpot1.png"),
+                plot1, device = "png", width = 12, height = 7, units = "in")
+Seurat::DefaultAssay(t0_obj) <- "SCT"
+plot1 <- Seurat::FeaturePlot(t0_obj, 
+                             slot = "scale.data",
+                             reduction = "umap",
+                             features = sort(jackpot_genes2),
+                             ncol = 6)
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4a/2022-02-09_jackpot2.png"),
+                plot1, device = "png", width = 20, height = 10, units = "in")
+
+
+##################
+
+# look at cells with high FN1, and see which lineages they are
+cell_idx <- which(t0_obj[["SCT"]]@scale.data["FN1",] >= 10)
+lineages_names <- t0_obj@meta.data[cell_idx,"final_lineage"]
+lineages_names <- lineages_names[!lineages_names %in% c("No barcode", "Still multiple", "Too large Naive")]
+lineage_idx <- t0_obj@meta.data[,"final_lineage"] %in% lineages_names
+table(table(t0_obj@meta.data[lineage_idx,"final_lineage"]))
 

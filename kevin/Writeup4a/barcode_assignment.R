@@ -1,9 +1,9 @@
-test_barcode_assignment <- function(seurat_obj,
-                                    fixing_multiplier = 1,
-                                    lineage_maximum_size = 10,
-                                    max_threshold = NULL,
-                                    threshold_strategy = c("Max_single", "Max_ratio", "Max_difference"),
-                                    verbose = T){
+barcode_assignment <- function(seurat_obj,
+                               fixing_multiplier = 1,
+                               lineage_maximum_size = 10,
+                               max_threshold = NULL,
+                               threshold_strategy = c("Max_single", "Max_ratio", "Max_difference"),
+                               verbose = T){
   stopifnot(inherits(seurat_obj, "Seurat"), "Lineage" %in% Seurat::Assays(seurat_obj))
   if(length(threshold_strategy) > 1) threshold_strategy <- threshold_strategy[1]
   
