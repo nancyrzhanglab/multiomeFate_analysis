@@ -11,7 +11,7 @@ barcode_assignment <- function(seurat_obj,
   num_lin_orig <- nrow(counts)
   
   # Only care about lineages that have greater than one total count
-  counts_filt <- counts[which(Matrix::rowSums(counts) > 1),]
+  counts_filt <- counts[which(Matrix::rowSums(counts) >= 1),]
   counts_filt <- as.matrix(counts_filt)
   n <- ncol(counts_filt)
   num_lin_filt <- nrow(counts_filt)
@@ -132,7 +132,7 @@ plot_barcode_threshold <- function(threshold_df,
 }
 
 plot_lineage_barcodecounts <- function(seurat_obj,
-                                       main = "For each lineage, average barcode count\nper cell vs log2(number of cells)",
+                                       main = "For each lineage, average barcode count\nper cell vs number of cells",
                                        alpha = 0.05,
                                        height_jitter = 0.2,
                                        width_jitter = 0.1){
@@ -142,7 +142,7 @@ plot_lineage_barcodecounts <- function(seurat_obj,
   num_lin_orig <- nrow(counts)
   
   # Only care about lineages that have greater than one total count
-  counts_filt <- counts[which(Matrix::rowSums(counts) > 1),]
+  counts_filt <- counts[which(Matrix::rowSums(counts) >= 1),]
   counts_filt <- as.matrix(counts_filt)
   
   # Make a scatterplot of the number of cells in each lineage vs ave number of counts ----
@@ -161,15 +161,15 @@ plot_lineage_barcodecounts <- function(seurat_obj,
   })))
   
   tmp_df <- data.frame(Lineage = uniq_lineage, 
-                       Log2_Number_cells = log2(tmp_lineage_df$num_cells),
+                       Number_cells = tmp_lineage_df$num_cells,
                        Total_counts = tmp_lineage_df$total_count,
                        Average_counts = tmp_lineage_df$total_count/tmp_lineage_df$num_cells)
-  tmp_df$Log2_Number_cells <- tmp_df$Log2_Number_cells + stats::runif(length(tmp_df$Log2_Number_cells), min = -width_jitter, max = width_jitter)
+  tmp_df$Number_cells <- tmp_df$Number_cells + stats::runif(length(tmp_df$Number_cells), min = -width_jitter, max = width_jitter)
   tmp_df$Average_counts <- tmp_df$Average_counts + stats::runif(length(tmp_df$Average_counts), min = -height_jitter, max = height_jitter)
   
   # Make scatterplot of average number of counts vs lineage size and save
   plot1 <- ggplot2::ggplot(tmp_df, 
-                           ggplot2::aes(x = Log2_Number_cells, y = Average_counts))
+                           ggplot2::aes(x = Number_cells, y = Average_counts))
   plot1 <- plot1 + ggplot2::geom_point(alpha = alpha) + ggplot2::labs(title = main) 
   
   plot1
