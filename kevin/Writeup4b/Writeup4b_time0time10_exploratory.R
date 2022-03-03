@@ -4,6 +4,10 @@ library(Signac)
 library(EnsDb.Hsapiens.v86)
 source("seurat_helpers.R")
 
+set.seed(10)
+date_of_run <- Sys.time()
+session_info <- devtools::session_info()
+
 file_prefix <- "../../../../BarcodeOutputs/2022_02/Cellranger_count_output/"
 file_suffix <- "/outs/filtered_feature_bc_matrix.h5"
 file_folders <- c("2022_02_arc_time0", "2022_02_arc_time10_CIS", 

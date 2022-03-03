@@ -9,6 +9,6 @@ set.seed(10)
 
 mat <- all_data[["RNA"]]@counts[Seurat::VariableFeatures(all_data, assay = "RNA"),]
 saver_res <- SAVER::saver(x = mat, ncores = 1)
-save(saver_res, t0_obj, date_of_run, session_info, gene_vec,
+save(saver_res, date_of_run, session_info,
      file = "../../../../out/kevin/Writeup4b/Writeup4b_time0time10_saver.RData")
 
