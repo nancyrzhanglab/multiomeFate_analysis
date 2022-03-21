@@ -111,19 +111,27 @@ time10_dabtram_atac_counts <- Signac::FeatureMatrix(
 )
 
 time0_atac_assay <- Signac::CreateChromatinAssay(counts = time0_atac_counts,
-                                                 fragments = frags_time0)
+                                                 fragments = frags_time0,
+                                                 sep = c("-", "-"),
+                                                 annotation = annotation)
 time0_atac <- Seurat::CreateSeuratObject(time0_atac_assay, assay = "ATAC")
 
 time10_cis_atac_assay <- Signac::CreateChromatinAssay(counts = time10_cis_atac_counts,
-                                                      fragments = frags_time0)
+                                                      fragments = frags_time10_cis,
+                                                      sep = c("-", "-"),
+                                                      annotation = annotation)
 time10_cis_atac <- Seurat::CreateSeuratObject(time10_cis_atac_assay, assay = "ATAC")
 
 time10_cocl2_atac_assay <- Signac::CreateChromatinAssay(counts = time10_cocl2_atac_counts,
-                                                        fragments = frags_time0)
+                                                        fragments = frags_time10_cocl2,
+                                                        sep = c("-", "-"),
+                                                        annotation = annotation)
 time10_cocl2_atac <- Seurat::CreateSeuratObject(time10_cocl2_atac_assay, assay = "ATAC")
 
 time10_dabtram_atac_assay <- Signac::CreateChromatinAssay(counts = time10_dabtram_atac_counts,
-                                                          fragments = frags_time0)
+                                                          fragments = frags_time10_dabtram,
+                                                          sep = c("-", "-"),
+                                                          annotation = annotation)
 time10_dabtram_atac <- Seurat::CreateSeuratObject(time10_dabtram_atac_assay, assay = "ATAC")
 
 time0_atac$dataset <- "time0"
