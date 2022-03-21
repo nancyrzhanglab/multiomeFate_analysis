@@ -68,3 +68,27 @@ for(i in 1:length(cor_list)){
 
 ####################
 
+zz <- t(saver_res$estimate)
+zz <- scale(zz)
+svd_res <- irlba::irlba(zz, nv = 53)
+dimred <- svd_res$u[,1:50] %*% diag(svd_res$d[1:30])
+quantile(dimred, probs = seq(0,1,length.out=11))
+rownames(dimred) <- colnames(saver_res$estimate)
+keep_vec <- rep(0, ncol(all_data))
+keep_vec[which(colnames(all_data) %in% colnames(saver_res$estimate))] <- 1
+all_data$keep <- keep_vec
+all_data <- subset(all_data, keep == 1)
+
+set.seed(10)
+umap_res <- Seurat::RunUMAP(dimred)
+
+all_data[["saver"]] <- Seurat::CreateDimReducObject(umap_res@cell.embeddings)
+
+plot1 <-Seurat::DimPlot(all_data, reduction = "saver",
+                        group.by = "original_dataset", label = TRUE,
+                        repel = TRUE, label.size = 2.5)
+plot1 <- plot1 + ggplot2::ggtitle(paste0("RNA (SAVER),\n", length(all_data[["RNA"]]@var.features), " genes, using 50 PCs"))
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4b/Writeup4b_alldata_saver_umap_original_dataset.png"),
+                plot1, device = "png", width = 6, height = 5, units = "in")
+
+
