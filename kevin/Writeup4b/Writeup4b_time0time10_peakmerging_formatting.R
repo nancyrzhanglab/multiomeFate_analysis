@@ -3,10 +3,6 @@ library(Seurat)
 library(Signac)
 library(EnsDb.Hsapiens.v86)
 
-set.seed(10)
-date_of_run <- Sys.time()
-session_info <- devtools::session_info()
-
 load("../../../../out/kevin/Writeup4b/Writeup4b_time0time10_alldata_GEXandATAC_processed.RData")
 tmp <- all_data
 
@@ -18,6 +14,10 @@ covariates <- c("nucleosome_signal", "nucleosome_percentile",
                 "blacklist_fraction", "passed_filters",
                 "peak_region_fragments", "pct_reads_in_peaks")
 all_data@meta.data <- cbind(all_data@meta.data, tmp@meta.data[,covariates])
+
+set.seed(10)
+date_of_run <- Sys.time()
+session_info <- devtools::session_info()
 
 # process the ATAC data
 Seurat::DefaultAssay(all_data) <- "ATAC"
