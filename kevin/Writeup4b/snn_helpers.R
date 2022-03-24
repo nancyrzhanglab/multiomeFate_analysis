@@ -23,6 +23,7 @@
   }
 }
 
+.l2norm <- function(x){sqrt(sum(x^2))}
 
 .form_snn_mat <- function(mat, 
                           num_neigh,
@@ -30,7 +31,6 @@
                           bool_intersect, # suggested: TRUE
                           tol = 1e-4,
                           verbose = 0){
-  stopifnot(num_neigh >= min_deg, min_deg >= 0)
   
   if(bool_cosine) {
     l2_vec <- apply(mat, 1, .l2norm)

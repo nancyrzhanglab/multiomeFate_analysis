@@ -18,8 +18,3 @@ jackpot_genes <- intersect(jackpot_genes, rownames(all_data2))
 all_data2[["RNA"]]@var.features <- unique(c(jackpot_genes, all_data2[["RNA"]]@var.features))
 
 mat <- all_data[["RNA"]]@counts[Seurat::VariableFeatures(all_data, assay = "RNA"),]
-print(dim(mat))
-saver_res <- SAVER::saver(x = mat, ncores = 1)
-save(saver_res, date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup4b/Writeup4b_time0time10_saver.RData")
-
