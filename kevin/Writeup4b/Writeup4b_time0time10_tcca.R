@@ -40,14 +40,14 @@ multiSVD_obj <- tiltedCCA:::create_multiSVD(mat_1 = mat_1b, mat_2 = mat_2b,
 multiSVD_obj <- tiltedCCA:::form_metacells(input_obj = multiSVD_obj,
                                            large_clustering_1 = NULL, 
                                            large_clustering_2 = NULL, 
-                                           num_metacells = 1000,
+                                           num_metacells = 5000,
                                            verbose = 1)
 multiSVD_obj <- tiltedCCA:::compute_snns(input_obj = multiSVD_obj,
                                          latent_k = 30,
-                                         num_neigh = 30,
+                                         num_neigh = 100,
                                          bool_cosine = T,
                                          bool_intersect = F,
-                                         min_deg = 30,
+                                         min_deg = 100,
                                          verbose = 2)
 
 # tmp <- all_data; tmp_mat <- multiSVD_obj$laplacian_list$common_laplacian
