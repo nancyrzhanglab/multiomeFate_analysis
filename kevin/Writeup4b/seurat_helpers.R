@@ -1,7 +1,7 @@
 # from https://satijalab.org/signac/articles/pbmc_multiomic.html
 # from https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis.html
 # see https://support.10xgenomics.com/single-cell-multiome-atac-gex/software/pipelines/latest/output/matrices for features.tsv annotation
-create_seurat_object <- function(file_folder){
+create_seurat_object <- function(file_prefix, file_folder, file_suffix){
   tmp <- Seurat::Read10X_h5(paste0(file_prefix, file_folder, file_suffix))
   fragpath <- paste0(file_prefix, file_folder, "/outs/atac_fragments.tsv.gz")
   

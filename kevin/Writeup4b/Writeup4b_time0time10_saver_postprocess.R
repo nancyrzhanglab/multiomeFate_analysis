@@ -1,6 +1,6 @@
 rm(list=ls())
 load("../../../../out/kevin/Writeup4b/Writeup4b_time0time10_saver.RData")
-load("../../../../out/kevin/Writeup4b/Writeup4b_time0time10_exploration_alldata_onlyGEX.RData")
+load("../../../../out/kevin/Writeup4b/Writeup4b_time0time10_alldata_GEXandATAC_processed2.RData")
 library(Seurat)
 library(SAVER)
 source("saver_helpers.R")
@@ -71,7 +71,7 @@ for(i in 1:length(cor_list)){
 zz <- t(saver_res$estimate)
 zz <- scale(zz)
 svd_res <- irlba::irlba(zz, nv = 53)
-dimred <- svd_res$u[,1:50] %*% diag(svd_res$d[1:30])
+dimred <- svd_res$u[,1:50] %*% diag(svd_res$d[1:50])
 quantile(dimred, probs = seq(0,1,length.out=11))
 rownames(dimred) <- colnames(saver_res$estimate)
 keep_vec <- rep(0, ncol(all_data))
@@ -91,4 +91,25 @@ plot1 <- plot1 + ggplot2::ggtitle(paste0("RNA (SAVER),\n", length(all_data[["RNA
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4b/Writeup4b_alldata_saver_umap_original_dataset.png"),
                 plot1, device = "png", width = 6, height = 5, units = "in")
 
+########################################
+
+mat <- saver_res$estimate
+mat <- pmin(mat, 2)
+rownames(mat) <- paste0("SAVER-", rownames(mat))
+all_data[["saverRNA"]] <- Seurat::CreateAssayObject(counts = mat)
+
+Seurat::DefaultAssay(all_data) <- "saverRNA"
+plot1 <- Seurat::FeaturePlot(all_data, 
+                             reduction = "umap",
+                             features = paste0("SAVER-", sort(c("SOX10", "MITF", "FN1", "AXL", "EGFR", "NT5E"))),
+                             ncol = 3)
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4b/Writeup4b_alldata_umap_jackpot1_saver.png"),
+                plot1, device = "png", width = 12, height = 8, units = "in")
+
+plot1 <- Seurat::FeaturePlot(all_data, 
+                             reduction = "umap",
+                             features = paste0("SAVER-", sort(setdiff(jackpot_genes, c("SOX10", "MITF", "FN1", "AXL", "EGFR", "NT5E")))),
+                             ncol = 5)
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4b/Writeup4b_alldata_umap_jackpot2_saver.png"),
+                plot1, device = "png", width = 20, height = 15, units = "in")
 

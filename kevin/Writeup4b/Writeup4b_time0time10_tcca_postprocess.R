@@ -2,6 +2,8 @@ rm(list=ls())
 load("../../../../out/kevin/Writeup4b/Writeup4b_time0time10_alldata_GEXandATAC_tcca.RData")
 
 library(Seurat); library(Signac)
+multiSVD_obj$param
+multiSVD_obj$tcca_obj$tilt_perc
 
 plot1 <- Seurat::DimPlot(all_data, reduction = "common_tcca",
                          group.by = "original_dataset", label = TRUE,
