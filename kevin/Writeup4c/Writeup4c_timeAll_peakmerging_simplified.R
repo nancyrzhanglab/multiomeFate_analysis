@@ -184,7 +184,7 @@ all_data[["RNA"]]@var.features <- unique(c(jackpot_genes, all_data[["RNA"]]@var.
 all_data <- Seurat::ScaleData(all_data)
 all_data <- Seurat::RunPCA(all_data, verbose = FALSE) 
 set.seed(10)
-all_data <- Seurat::RunUMAP(all_data, dims = 1:25)
+all_data <- Seurat::RunUMAP(all_data, dims = 1:50)
 all_data <- Seurat::CellCycleScoring(all_data, 
                                      g2m.features = cc.genes$g2m.genes, 
                                      s.features = cc.genes$s.genes)
@@ -196,7 +196,21 @@ all_data <- Signac::FindTopFeatures(all_data, min.cutoff = 'q0')
 all_data <- Signac::RunSVD(all_data)
 set.seed(10)
 all_data <- Seurat::RunUMAP(object = all_data, 
-                            reduction = 'lsi', dims = 2:30)
+                            reduction = 'lsi', dims = 2:50,
+                            reduction.name = 'adt.umap')
+
+#############
+
+dataset_vec <- sapply(rownames(all_data@meta.data), function(x){
+  tmp <- strsplit(x, split = "_")[[1]]
+  if(length(tmp) == 2){
+    return(tmp[1])
+  } else {
+    return(paste0(tmp[1:2], collapse = "_"))
+  }
+})
+names(dataset_vec) <- NULL
+all_data$original_dataset <- dataset_vec
 
 print("Finished preprocessing data")
 save(all_data, date_of_run, session_info,
