@@ -199,19 +199,6 @@ all_data <- Seurat::RunUMAP(object = all_data,
                             reduction = 'lsi', dims = 2:50,
                             reduction.name = 'adt.umap')
 
-#############
-
-dataset_vec <- sapply(rownames(all_data@meta.data), function(x){
-  tmp <- strsplit(x, split = "_")[[1]]
-  if(length(tmp) == 2){
-    return(tmp[1])
-  } else {
-    return(paste0(tmp[1:2], collapse = "_"))
-  }
-})
-names(dataset_vec) <- NULL
-all_data$original_dataset <- dataset_vec
-
 print("Finished preprocessing data")
 save(all_data, date_of_run, session_info,
      file = "../../../../out/kevin/Writeup4c/Writeup4c_timeAll_peakmerging_simplified.RData")
