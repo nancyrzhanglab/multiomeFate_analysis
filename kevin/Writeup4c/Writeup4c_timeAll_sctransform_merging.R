@@ -117,10 +117,11 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4c/Writeup4c_r
 
 plot1 <- Seurat::FeaturePlot(all_data, 
                              reduction = "umap",
-                             features = sort(c("SOX10", "MITF", "FN1", "AXL", "EGFR", "NT5E")),
+                             features = sort(c("SOX10", "MITF", "FN1", "AXL", "EGFR", "NT5E", 
+                                               "CD44", "LOXL2", "ID3")),
                              ncol = 3)
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4c/Writeup4c_rna_umap_sctransform_jackpot1.png"),
-                plot1, device = "png", width = 12, height = 8, units = "in")
+                plot1, device = "png", width = 12, height = 12, units = "in")
 
 save(all_data, date_of_run, session_info,
      file = "../../../../out/kevin/Writeup4c/Writeup4c_timeAll_sctransform_merging.RData")
