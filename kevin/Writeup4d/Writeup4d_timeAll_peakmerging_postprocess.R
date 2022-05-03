@@ -1,5 +1,5 @@
 rm(list=ls())
-load("../../../../out/kevin/Writeup4c/Writeup4c_timeAll_peakmerging_simplified.RData")
+load("../../../../out/kevin/Writeup4d/Writeup4d_timeAll_peakmerging.RData")
 library(Seurat)
 library(Signac)
 
@@ -10,13 +10,13 @@ plot1 <- Seurat::VlnPlot(all_data,
                          group.by = "original_dataset",
                          pt.size = 0.01,
                          ncol = 4)
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4c/Writeup4c_rna_QC.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_rna_QC.png"),
                 plot1, device = "png", width = 20, height = 6, units = "in")
 
 ## ATAC quality
 Seurat::DefaultAssay(all_data) <- "ATAC"
 plot1 <- Signac::TSSPlot(all_data, group.by = 'high.tss') + Seurat::NoLegend()
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4c/Writeup4c_tssEnrichment.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_tssEnrichment.png"),
                 plot1, device = "png", width = 8, height = 4, units = "in")
 
 plot1 <- Seurat::VlnPlot(
@@ -27,7 +27,7 @@ plot1 <- Seurat::VlnPlot(
   pt.size = 0.1,
   ncol = 5
 )
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4c/Writeup4c_atac_QC.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_atac_QC.png"),
                 plot1, device = "png", width = 20, height = 6, units = "in")
 
 ###### RNA UMAP
@@ -37,15 +37,31 @@ plot1 <-Seurat::DimPlot(all_data, reduction = "umap",
                         group.by = "original_dataset", label = TRUE,
                         repel = TRUE, label.size = 2.5)
 plot1 <- plot1 + ggplot2::ggtitle(paste0("RNA (LogNormalized),\n", length(all_data[["RNA"]]@var.features), " genes, using 50 PCs"))
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4c/Writeup4c_rna_umap.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_rna_umap.png"),
                 plot1, device = "png", width = 6, height = 5, units = "in")
+
+Seurat::DefaultAssay(all_data) <- "RNA"
+plot1 <-Seurat::DimPlot(all_data, reduction = "umap",
+                        group.by = "Phase", label = TRUE,
+                        repel = TRUE, label.size = 2.5)
+plot1 <- plot1 + ggplot2::ggtitle(paste0("RNA (LogNormalized),\nCell-cycle phase"))
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_rna_umap-cellcycle.png"),
+                plot1, device = "png", width = 6, height = 5, units = "in")
+
+Seurat::DefaultAssay(all_data) <- "RNA"
+plot1 <-Seurat::FeaturePlot(all_data, features = c("S.Score", "G2M.Score"))
+plot1 <- plot1 + ggplot2::ggtitle(paste0("RNA (LogNormalized),\nCell-cycle score"))
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_rna_umap-cellcycle-score.png"),
+                plot1, device = "png", width = 10, height = 5, units = "in")
+
 
 plot1 <- Seurat::FeaturePlot(all_data, 
                              reduction = "umap",
-                             features = sort(c("SOX10", "MITF", "FN1", "AXL", "EGFR", "NT5E")),
+                             features = sort(c("SOX10", "MITF", "FN1", "AXL", "EGFR", "NT5E", 
+                                               "CD44", "LOXL2", "ID3")),
                              ncol = 3)
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4c/Writeup4c_rna_umap_jackpot1.png"),
-                plot1, device = "png", width = 12, height = 8, units = "in")
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_rna_umap_jackpot1.png"),
+                plot1, device = "png", width = 12, height = 12, units = "in")
 
 ###### ATAC UMAP
 
@@ -55,6 +71,6 @@ plot1 <- Seurat::DimPlot(all_data,
                          group.by = "dataset", label = TRUE,
                          repel = TRUE, label.size = 2.5)
 plot1 <- plot1 + ggplot2::ggtitle(paste0("ATAC (TF-IDF),\nusing 49 PCs"))
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4c/Writeup4c_atac_umap.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_atac_umap.png"),
                 plot1, device = "png", width = 6, height = 5, units = "in")
 
