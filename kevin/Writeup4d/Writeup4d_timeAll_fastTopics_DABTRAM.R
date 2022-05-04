@@ -9,8 +9,8 @@ session_info <- devtools::session_info()
 set.seed(10)
 
 keep_vec <- rep(0, ncol(all_data))
-keep_vec[which(all_data$original_dataset %in% c("day0", "test2", "test3", 
-                                                "day10_DABTRAM", "week5_DABTRAM"))] <- 1
+keep_vec[which(all_data$dataset %in% c("day0", "test2", "test3", 
+                                       "day10_DABTRAM", "week5_DABTRAM"))] <- 1
 all_data$keep <- keep_vec
 all_data <- subset(all_data, keep == 1)
 
