@@ -74,3 +74,6 @@ plot1 <- plot1 + ggplot2::ggtitle(paste0("ATAC (TF-IDF),\nusing 49 PCs"))
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_atac_umap.png"),
                 plot1, device = "png", width = 6, height = 5, units = "in")
 
+###############################
+
+

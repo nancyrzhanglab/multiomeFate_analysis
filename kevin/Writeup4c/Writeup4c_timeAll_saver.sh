@@ -3,6 +3,6 @@
 #$ -j y
 #$ -o ../../../../out/kevin/Writeup4c/qsub/
 #$ -l m_mem_free=25G
-#$ -pe openmp 4
+#$ -pe openmp 6
 
 Rscript --no-save Writeup4c_timeAll_saver.R

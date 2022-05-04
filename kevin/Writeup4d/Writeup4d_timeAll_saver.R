@@ -9,12 +9,18 @@ set.seed(10)
 
 mat <- all_data[["RNA"]]@counts[Seurat::VariableFeatures(all_data, assay = "RNA"),]
 print(dim(mat))
-saver_res <- SAVER::saver(x = mat, ncores = 4)
+saver_res <- SAVER::saver(x = mat, ncores = 6)
 save(saver_res, all_data, date_of_run, session_info,
      file = "../../../../out/kevin/Writeup4d/Writeup4d_timeAll_saver.RData")
 
 print("Computing UMAP")
+keep_vec <- rep(0, ncol(all_data))
+keep_vec[which(colnames(all_data) %in% colnames(saver_res$estimate))] <- 1
+all_data$keep <- keep_vec
+all_data <- subset(all_data, keep == 1)
+
 tmp <- saver_res$estimate
+tmp <- tmp[,colnames(all_data)]
 tmp <- pmin(tmp, 10)
 all_data[["Saver"]] <- Seurat::CreateAssayObject(counts = tmp)
 
