@@ -46,7 +46,7 @@ for(treatment in treatment_vec){
   
   # Density
   dataset_vec <- tolower(all_data_subset$dataset)
-  slice_vec <- sapply(tmp, function(x){
+  slice_vec <- sapply(all_data_subset$dataset, function(x){
     if(x %in% c("day0", paste0("day10_", treatment), paste0("week5_", treatment))) {
       "barcoded"
     } else {"test"}})
