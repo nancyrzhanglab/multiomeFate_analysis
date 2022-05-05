@@ -1,6 +1,7 @@
 rm(list=ls())
 load("../../../../out/kevin/Writeup4d/Writeup4d_timeAll_peakmerging.RData")
 library(Seurat)
+library(Signac)
 library(SAVER)
 
 date_of_run <- Sys.time()
@@ -35,5 +36,37 @@ all_data <- Seurat::RunUMAP(all_data, dims = 1:50,
                             reduction.name = "saverumap")
 save(saver_res, all_data, date_of_run, session_info,
      file = "../../../../out/kevin/Writeup4d/Writeup4d_timeAll_saver.RData")
+
+###############
+
+# visualizations of one treatment are at a time
+treatment_vec <- c("CIS", "COCL2", "DABTRAM")
+
+for(treatment in treatment_vec){
+  all_data_subset <- all_data
+  Seurat::DefaultAssay(all_data_subset) <- "Saver"
+  all_data_subset[["ATAC"]] <- NULL
+  
+  keep_vec <- rep(0, ncol(all_data_subset))
+  keep_vec[which(all_data_subset$dataset %in% c("day0", "test2", "test3", 
+                                                paste0("day10_", treatment),
+                                                paste0("week5_", treatment)))] <- 1
+  all_data_subset$keep <- keep_vec
+  all_data_subset <- subset(all_data_subset, keep == 1)
+  
+  all_data_subset[["saverpca"]] <- NULL
+  all_data_subset[["saverumap"]] <- NULL
+  
+  all_data_subset <- Seurat::RunPCA(all_data_subset, verbose = FALSE,
+                                    reduction.name = "saverpca") 
+  set.seed(10)
+  all_data_subset <- Seurat::RunUMAP(all_data_subset, dims = 1:50,
+                                     reduction = "saverpca",
+                                     reduction.name = "saverumap")
+  
+  save(all_data_subset, date_of_run, session_info,
+       file = paste0("../../../../out/kevin/Writeup4d/Writeup4d_timeAll_saver_onlyRNA_", treatment, "-subset.RData"))
+}
+
 
 
