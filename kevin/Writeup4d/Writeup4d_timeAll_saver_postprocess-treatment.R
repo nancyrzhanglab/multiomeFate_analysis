@@ -135,15 +135,15 @@ for(treatment in treatment_vec){
       graphics::lines(y = c(0,1), x = rep(x, 2), lwd = 1.5, lty = 2)
     }
     
-    y_indent_val <- 1/(2*(nrow(mat)-1))
-    y_vec <- seq(-y_indent_val, 1+y_indent_val, by = 2*y_indent_val)
-    for(y in y_vec[seq(6,length(y_vec), by = 5)]){
-      graphics::lines(x = c(0,1), y = rep(y, 2), lwd = 2, col = "white")
-    }
-    
+  
     # label genes
-    
     if(names(gene_list)[i] != "housekeeping"){
+      y_indent_val <- 1/(2*(nrow(mat)-1))
+      y_vec <- seq(-y_indent_val, 1+y_indent_val, by = 2*y_indent_val)
+      for(y in y_vec[seq(6,length(y_vec), by = 5)]){
+        graphics::lines(x = c(0,1), y = rep(y, 2), lwd = 2, col = "white")
+      }
+      
       x_vec_label <- rep(x_vec[c(3,5)], times = ceiling(nrow(mat)/2))[1:nrow(mat)]
       y_vec_label <- seq(1, 0, by = -2*y_indent_val)
       graphics::text(x = x_vec_label, y = y_vec_label, labels = rownames(mat),
