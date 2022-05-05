@@ -153,6 +153,30 @@ for(treatment in treatment_vec){
     graphics.off()
   }
   
+  # Genes in each topic
+  mat <- topic_res$F
+  break_vec <- seq(-5, 0, length.out = 50)
+  gene_list2 <- lapply(gene_list, function(x){x[x %in% rownames(mat)]})
+  col_vec <- c(4,3,2)
+  idx_list <-  lapply(gene_list2, function(x){which(rownames(mat) %in% x)})
+  png(paste0("../../../../out/figures/Writeup4d/Writeup4d_saver-", treatment, "_fasttopics-geneweights.png"),
+      height = 4000, width = 5000, res = 500, units = "px")
+  par(mfrow = c(5,6), mar = c(4,2,1,0.5))
+  for(i in 1:ncol(mat)){
+    hist_obj <- hist(pmax(-5, log10(mat[,i])), 
+                     breaks = break_vec, 
+                     plot = F)
+    hist_obj$counts <- log10(hist_obj$counts+1)
+    plot(hist_obj, 
+         xlab = "", 
+         ylab = "", 
+         main = paste0("Topic ",i), col = "gray")
+    for(k in 1:3){
+      rug(x = pmax(-5, log10(mat[idx_list[[k]],i])), col = col_vec[k], lwd = 2)
+    }
+  }
+  graphics.off()
+  
   # Cell-cycling phases
   plot1 <-Seurat::DimPlot(all_data_subset, reduction = "saverumap",
                           group.by = "Phase", label = TRUE,
