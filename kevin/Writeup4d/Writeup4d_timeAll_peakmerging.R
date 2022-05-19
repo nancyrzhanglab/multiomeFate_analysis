@@ -9,7 +9,6 @@ session_info <- devtools::session_info()
 
 create_seurat_object <- function(file_prefix, file_folder, file_suffix){
   tmp <- Seurat::Read10X_h5(paste0(file_prefix, file_folder, file_suffix))
-  fragpath <- paste0(file_prefix, file_folder, "/outs/atac_fragments.tsv.gz")
   
   seurat_obj <- Seurat::CreateSeuratObject(
     counts = tmp[["Gene Expression"]],
