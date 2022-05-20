@@ -15,6 +15,7 @@ create_seurat_object <- function(file_prefix, file_folder, file_suffix){
     assay = "RNA"
   )
   
+  seurat_obj <- Seurat::NormalizeData(seurat_obj)
   seurat_obj
 }
 
@@ -224,6 +225,8 @@ all_genes <- unique(c(unlist(var_list), jackpot_genes, hk_genes, cycling_genes))
 all_genes <- intersect(all_genes, rownames(all_data))
 
 all_data[["RNA"]]@var.features <- all_genes
+
+all_data <- Seurat::NormalizeData(all_data)
 all_data <- Seurat::ScaleData(all_data)
 all_data <- Seurat::RunPCA(all_data, verbose = FALSE) 
 set.seed(10)

@@ -69,3 +69,67 @@ unspliced_mat <- lfile[["layers/unspliced"]][,]
 save(unspliced_mat, date_of_run, session_info,
      file = "../../../../out/kevin/Writeup4d/Writeup4d_unspliced_mat_DABTRAM.RData")
 lfile$close_all()
+
+########################################
+########################################
+########################################
+
+lfile <- loomR::connect(filename = "/home/stat/kevinl1/project/Multiome_fate/out/kevin/Writeup4c/2022_04_CIS_onlyRNA_labeled.loom", 
+                        mode = "r+", skip.validate = TRUE)
+spliced_mat <- lfile[["layers/spliced"]][,]
+save(spliced_mat, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup4d/Writeup4d_spliced_mat_CIS_full.RData")
+
+unspliced_mat <- lfile[["layers/unspliced"]][,]
+save(unspliced_mat, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup4d/Writeup4d_unspliced_mat_CIS_full.RData")
+
+cellID <- lfile[["col_attrs/CellID"]][]
+geneName <- lfile[["row_attrs/Gene"]][]
+save(cellID, geneName, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup4d/Writeup4d_info_CIS_full.RData")
+
+lfile$close_all()
+
+###############################
+
+lfile <- loomR::connect(filename = "/home/stat/kevinl1/project/Multiome_fate/out/kevin/Writeup4c/2022_04_COCL2_onlyRNA_labeled.loom", 
+                        mode = "r+", skip.validate = TRUE)
+spliced_mat <- lfile[["layers/spliced"]][,]
+save(spliced_mat, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup4d/Writeup4d_spliced_mat_COCL2_full.RData")
+
+unspliced_mat <- lfile[["layers/unspliced"]][,]
+save(unspliced_mat, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup4d/Writeup4d_unspliced_mat_COCL2_full.RData")
+
+cellID <- lfile[["col_attrs/CellID"]][]
+geneName <- lfile[["row_attrs/Gene"]][]
+save(cellID, geneName, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup4d/Writeup4d_info_COCL2_full.RData")
+
+lfile$close_all()
+
+###############################
+
+lfile <- loomR::connect(filename = "/home/stat/kevinl1/project/Multiome_fate/out/kevin/Writeup4c/2022_04_DABTRAM_onlyRNA_labeled.loom", 
+                        mode = "r+", skip.validate = TRUE)
+spliced_mat <- lfile[["layers/spliced"]][,]
+save(spliced_mat, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup4d/Writeup4d_spliced_mat_DABTRAM_full.RData")
+
+unspliced_mat <- lfile[["layers/unspliced"]][,]
+save(unspliced_mat, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup4d/Writeup4d_unspliced_mat_DABTRAM_full.RData")
+
+cellID <- lfile[["col_attrs/CellID"]][]
+geneName <- lfile[["row_attrs/Gene"]][]
+save(cellID, geneName, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup4d/Writeup4d_info_DABTRAM_full.RData")
+
+lfile$close_all()
+
+
+
+
+
