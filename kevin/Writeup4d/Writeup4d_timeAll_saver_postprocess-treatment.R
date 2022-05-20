@@ -9,7 +9,6 @@ library(dplyr)
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 set.seed(10)
-
 treatment_vec <- c("CIS", "COCL2", "DABTRAM")
 
 gene_list <- list(housekeeping = read.csv("~/project/eSVD/data/housekeeping/housekeeping.txt", header = F)[,1],
