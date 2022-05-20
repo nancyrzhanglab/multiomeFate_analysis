@@ -10,8 +10,8 @@ load("../../../../out/kevin/Writeup4d/Writeup4d_timeAll_saver_onlyRNA_COCL2-subs
 load("../../../../out/kevin/Writeup4d/Writeup4d_spliced_mat_COCL2_full.RData")
 load("../../../../out/kevin/Writeup4d/Writeup4d_unspliced_mat_COCL2_full.RData")
 maestro_day0 <- readRDS("~/project/Multiome_fate/BarcodeOutputs/2022_02/Sijia_outputs/maestro/time0_202204/MAESTRO_arc0_rpmatrix.RDS")
-maestro_day10 <- readRDS("~/project/Multiome_fate/BarcodeOutputs/2022_02/Sijia_outputs/maestro/time10_cis_202204/MAESTRO_arc10_cocl2_rpmatrix.RDS")
-maestro_week5 <- readRDS("~/project/Multiome_fate/BarcodeOutputs/2022_02/Sijia_outputs/maestro/week5_cis_202204/MAESTRO_week5_cocl2_rpmatrix.RDS")
+maestro_day10 <- readRDS("~/project/Multiome_fate/BarcodeOutputs/2022_02/Sijia_outputs/maestro/time10_cocl2_202204/MAESTRO_arc10_cocl2_rpmatrix.RDS")
+maestro_week5 <- readRDS("~/project/Multiome_fate/BarcodeOutputs/2022_02/Sijia_outputs/maestro/week5_cocl2_202204/MAESTRO_week5_cocl2_rpmatrix.RDS")
 
 load("../../../../out/kevin/Writeup4d/Writeup4d_scvelo_umap_COCL2.RData")
 cellIDb <- cellID
