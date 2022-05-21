@@ -22,7 +22,9 @@ index_list <- lapply(datasets, function(x){
 })
 names(index_list) <- datasets
 col_vec <- rep(NA, ncol(all_data_subset))
-col_palette <- c("royalblue3", "orange2", "chartreuse3")
+col_palette <- c(rgb(58, 120, 176, maxColorValue = 255), 
+                 rgb(240, 135, 55, maxColorValue = 255), 
+                 rgb(83, 157, 64, maxColorValue = 255))
 for(i in 1:3){
   col_vec[index_list[[i]]] <- col_palette[i]
 }
