@@ -3,6 +3,8 @@ library(Seurat)
 library(Signac)
 library(EnsDb.Hsapiens.v86)
 
+load("../../../../out/kevin/Writeup4e/Writeup4e_timeAll_peakmerging.RData")
+
 print("Seurat preprocess of RNA")
 Seurat::DefaultAssay(all_data) <- "RNA"
 subset_list <- list(day0 = "day0", 
