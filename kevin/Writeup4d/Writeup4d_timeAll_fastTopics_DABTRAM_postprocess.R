@@ -24,7 +24,12 @@ index_list <- lapply(datasets, function(x){
 })
 names(index_list) <- datasets
 col_vec <- rep(NA, ncol(all_data))
-col_palette <- c("royalblue3", "orange2", "forestgreen")
+col_palette <- c(rgb(58, 120, 176, alpha = 255*0.25, maxColorValue = 255), 
+                 rgb(240, 135, 55, alpha = 255*0.25, maxColorValue = 255), 
+                 rgb(83, 157, 64, alpha = 255*0.25, maxColorValue = 255))
+col_palette2 <- c(rgb(58, 120, 176, alpha = 255*0.8, maxColorValue = 255), 
+                  rgb(240, 135, 55, alpha = 255*0.8, maxColorValue = 255), 
+                  rgb(83, 157, 64, alpha = 255*0.8, maxColorValue = 255))
 for(i in 1:3){
   col_vec[index_list[[i]]] <- col_palette[i]
 }
@@ -42,7 +47,19 @@ for(i in 1:ncol(topic_mat)){
     plot(x = topic_mat[cell_idx,i],
          y = topic_mat[cell_idx,j],
          pch = 16, col = col_vec[cell_idx],
-         main = paste0(i, " vs. ", j))
+         main = paste0(i, " vs. ", j),
+         xaxt = "n", yaxt = "n", bty = "n")
+    axis(side = 1)
+    axis(side = 2)
+    
+    x_means <- sapply(index_list, function(idx){
+      mean(topic_mat[idx,i])
+    })
+    y_means <- sapply(index_list, function(idx){
+      mean(topic_mat[idx,j])
+    })
+    points(x = x_means, y = y_means, cex = 2.5, col = "white", pch = 16)
+    points(x = x_means, y = y_means, cex = 2, col = col_palette2, pch = 16)
   }
   
   graphics.off()
