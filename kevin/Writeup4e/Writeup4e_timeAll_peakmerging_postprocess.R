@@ -9,7 +9,7 @@ load("../../../../out/kevin/Writeup4e/Writeup4e_timeAll_peakmerging.RData")
 Seurat::DefaultAssay(all_data) <- "RNA"
 plot1 <- Seurat::VlnPlot(all_data, 
                          features = c("nFeature_RNA", "nCount_RNA", "percent.mt", "percent.rb"), 
-                         group.by = "original_dataset",
+                         group.by = "dataset",
                          pt.size = 0.01,
                          ncol = 4)
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_rna_QC.png"),
@@ -36,7 +36,7 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_a
 
 Seurat::DefaultAssay(all_data) <- "RNA"
 plot1 <-Seurat::DimPlot(all_data, reduction = "umap",
-                        group.by = "original_dataset", label = TRUE,
+                        group.by = "dataset", label = TRUE,
                         repel = TRUE, label.size = 2.5)
 plot1 <- plot1 + ggplot2::ggtitle(paste0("RNA (LogNormalized),\n", length(all_data[["RNA"]]@var.features), " genes, using 50 PCs"))
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_rna_umap.png"),
@@ -69,7 +69,7 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_r
 
 Seurat::DefaultAssay(all_data) <- "ATAC"
 plot1 <- Seurat::DimPlot(all_data, 
-                         reduction = "adt.umap", 
+                         reduction = "atac.umap", 
                          group.by = "dataset", label = TRUE,
                          repel = TRUE, label.size = 2.5)
 plot1 <- plot1 + ggplot2::ggtitle(paste0("ATAC (TF-IDF),\nusing 49 PCs"))
@@ -77,5 +77,14 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_a
                 plot1, device = "png", width = 6, height = 5, units = "in")
 
 ###############################
+
+Seurat::DefaultAssay(all_data) <- "geneActivity"
+plot1 <- Seurat::DimPlot(all_data, 
+                         reduction = "activity.umap", 
+                         group.by = "dataset", label = TRUE,
+                         repel = TRUE, label.size = 2.5)
+plot1 <- plot1 + ggplot2::ggtitle(paste0("ATAC (Gene activity),\nusing 49 PCs"))
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_atac-activity_umap.png"),
+                plot1, device = "png", width = 6, height = 5, units = "in")
 
 

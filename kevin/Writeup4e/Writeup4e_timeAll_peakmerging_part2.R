@@ -72,6 +72,7 @@ print("Seurat preprocess of gene activity")
 Seurat::DefaultAssay(all_data) <- "ATAC"
 gene_activities <- Signac::GeneActivity(all_data)
 all_data[["geneActivity"]] <- CreateAssayObject(counts = gene_activities)
+Seurat::DefaultAssay(all_data) <- "geneActivity"
 all_data[["geneActivity"]]@var.features <- intersect(rownames(gene_activities), all_data[["RNA"]]@var.features)
 all_data <- Seurat::NormalizeData(
   object = all_data,
