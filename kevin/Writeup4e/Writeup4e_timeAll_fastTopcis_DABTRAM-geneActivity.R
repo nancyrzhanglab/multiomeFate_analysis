@@ -15,7 +15,7 @@ all_data$keep <- keep_vec
 all_data <- subset(all_data, keep == 1)
 
 Seurat::DefaultAssay(all_data) <- "geneActivity"
-mat <- all_data[["geneActivity"]]@counts[Seurat::VariableFeatures(all_data_subset),]
+mat <- all_data[["geneActivity"]]@counts[Seurat::VariableFeatures(all_data),]
 mat <- Matrix::t(mat)
 
 K <- 30
