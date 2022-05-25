@@ -10,6 +10,44 @@ set.seed(10)
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 
+# also port in the SAVER
+all_data2 <- all_data
+load("../../../../out/kevin/Writeup4e/Writeup4e_timeAll_saver.RData")
+all(colnames(all_data) == colnames(all_data2))
+keep_vec <- rep(0, ncol(all_data2))
+keep_vec[colnames(all_data2) %in% colnames(all_data)] <- 1
+all_data2$keep <- keep_vec
+all_data2 <- subset(all_data2, keep == 1)
+all(colnames(all_data) == colnames(all_data2))
+
+saver_mat <- matrix(NA, nrow = nrow(all_data[["Saver"]]@counts),
+                    ncol = ncol(all_data2))
+rownames(saver_mat) <- rownames(all_data[["Saver"]]@counts)
+colnames(saver_mat) <- colnames(all_data2)
+tmp <- as.matrix(all_data[["Saver"]]@counts)
+cell_intersect <- intersect(colnames(all_data), colnames(all_data2))
+saver_mat[,cell_intersect] <- tmp[,cell_intersect]
+all_data2[["Saver"]] <- Seurat::CreateAssayObject(counts = saver_mat)
+
+saverpca <-  matrix(NA, nrow = ncol(all_data2),
+                    ncol = ncol(all_data[["saverpca"]]@cell.embeddings))
+rownames(saverpca) <- colnames(all_data2)
+colnames(saverpca) <- colnames(all_data[["saverpca"]]@cell.embeddings)
+saverpca[cell_intersect,] <- all_data[["saverpca"]]@cell.embeddings[cell_intersect,]
+all_data2[["saverpca"]] <- Seurat::CreateDimReducObject(embeddings = saverpca,
+                                                        assay = "Saver",
+                                                        key =  paste0("saverpca_"))
+
+saverumap <-  matrix(NA, nrow = ncol(all_data2),
+                     ncol = 2)
+rownames(saverumap) <- colnames(all_data2)
+colnames(saverumap) <- colnames(all_data[["saverumap"]]@cell.embeddings)
+saverumap[cell_intersect,] <- all_data[["saverumap"]]@cell.embeddings[cell_intersect,]
+all_data2[["saverumap"]] <- Seurat::CreateDimReducObject(embeddings = saverpca,
+                                                         assay = "Saver",
+                                                         key =  paste0("saverumap_"))
+
+
 ## see https://www.r-bloggers.com/2020/03/what-is-a-dgcmatrix-object-made-of-sparse-matrix-format-in-r/
 # if you want to find the nonzero entries for a row, I suggest
 # first transposing via Matrix::t()
@@ -100,7 +138,7 @@ treatment_vec <- c("CIS", "COCL2", "DABTRAM")
 
 for(treatment in treatment_vec){
   print(paste0("Working on ", treatment))
-  load(paste0("../../../../out/kevin/Writeup4d/Writeup4d_timeAll_fasttopics_",
+  load(paste0("../../../../out/kevin/Writeup4e/Writeup4e_timeAll_fasttopics_",
               treatment, ".RData"))
   
   topic_mat <- matrix(NA, nrow = ncol(all_data), ncol = ncol(topic_res$L))
@@ -121,35 +159,6 @@ for(treatment in treatment_vec){
                                                                               key =  paste0("fastTopic", treatment, "_"))
 }
 
-# also port in the SAVER
-all_data2 <- all_data
-load("../../../../out/kevin/Writeup4d/Writeup4d_timeAll_saver.RData")
-saver_mat <- matrix(NA, nrow = nrow(all_data[["Saver"]]@counts),
-                    ncol = ncol(all_data2))
-rownames(saver_mat) <- rownames(all_data[["Saver"]]@counts)
-colnames(saver_mat) <- colnames(all_data2)
-tmp <- as.matrix(all_data[["Saver"]]@counts)
-cell_intersect <- intersect(colnames(all_data), colnames(all_data2))
-saver_mat[,cell_intersect] <- tmp[,cell_intersect]
-all_data2[["Saver"]] <- Seurat::CreateAssayObject(counts = saver_mat)
-
-saverpca <-  matrix(NA, nrow = ncol(all_data2),
-                    ncol = ncol(all_data[["saverpca"]]@cell.embeddings))
-rownames(saverpca) <- colnames(all_data2)
-colnames(saverpca) <- colnames(all_data[["saverpca"]]@cell.embeddings)
-saverpca[cell_intersect,] <- all_data[["saverpca"]]@cell.embeddings[cell_intersect,]
-all_data2[["saverpca"]] <- Seurat::CreateDimReducObject(embeddings = saverpca,
-                                                        assay = "Saver",
-                                                        key =  paste0("saverpca_"))
-
-saverumap <-  matrix(NA, nrow = ncol(all_data2),
-                     ncol = 2)
-rownames(saverumap) <- colnames(all_data2)
-colnames(saverumap) <- colnames(all_data[["saverumap"]]@cell.embeddings)
-saverumap[cell_intersect,] <- all_data[["saverumap"]]@cell.embeddings[cell_intersect,]
-all_data2[["saverumap"]] <- Seurat::CreateDimReducObject(embeddings = saverpca,
-                                                         assay = "Saver",
-                                                         key =  paste0("saverumap_"))
 
 # also port in the spliced and unspliced
 treatment_vec <- c("CIS", "COCL2", "DABTRAM")

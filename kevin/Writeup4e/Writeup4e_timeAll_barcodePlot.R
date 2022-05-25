@@ -122,19 +122,29 @@ axis(1)
 axis(2)
 graphics.off()
 
-tmp <- all_data[["Lineage"]]@data[,which(all_data$dataset %in% c("week5_CIS", "week5_COCL2", "week5_DABTRAM"))]
+mat <- all_data[["Lineage"]]@counts
+mat <- mat[which(Matrix::rowSums(mat) != 0),]
+mat@x <- rep(1, length(mat@x))
+tmp <- mat[,which(all_data$dataset %in% c("week5_CIS", "week5_COCL2", "week5_DABTRAM"))]
 lineage_order <- order(Matrix::rowSums(tmp), decreasing = T)
-dataset_vec <- c("day0", "day10_CIS", "week5_CIS", "day10_COCL2", "week5_COCL2", "day10_DABTRAM", "week5_DABTRAM")
+dataset_vec <- c("day0", "day10_CIS", "week5_CIS", 
+                 NA, "day10_COCL2", "week5_COCL2", 
+                 NA, "day10_DABTRAM", "week5_DABTRAM")
 png("../../../../out/figures/Writeup4e/Writeup4e_barcode_size.png",
-    height = 1500, width = 5000, units = "px", res = 300)
-par(mfrow = c(1,7), mar = c(4,4,4,0.5))
+    height = 3500, width = 5000, units = "px", res = 300)
+par(mfrow = c(3,3), mar = c(4,4,4,0.5))
 for(dataset in dataset_vec){
-  print(dataset)
-  mat <- all_data[["Lineage"]]@data[lineage_order,which(all_data$dataset == dataset)]
-  vec <- log10(Matrix::rowSums(mat)+1)
-  names(vec) <- NULL
-  barplot(vec, xlab = "Lineage barcode", main = dataset,
-          ylab = "Number of cells (log1p)", ylim = c(0,3.25))
+  if(is.na(dataset)){
+    plot(NA, xaxt = "n", yaxt = "n", xlim = c(0,1), ylim = c(0,1), 
+         bty = "n", main = "", xlab = "", ylab = "")
+  } else {
+    mat2 <- mat[lineage_order,which(all_data$dataset == dataset)]
+    vec <- log10(Matrix::rowSums(mat2)+1)
+    names(vec) <- NULL
+    barplot(vec, xlab = "Lineage barcode", main = dataset,
+            ylab = "Number of cells (log10+1)", ylim = c(0,3.8))
+  }
+ 
 }
 graphics.off()
 
@@ -171,6 +181,25 @@ for(lineage in lineage_name){
                    lineage_mat = all_data[["Lineage"]]@counts,
                    membership_vec = all_data$dataset,
                    umap_mat = all_data[["umap"]]@cell.embeddings,
+                   col_palette_enrichment = col_palette_enrichment,
+                   mode = "enrichment")
+  graphics.off()
+  
+  png(paste0("../../../../out/figures/Writeup4e/Writeup4e_barcode_", lineage, "_atac.png"),
+      height = 3000, width = 3000, units = "px", res = 300)
+  barplot_function(lineage_name = lineage,
+                   lineage_mat = all_data[["Lineage"]]@counts,
+                   membership_vec = all_data$dataset,
+                   umap_mat = all_data[["atac.umap"]]@cell.embeddings,
+                   mode = "indicator")
+  graphics.off()
+  
+  png(paste0("../../../../out/figures/Writeup4e/Writeup4e_barcode_", lineage, "-enrichment_atac.png"),
+      height = 3000, width = 3000, units = "px", res = 300)
+  barplot_function(lineage_name = lineage,
+                   lineage_mat = all_data[["Lineage"]]@counts,
+                   membership_vec = all_data$dataset,
+                   umap_mat = all_data[["atac.umap"]]@cell.embeddings,
                    col_palette_enrichment = col_palette_enrichment,
                    mode = "enrichment")
   graphics.off()
@@ -230,6 +259,25 @@ for(lineage in lineage_name){
                    lineage_mat = all_data[["Lineage"]]@counts,
                    membership_vec = all_data$dataset,
                    umap_mat = all_data[["umap"]]@cell.embeddings,
+                   col_palette_enrichment = col_palette_enrichment,
+                   mode = "enrichment")
+  graphics.off()
+  
+  png(paste0("../../../../out/figures/Writeup4e/Writeup4e_barcode_", lineage, "_atac.png"),
+      height = 3000, width = 3000, units = "px", res = 300)
+  barplot_function(lineage_name = lineage,
+                   lineage_mat = all_data[["Lineage"]]@counts,
+                   membership_vec = all_data$dataset,
+                   umap_mat = all_data[["atac.umap"]]@cell.embeddings,
+                   mode = "indicator")
+  graphics.off()
+  
+  png(paste0("../../../../out/figures/Writeup4e/Writeup4e_barcode_", lineage, "-enrichment_atac.png"),
+      height = 3000, width = 3000, units = "px", res = 300)
+  barplot_function(lineage_name = lineage,
+                   lineage_mat = all_data[["Lineage"]]@counts,
+                   membership_vec = all_data$dataset,
+                   umap_mat = all_data[["atac.umap"]]@cell.embeddings,
                    col_palette_enrichment = col_palette_enrichment,
                    mode = "enrichment")
   graphics.off()
