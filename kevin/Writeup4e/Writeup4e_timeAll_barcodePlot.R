@@ -2,6 +2,7 @@ rm(list=ls())
 
 library(Seurat)
 library(Signac)
+source("barcodePlot_functions.R")
 
 load("../../../../out/kevin/Writeup4e/Writeup4e_timeAll_peakmerging_complete.RData")
 
@@ -141,11 +142,7 @@ tmp <- all_data[["Lineage"]]@counts[,which(all_data$dataset %in% c("week5_CIS", 
 tmp@x <- rep(1, length(tmp@x))
 lineage_idx <- order(Matrix::rowSums(tmp), decreasing = T)[1:10]
 lineage_name <- rownames(all_data[["Lineage"]]@counts)[lineage_idx]
-dataset_vec <- c("day0", "day10_CIS", "week5_CIS",
-                 NA,  "day10_COCL2", "week5_COCL2",
-                 NA, "day10_DABTRAM", "week5_DABTRAM")
 lineage_mat <- all_data[["Lineage"]]@counts
-lineage_mat2 <- Matrix::t(all_data[["Lineage"]]@counts)
 
 col_palette_enrichment <- grDevices::colorRampPalette(c('lightgrey', 'blue'))(100)
 col_transparency <- rgb(1,1,1,0.2)
@@ -161,84 +158,83 @@ for(lineage in lineage_name){
   
   png(paste0("../../../../out/figures/Writeup4e/Writeup4e_barcode_", lineage, ".png"),
       height = 3000, width = 3000, units = "px", res = 300)
-  par(mfrow = c(3,3), mar = c(4,4,4,0.5))
-  j <- which(colnames(lineage_mat2) == lineage)
-  cell_idx <- .nonzero_col(lineage_mat2, col_idx = j, bool_value = F)
-  for(dataset in dataset_vec){
-    cell_idx_all <- which(all_data$dataset == dataset)
-    
-    if(is.na(dataset)) {
-      plot(NA, xaxt = "n", yaxt = "n", xlim = c(0,1), ylim = c(0,1), bty = "n",
-           main = "", xlab = "", ylab = "")
-    } else {
-      cell_idx2 <- intersect(cell_idx, cell_idx_all)
-      
-      plot(all_data[["umap"]]@cell.embeddings[,1],
-           y = all_data[["umap"]]@cell.embeddings[,2],
-           xlab = "umap_1", ylab = "umap_2",
-           xaxt = "n", yaxt = "n", bty = "n",
-           pch = 16, col = "gray",
-           main = paste0(lineage, " for ", dataset, "\n(Present in ", 
-                         length(cell_idx2), " of ", length(cell_idx_all), " cells)"))
-      axis(1); axis(2)
-    
-      points(all_data[["umap"]]@cell.embeddings[cell_idx2,1],
-             y = all_data[["umap"]]@cell.embeddings[cell_idx2,2],
-             xlab = "umap_1", ylab = "umap_2",
-             pch = 16, col = "white", cex = 2)
-      points(all_data[["umap"]]@cell.embeddings[cell_idx2,1],
-             y = all_data[["umap"]]@cell.embeddings[cell_idx2,2],
-             xlab = "umap_1", ylab = "umap_2",
-             pch = 16, col = rgb(1, 0.1, 0.1, 0.2), cex = 1.5)
-    }
-  }
+  barplot_function(lineage_name = lineage,
+                   lineage_mat = all_data[["Lineage"]]@counts,
+                   membership_vec = all_data$dataset,
+                   umap_mat = all_data[["umap"]]@cell.embeddings,
+                   mode = "indicator")
   graphics.off()
   
   png(paste0("../../../../out/figures/Writeup4e/Writeup4e_barcode_", lineage, "-enrichment.png"),
       height = 3000, width = 3000, units = "px", res = 300)
-  par(mfrow = c(3,3), mar = c(4,4,4,0.5))
-  j <- which(colnames(lineage_mat2) == lineage)
-  cell_idx <- .nonzero_col(lineage_mat2, col_idx = j, bool_value = F)
-  for(dataset in dataset_vec){
-    cell_idx_all <- which(all_data$dataset == dataset)
-    
-    if(is.na(dataset)) {
-      plot(NA, xaxt = "n", yaxt = "n", xlim = c(0,1), ylim = c(0,1), bty = "n",
-           main = "", xlab = "", ylab = "")
-    } else {
-      cell_idx2 <- intersect(cell_idx, cell_idx_all)
-      
-      plot(all_data[["umap"]]@cell.embeddings[,1],
-           y = all_data[["umap"]]@cell.embeddings[,2],
-           xlab = "umap_1", ylab = "umap_2",
-           pch = 16, col = "gray",
-           xaxt = "n", yaxt = "n", bty = "n",
-           main = paste0(lineage, " for ", dataset, "\n(Present in ", 
-                         length(cell_idx2), " of ", length(cell_idx_all), " cells)"))
-      axis(1); axis(2)
-      
-      if(length(cell_idx2) != 0){
-        cell_enrichment <- sapply(cell_idx2, function(i){
-          tmp_idx <- .nonzero_col(lineage_mat, col_idx = i, bool_value = F)
-          tmp_vec <- .nonzero_col(lineage_mat, col_idx = i, bool_value = T)
-          stopifnot(j %in% tmp_idx)
-          tmp_val <- tmp_vec[which(tmp_idx == j)]/max(tmp_vec)
-        })
-        cell_col <- sapply(cell_enrichment, function(val){
-          col_palette_enrichment[ceiling(val*length(col_palette_enrichment))]
-        })
-        
-        points(all_data[["umap"]]@cell.embeddings[cell_idx2,1],
-               y = all_data[["umap"]]@cell.embeddings[cell_idx2,2],
-               xlab = "umap_1", ylab = "umap_2",
-               pch = 16, col = "white", cex = 2)
-        points(all_data[["umap"]]@cell.embeddings[cell_idx2,1],
-               y = all_data[["umap"]]@cell.embeddings[cell_idx2,2],
-               xlab = "umap_1", ylab = "umap_2",
-               pch = 16, col = cell_col, cex = 1.5)
-      }
-    }
-  }
+  barplot_function(lineage_name = lineage,
+                   lineage_mat = all_data[["Lineage"]]@counts,
+                   membership_vec = all_data$dataset,
+                   umap_mat = all_data[["umap"]]@cell.embeddings,
+                   col_palette_enrichment = col_palette_enrichment,
+                   mode = "enrichment")
   graphics.off()
 }
+
+################
+
+# now let's select lineages with large number of cells at the terminal states, but also
+# highly enriched day0 cells
+tmp <- all_data[["Lineage"]]@counts[,which(all_data$dataset %in% c("week5_CIS", "week5_COCL2", "week5_DABTRAM"))]
+lineage_idx <- order(Matrix::rowSums(tmp), decreasing = T)[1:200]
+lineage_name <- rownames(all_data[["Lineage"]]@counts)[lineage_idx]
+lineage_mat <- all_data[["Lineage"]]@counts
+lineage_mat2 <- all_data[["Lineage"]]@counts[lineage_name,which(all_data$dataset == "day0")]
+lineage_mat2 <- Matrix::t(lineage_mat2)
+day0_cellcount <- sapply(1:ncol(lineage_mat2), function(j){
+  length(.nonzero_col(lineage_mat2, col_idx = j, bool_value = F))
+})
+lineage_name <- lineage_name[which(day0_cellcount >= 4)]
+enrichment_score <- sapply(lineage_name, function(lineage){
+  j <- which(colnames(lineage_mat2) == lineage)
+  j2 <- which(rownames(lineage_mat) == lineage)
+  cell_idx <- .nonzero_col(lineage_mat2, col_idx = j, bool_value = F)
+  cell_names <- rownames(lineage_mat2)[cell_idx]
+  cell_enrichment <- sapply(cell_names, function(cell_name){
+    i <- which(colnames(lineage_mat) == cell_name)
+    tmp_idx <- .nonzero_col(lineage_mat, col_idx = i, bool_value = F)
+    tmp_vec <- .nonzero_col(lineage_mat, col_idx = i, bool_value = T)
+    stopifnot(j2 %in% tmp_idx)
+    if(length(tmp_idx) == 1){
+      denominator <- tmp_vec[1]
+    } else {
+      denominator <- sum(sort(tmp_vec, decreasing = T)[1:2])
+    }
+    
+    tmp_val <- tmp_vec[which(tmp_idx == j2)]/denominator
+  })
+  
+  mean(cell_enrichment) - sd(cell_enrichment)
+})
+lineage_name <- names(enrichment_score)[order(enrichment_score, decreasing = T)[1:10]]
+for(lineage in lineage_name){
+  print(lineage)
+  
+  png(paste0("../../../../out/figures/Writeup4e/Writeup4e_barcode_", lineage, ".png"),
+      height = 3000, width = 3000, units = "px", res = 300)
+  barplot_function(lineage_name = lineage,
+                   lineage_mat = all_data[["Lineage"]]@counts,
+                   membership_vec = all_data$dataset,
+                   umap_mat = all_data[["umap"]]@cell.embeddings,
+                   mode = "indicator")
+  graphics.off()
+  
+  png(paste0("../../../../out/figures/Writeup4e/Writeup4e_barcode_", lineage, "-enrichment.png"),
+      height = 3000, width = 3000, units = "px", res = 300)
+  barplot_function(lineage_name = lineage,
+                   lineage_mat = all_data[["Lineage"]]@counts,
+                   membership_vec = all_data$dataset,
+                   umap_mat = all_data[["umap"]]@cell.embeddings,
+                   col_palette_enrichment = col_palette_enrichment,
+                   mode = "enrichment")
+  graphics.off()
+}
+
+
+
 
