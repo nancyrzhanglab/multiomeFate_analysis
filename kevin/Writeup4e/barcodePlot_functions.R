@@ -12,7 +12,7 @@ barplot_function <- function(lineage_name,
             length(mode) == 1, mode %in% c("indicator", "enrichment"))
   
   lineage_mat2 <- Matrix::t(lineage_mat)
-  j <- which(colnames(lineage_mat2) == lineage)
+  j <- which(colnames(lineage_mat2) == lineage_name)
   cell_idx <- .nonzero_col(lineage_mat2, col_idx = j, bool_value = F)
   
   par(mfrow = c(3,3), mar = c(4,4,4,0.5))
@@ -29,7 +29,7 @@ barplot_function <- function(lineage_name,
            xlab = colnames(umap_mat)[1], ylab = colnames(umap_mat)[2],
            xaxt = "n", yaxt = "n", bty = "n",
            pch = 16, col = "gray",
-           main = paste0(lineage, " for ", dataset, "\n(Present in ", 
+           main = paste0(lineage_name, " for ", dataset, "\n(Present in ", 
                          length(cell_idx2), " of ", length(cell_idx_all), " cells)"))
       axis(1); axis(2)
       

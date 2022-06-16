@@ -122,6 +122,10 @@ axis(1)
 axis(2)
 graphics.off()
 
+#######################
+#######################
+#######################
+
 mat <- all_data[["Lineage"]]@counts
 mat <- mat[which(Matrix::rowSums(mat) != 0),]
 mat@x <- rep(1, length(mat@x))
@@ -144,9 +148,64 @@ for(dataset in dataset_vec){
     barplot(vec, xlab = "Lineage barcode", main = dataset,
             ylab = "Number of cells (log10+1)", ylim = c(0,3.8))
   }
- 
+  
 }
 graphics.off()
+
+for(selection_dataset in c("week5_CIS", "week5_COCL2", "week5_DABTRAM")){
+  mat <- all_data[["Lineage"]]@counts
+  mat <- mat[which(Matrix::rowSums(mat) != 0),]
+  mat@x <- rep(1, length(mat@x))
+  tmp <- mat[,which(all_data$dataset == selection_dataset)]
+  lineage_order <- order(Matrix::rowSums(tmp), decreasing = T)
+  
+  dataset_vec <- c("day0", "day10_CIS", "week5_CIS", 
+                   NA, "day10_COCL2", "week5_COCL2", 
+                   NA, "day10_DABTRAM", "week5_DABTRAM")
+  png(paste0("../../../../out/figures/Writeup4e/Writeup4e_barcode_size-", selection_dataset, ".png"),
+      height = 3500, width = 5000, units = "px", res = 300)
+  par(mfrow = c(3,3), mar = c(4,4,4,0.5))
+  for(dataset in dataset_vec){
+    if(is.na(dataset)){
+      plot(NA, xaxt = "n", yaxt = "n", xlim = c(0,1), ylim = c(0,1), 
+           bty = "n", main = "", xlab = "", ylab = "")
+    } else {
+      mat2 <- mat[lineage_order,which(all_data$dataset == dataset)]
+      vec <- log10(Matrix::rowSums(mat2)+1)
+      names(vec) <- NULL
+      barplot(vec, xlab = paste0("Lineage barcode (Ordered by ", selection_dataset), 
+              main = dataset,
+              ylab = "Number of cells (log10+1)", ylim = c(0,3.8))
+    }
+    
+  }
+  graphics.off()
+}
+
+dataset_vec <- unique(all_data$dataset)
+num_counts <- sapply(dataset_vec, function(dataset){
+  mat <- all_data[["Lineage"]]@counts
+  mat <- mat[which(Matrix::rowSums(mat) != 0),]
+  mat@x <- rep(1, length(mat@x))
+  tmp <- mat[,which(all_data$dataset == dataset)]
+  Matrix::rowSums(tmp)
+})
+max_vec <- rowSums(num_counts)
+num_counts2 <- num_counts[order(max_vec, decreasing = T),]
+num_counts2[1:15,]
+
+num_counts2 <- num_counts[order(num_counts[,"week5_CIS"], decreasing = T),]
+num_counts2[1:15,]
+
+num_counts2 <- num_counts[order(num_counts[,"week5_COCL2"], decreasing = T),]
+num_counts2[1:15,]
+
+num_counts2 <- num_counts[order(num_counts[,"week5_DABTRAM"], decreasing = T),]
+num_counts2[1:15,]
+
+#######################
+#######################
+#######################
 
 tmp <- all_data[["Lineage"]]@counts[,which(all_data$dataset %in% c("week5_CIS", "week5_COCL2", "week5_DABTRAM"))]
 tmp@x <- rep(1, length(tmp@x))
@@ -281,6 +340,113 @@ for(lineage in lineage_name){
                    col_palette_enrichment = col_palette_enrichment,
                    mode = "enrichment")
   graphics.off()
+}
+
+
+######################################################################
+######################################################################
+######################################################################
+######################################################################
+######################################################################
+
+# make PDF versions of the plots
+library(png)
+lineage_vec <- c("Lin1550", "Lin81746", "Lin56370", "Lin89477")
+lineage_mat <- all_data[["Lineage"]]@counts
+lineage_mat2 <- Matrix::t(lineage_mat)
+membership_vec <- all_data$dataset
+col_palette_enrichment <- paste0(grDevices::colorRampPalette(c('lightgrey', 'blue'))(100), "33")
+mode <- "enrichment"
+
+for(lineage_name in lineage_vec){
+  print(lineage_name)
+  
+  for(modality in c(1,2)){
+    if(modality == 1){
+      umap_mat <- all_data[["atac.umap"]]@cell.embeddings
+      modality_name <- "_atac"
+    } else {
+      umap_mat <- all_data[["umap"]]@cell.embeddings
+      modality_name <- ""
+    }
+    
+    j <- which(colnames(lineage_mat2) == lineage_name)
+    cell_idx <- .nonzero_col(lineage_mat2, col_idx = j, bool_value = F)
+    
+    # https://jonathanchang.org/blog/how-to-partially-rasterize-a-figure-plotted-with-r/
+    pdf(paste0("../../../../out/figures/Writeup4e/Writeup4e_barcode_", lineage_name, "-enrichment", modality_name, ".pdf"),
+        height = 10, width = 10)
+    dataset_vec <- c("day0", "day10_CIS", "week5_CIS",
+                     NA, "day10_COCL2", "week5_COCL2",
+                     NA, "day10_DABTRAM", "week5_DABTRAM")
+    
+    par(mfrow = c(3,3), mar = c(4,4,4,0.5))
+    for(dataset in dataset_vec){
+      print(dataset)
+      cell_idx_all <- which(membership_vec == dataset)
+      
+      if(is.na(dataset)) {
+        plot(NA, xaxt = "n", yaxt = "n", xlim = c(0,1), ylim = c(0,1), 
+             bty = "n", main = "", xlab = "", ylab = "")
+        
+      } else {
+        cell_idx2 <- intersect(cell_idx, cell_idx_all)
+        
+        plot(x = umap_mat[,1], y = umap_mat[,2],
+             xlab = colnames(umap_mat)[1], ylab = colnames(umap_mat)[2],
+             xaxt = "n", yaxt = "n", bty = "n",
+             main = paste0(lineage_name, " for ", dataset, "\n(Present in ", 
+                           length(cell_idx2), " of ", length(cell_idx_all), " cells)"),
+             type = "n")
+        axis(1); axis(2)
+        
+        # Extract plot area in both user and physical coordinates
+        coords <- par("usr")
+        gx <- grconvertX(coords[1:2], "user", "inches")
+        gy <- grconvertY(coords[3:4], "user", "inches")
+        width <- max(gx) - min(gx)
+        height <- max(gy) - min(gy)
+        
+        # Get a temporary file name for our rasterized plot area
+        tmp <- tempfile()
+        
+        # Can increase resolution from 300 if higher quality is desired.
+        png(tmp, width = width, height = height, units = "in", res = 300, bg = "transparent")
+        par(mar = c(0,0,0,0))
+        plot(NA, xaxt = "n", yaxt = "n", xlim = coords[1:2], ylim = coords[3:4], 
+             bty = "n", main = "", xlab = "", ylab = "")
+        cell_enrichment <- sapply(cell_idx2, function(i){
+          tmp_idx <- .nonzero_col(lineage_mat, col_idx = i, bool_value = F)
+          tmp_vec <- .nonzero_col(lineage_mat, col_idx = i, bool_value = T)
+          stopifnot(j %in% tmp_idx)
+          if(length(tmp_idx) == 1){
+            denominator <- tmp_vec[1]
+          } else {
+            denominator <- sum(sort(tmp_vec, decreasing = T)[1:2])
+          }
+          
+          tmp_val <- tmp_vec[which(tmp_idx == j)]/denominator
+        })
+        cell_col <- sapply(cell_enrichment, function(val){
+          col_palette_enrichment[ceiling(val*length(col_palette_enrichment))]
+        })
+        
+        points(x = umap_mat[,1], y = umap_mat[,2],
+               pch = 16, col = "gray")
+        points(x = umap_mat[cell_idx2,1], y = umap_mat[cell_idx2,2],
+               pch = 16, col = "white", cex = 2)
+        points(x = umap_mat[cell_idx2,1], y = umap_mat[cell_idx2,2],
+               pch = 16, col = cell_col, cex = 1.5)
+        dev.off()
+        
+        # Windows users may have trouble with transparent plot backgrounds; if this is the case,
+        # set bg = "white" above and move the legend plot command below the raster plot command.
+        panel <- readPNG(tmp)
+        rasterImage(panel, coords[1], coords[3], coords[2], coords[4])
+      }
+    }
+    dev.off()
+  }
 }
 
 

@@ -1,14 +1,7 @@
 rm(list=ls())
 library(Seurat)
 library(Signac)
-load("../../../../out/kevin/Writeup4d/Writeup4d_timeAll_splicedUnspliced_seuratMerge_CIS.RData")
-
-plot1 <- Seurat::DimPlot(all_data_subset, reduction = "scVelo.umap",
-                         group.by = "dataset", label = TRUE,
-                         repel = TRUE, label.size = 2.5)
-plot1 <- plot1 + ggplot2::ggtitle(paste0("CIS: scVelo UMAP"))
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_scvelo_umap-cis.png"),
-                plot1, device = "png", width = 6, height = 5, units = "in")
+load("../../../../out/kevin/Writeup4d/Writeup4d_timeAll_splicedUnspliced_seuratMerge_COCL2.RData")
 
 Seurat::DefaultAssay(all_data_subset) <- "RNA"
 all_data_subset <- Seurat::FindNeighbors(all_data_subset, 
@@ -21,19 +14,11 @@ dataset <- as.numeric(as.factor(all_data_subset$dataset))
 final_cluster <- clustering*max(dataset)+dataset
 all_data_subset$final_cluster <- factor(final_cluster)
 
-# plot1 <- Seurat::DimPlot(all_data_subset, reduction = "scVelo.umap",
-#                          group.by = "RNA_snn_res.0.1", label = TRUE,
-#                          repel = TRUE, label.size = 2.5)
-# plot1 <- plot1 + ggplot2::ggtitle(paste0("CIS: scVelo UMAP and clustering"))
-# ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_scvelo_umap_clustering-cis.png"),
-#                 plot1, device = "png", width = 6, height = 5, units = "in")
-
-
 plot1 <- Seurat::DimPlot(all_data_subset, reduction = "scVelo.umap",
                          group.by = "final_cluster", label = TRUE,
                          repel = TRUE, label.size = 2.5)
-plot1 <- plot1 + ggplot2::ggtitle(paste0("CIS: scVelo UMAP and clustering"))
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_scvelo_umap_finalclustering-cis.png"),
+plot1 <- plot1 + ggplot2::ggtitle(paste0("COCL2: scVelo UMAP and clustering"))
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_scvelo_umap_finalclustering-cocl2.png"),
                 plot1, device = "png", width = 6, height = 5, units = "in")
 
 # slingshot
@@ -59,8 +44,8 @@ all_data_subset$pseudotime <- pseudotime_vec
 
 plot1 <- Seurat::FeaturePlot(all_data_subset, reduction = "scVelo.umap",
                              features = "pseudotime")
-plot1 <- plot1 + ggplot2::ggtitle(paste0("CIS: scVelo UMAP, Slingshot pseudotime"))
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_scvelo_umap_slingshot-pseudotime-cis.png"),
+plot1 <- plot1 + ggplot2::ggtitle(paste0("CoCl2: scVelo UMAP, Slingshot pseudotime"))
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4d/Writeup4d_scvelo_umap_slingshot-pseudotime-cocl2.png"),
                 plot1, device = "png", width = 6, height = 5, units = "in")
 
 col_palette <- c(rgb(58, 120, 176, alpha = 255*0.5, maxColorValue = 255), 
@@ -73,7 +58,7 @@ col_vec[grep("day0", all_data_subset$dataset)] <- col_palette[1]
 col_vec[grep("day10", all_data_subset$dataset)] <- col_palette[2]
 col_vec[grep("week5", all_data_subset$dataset)] <- col_palette[3]
 
-png("../../../../out/figures/Writeup4d/Writeup4d_scvelo_umap_slingshot-curves-cis.png",
+png("../../../../out/figures/Writeup4d/Writeup4d_scvelo_umap_slingshot-curves-cocl2.png",
     height = 2200, width = 2500, units = "px", res = 500)
 par(mar = c(0.5, 0.5, 4, 0.5))
 plot(x = all_data_subset[["scVelo.umap"]]@cell.embeddings[,1],
@@ -81,7 +66,7 @@ plot(x = all_data_subset[["scVelo.umap"]]@cell.embeddings[,1],
      pch = 16, col = col_vec,
      xaxt = "n", yaxt = "n", bty = "n",
      xlab = "", ylab = "",
-     main = "Slingshot (CIS)")
+     main = "Slingshot (CoCl2)")
 for(i in 1:length(curves_list)){
   ord <- curves_list[[i]]$ord
   mat <- curves_list[[i]]$s[ord,]

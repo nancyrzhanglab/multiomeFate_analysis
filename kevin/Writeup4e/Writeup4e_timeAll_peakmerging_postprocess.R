@@ -44,6 +44,17 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_r
 
 Seurat::DefaultAssay(all_data) <- "RNA"
 plot1 <-Seurat::DimPlot(all_data, reduction = "umap",
+                        group.by = "dataset", label = TRUE,
+                        repel = TRUE, label.size = 2.5, raster = T,
+                        pt.size = 5,
+                        raster.dpi = c(2000,2000))
+plot1 <- plot1 + ggplot2::ggtitle(paste0("RNA (LogNormalized),\n", length(all_data[["RNA"]]@var.features), " genes, using 50 PCs"))
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_rna_umap.pdf"),
+                plot1, device = "pdf", width = 6, height = 5, units = "in")
+
+
+Seurat::DefaultAssay(all_data) <- "RNA"
+plot1 <-Seurat::DimPlot(all_data, reduction = "umap",
                         group.by = "Phase", label = TRUE,
                         repel = TRUE, label.size = 2.5)
 plot1 <- plot1 + ggplot2::ggtitle(paste0("RNA (LogNormalized),\nCell-cycle phase"))
@@ -52,7 +63,6 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_r
 
 Seurat::DefaultAssay(all_data) <- "RNA"
 plot1 <-Seurat::FeaturePlot(all_data, features = c("S.Score", "G2M.Score"))
-plot1 <- plot1 + ggplot2::ggtitle(paste0("RNA (LogNormalized),\nCell-cycle score"))
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_rna_umap-cellcycle-score.png"),
                 plot1, device = "png", width = 10, height = 5, units = "in")
 
@@ -76,6 +86,17 @@ plot1 <- plot1 + ggplot2::ggtitle(paste0("ATAC (TF-IDF),\nusing 49 PCs"))
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_atac_umap.png"),
                 plot1, device = "png", width = 6, height = 5, units = "in")
 
+Seurat::DefaultAssay(all_data) <- "ATAC"
+plot1 <- Seurat::DimPlot(all_data, 
+                         reduction = "atac.umap", 
+                         group.by = "dataset", label = TRUE,
+                         repel = TRUE, label.size = 2.5, raster = T,
+                         pt.size = 5,
+                         raster.dpi = c(2000,2000))
+plot1 <- plot1 + ggplot2::ggtitle(paste0("ATAC (TF-IDF),\nusing 49 PCs"))
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_atac_umap.pdf"),
+                plot1, device = "pdf", width = 6, height = 5, units = "in")
+
 ###############################
 
 Seurat::DefaultAssay(all_data) <- "geneActivity"
@@ -87,4 +108,14 @@ plot1 <- plot1 + ggplot2::ggtitle(paste0("ATAC (Gene activity),\nusing 49 PCs"))
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_atac-activity_umap.png"),
                 plot1, device = "png", width = 6, height = 5, units = "in")
 
+Seurat::DefaultAssay(all_data) <- "geneActivity"
+plot1 <- Seurat::DimPlot(all_data, 
+                         reduction = "activity.umap", 
+                         group.by = "dataset", label = TRUE,
+                         repel = TRUE, label.size = 2.5, raster = T,
+                         pt.size = 5,
+                         raster.dpi = c(2000,2000))
+plot1 <- plot1 + ggplot2::ggtitle(paste0("ATAC (Gene activity),\nusing 49 PCs"))
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_atac-activity_umap.pdf"),
+                plot1, device = "pdf", width = 6, height = 5, units = "in")
 
