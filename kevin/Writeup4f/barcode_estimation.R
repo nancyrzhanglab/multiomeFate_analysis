@@ -109,6 +109,7 @@ barcode_estimation <- function(library_vec,
   
   list(beta0 = beta0,
        beta1 = beta1,
+       dominant_mat = dominant_mat,
        posterior_mat1 = posterior_mat1)
 }
 
