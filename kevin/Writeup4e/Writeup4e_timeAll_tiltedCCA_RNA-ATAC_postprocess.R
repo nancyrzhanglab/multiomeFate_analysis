@@ -111,4 +111,3 @@ plot1 <- plot1 + ggplot2::theme(legend.text = ggplot2::element_text(size = 5))
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup4e/Writeup4e_atac_cellcycle.png"),
                 plot1, device = "png", width = 6, height = 5, units = "in")
 
-
