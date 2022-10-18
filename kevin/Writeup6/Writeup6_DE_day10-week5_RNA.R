@@ -15,6 +15,8 @@ quantile(all_data$assigned_posterior)
 ###############################
 ## simply all Day10 vs Week5
 
+print("Finished loading in data")
+
 Seurat::DefaultAssay(all_data) <- "Saver"
 Seurat::Idents(all_data) <- all_data$dataset
 

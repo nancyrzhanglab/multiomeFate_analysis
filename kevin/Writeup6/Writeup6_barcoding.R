@@ -44,7 +44,7 @@ stopifnot(sum(abs(zz-yy)) == 0)
 #########################
 
 posterior_res <- barcoding_posterior(lin_mat = lin_mat,
-                                      verbose = 1)
+                                     verbose = 1)
 
 maxBhat <- apply(posterior_res$posterior_mat,2,max) #chosen lineage 
 argmaxBhat <- apply(posterior_res$posterior_mat, 2, which.max)
@@ -66,6 +66,11 @@ all_data$assigned_posterior <- maxBhat
 
 save(all_data, date_of_run, session_info,
      file = "../../../../out/kevin/Writeup6/Writeup6_all-data_lineage-assigned.RData")
+
+###################################
+
+all_data2 <- all_data
+load("../../../../out/kevin/Writeup6/Writeup6_timeAll_simplified.RData")
 
 ###################################
 
