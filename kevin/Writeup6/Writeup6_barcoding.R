@@ -2,28 +2,18 @@ rm(list=ls())
 library(Seurat)
 library(Signac)
 
+load("../../../../out/kevin/Writeup6/Writeup6_timeAll_simplified.RData")
+
 set.seed(10)
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
-
-load("../../../../out/kevin/Writeup4e/Writeup4e_timeAll_peakmerging_complete.RData")
-
-all_data[["spliced"]] <- NULL
-all_data[["unspliced"]] <- NULL
-all_data[["fasttopic_CIS"]] <- NULL
-all_data[["fasttopic_COCL2"]] <- NULL
-all_data[["fasttopic_DABTRAM"]] <- NULL
-
-save(all_data, date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6/Writeup6_timeAll_simplified.RData")
-
-###############
 
 lin_mat <- all_data[["Lineage"]]@counts
 lin_mat <- lin_mat[Matrix::rowSums(lin_mat) > 0,]
 
 res_clusters <- barcode_clustering(lin_mat)
 table(sapply(res_clusters$lineage_clusters, length))
+
 cluster_size <- sapply(res_clusters$lineage_clusters, length)
 for(i in 1:length(cluster_size)){
   if(cluster_size[i] >= 3){
@@ -39,67 +29,98 @@ for(i in 1:length(cluster_size)){
 lin_mat <- as.matrix(lin_mat)
 lin_mat2 <- lin_mat
 lin_mat <- barcode_combine(lin_mat = lin_mat,
-                           lineage_clusters = res_clusters$lineage_clusters)
+                           lineage_clusters = res_clusters$lineage_clusters,
+                           verbose = 1)
 
-barcoding_res <- barcoding_assignment(lin_mat = lin_mat,
+# check:
+k <- which.max(sapply(res_clusters$lineage_clusters, length))
+idx_prev <- which(rownames(lin_mat2) %in% res_clusters$lineage_clusters[[k]])
+idx_new <- which(rownames(lin_mat) %in% res_clusters$lineage_clusters[[k]])
+stopifnot(length(idx_new) == 1)
+zz <- colSums(lin_mat2[idx_prev,])
+yy <- lin_mat[idx_new,]
+stopifnot(sum(abs(zz-yy)) == 0)
+
+#########################
+
+posterior_res <- barcoding_posterior(lin_mat = lin_mat,
                                       verbose = 1)
 
-maxBhat <- apply(barcoding_res$Bhat,2,max) #chosen lineage 
-argmaxBhat <- apply(barcoding_res$Bhat, 2, which.max)
-argmaxX <- apply(lin_mat, 2, which.max) #largest count
-maxX <- apply(lin_mat,2,max)
-is_unique_vec_x <- sapply(1:n, function(i){length(which(lin_mat[,i] == maxX[i])) == 1})
-is_unique_vec_b <- sapply(1:n, function(i){length(which(abs(barcoding_res$Bhat[,i] - maxBhat[i]) <= 1e-3)) == 1})
-table(is_unique_vec_b)
-disagrees <- which(argmaxX!=argmaxBhat & maxX>5& maxBhat>0.9 & is_unique_vec_x)
-length(disagrees)
-length(disagrees)/length(argmaxX)
-
-disagrees2 <- which(argmaxX!=argmaxBhat & maxX>5 & is_unique_vec_x)
-length(disagrees2)
-
-disagrees3 <- which(argmaxX!=argmaxBhat & maxX>0 & is_unique_vec_x)
-length(disagrees3)
-
-############################################
-
-# print some stats
-quantile(maxX)
-length(which(maxX == 0))/length(maxX)
+maxBhat <- apply(posterior_res$posterior_mat,2,max) #chosen lineage 
+argmaxBhat <- apply(posterior_res$posterior_mat, 2, which.max)
+n <- ncol(lin_mat)
+is_unique_vec_b <- sapply(1:n, function(i){length(which(abs(posterior_res$posterior_mat[,i] - maxBhat[i]) <= 1e-3)) == 1})
 naive_idx <- which(all_data$dataset == "day0")
-quantile(maxX[naive_idx])
-length(which(maxX[naive_idx] == 0))/length(naive_idx)
-length(which(maxX[naive_idx] == 1))/length(naive_idx)
+lineage_sum <- colSums(lin_mat)
+table(is_unique_vec_b, lineage_sum > 0)
+table(is_unique_vec_b[naive_idx], lineage_sum[naive_idx] > 0)
 
-difference_Xvec <- apply(lin_mat, 2, function(x){
+assignment_vec <- barcoding_assignment(posterior_mat = posterior_res$posterior_mat,
+                                       difference_val = 0.2,
+                                       verbose = 1)
+
+all_data[["Lineage"]]@data <- posterior_res$posterior_mat
+all_data$assigned_lineage <- assignment_vec
+all_data$assigned_posterior <- maxBhat
+
+
+save(all_data, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup6/Writeup6_all-data_lineage-assigned.RData")
+
+###################################
+
+# do a simple check
+posterior_res$posterior_mat[assignment_vec[1],1]
+sort(posterior_res$posterior_mat[,2], decreasing = T)[1:5]
+
+tab_mat <- table(assignment_vec, all_data$dataset)
+length(which(tab_mat[,1]>=1))
+quantile(tab_mat[tab_mat[,1]>=1,1])
+
+tab_mat[order(rowSums(tab_mat), decreasing = T)[1:10],]
+tab_mat[order(rowSums(tab_mat), decreasing = F)[1:10],]
+
+tab_mat[order(rowSums(tab_mat[,2:4]), decreasing = T)[1:10],]
+tab_mat[order(rowSums(tab_mat[,2:4]), decreasing = F)[1:10],]
+
+table(tab_mat[,1], rowSums(tab_mat[,5:7]) > 10)
+table(tab_mat[,1], cut(rowSums(tab_mat[,5:7]), breaks = c(-0.5,0.5,5.5,10.5,20.5,max(tab_mat))))
+zz <- table(tab_mat[,1], rowSums(tab_mat[,5:7]) > 10)
+1-zz["0","TRUE"]/sum(zz[,2])
+sum(zz[,2])/sum(zz)
+
+table(tab_mat[,1], rowSums(tab_mat[,2:4]) > 10)
+table(tab_mat[,1], cut(rowSums(tab_mat[,2:4]), breaks = c(-0.5,0.5,5.5,10.5,20.5,max(tab_mat))))
+zz <- table(tab_mat[,1], rowSums(tab_mat[,2:4]) > 10)
+1-zz["0","TRUE"]/sum(zz[,2])
+sum(zz[,2])/sum(zz)
+
+table(cut(rowSums(tab_mat[,2:4]), breaks = c(-0.5,0.5,5.5,10.5,20.5,max(tab_mat))), 
+      cut(rowSums(tab_mat[,5:7]), breaks = c(-0.5,0.5,5.5,10.5,20.5,max(tab_mat))))
+zz <- table(cut(rowSums(tab_mat[,2:4]), breaks = c(-0.5,0.5,5.5,10.5,20.5,max(tab_mat))), 
+            cut(rowSums(tab_mat[,5:7]), breaks = c(-0.5,0.5,5.5,10.5,20.5,max(tab_mat))))
+sum(zz[1,-1])/sum(zz)
+sum(zz[-1,1])/sum(zz)
+
+
+tab_mat2 <- tab_mat[rowSums(tab_mat[,5:7])>20,]
+tab_mat2[order(apply(tab_mat2[,5:7],1,function(x){
   tmp <- sort(x, decreasing = T)[1:2]
-  -diff(tmp)/sum(tmp+1)
-})
-quantile(difference_Xvec)
-length(which(difference_Xvec > 1/3-1e-3))/length(difference_Xvec)
-quantile(difference_Xvec[naive_idx])
-length(which(difference_Xvec[naive_idx] >= 1/3+1e-3))/length(naive_idx)
-length(which(difference_Xvec[naive_idx] >= 1/3-1e-3))/length(naive_idx)
-difference_Bvec <- apply(barcoding_res$Bhat, 2, function(x){
-  -diff(sort(x, decreasing = T)[1:2])
-})
-quantile(difference_Bvec)
-length(which(difference_Bvec >= 0.1))/length(difference_Bvec)
-length(which(difference_Bvec >= 0.1 & is_unique_vec_b))/length(difference_Bvec)
-quantile(difference_Bvec[naive_idx])
-length(which(difference_Bvec[naive_idx] >= 0.1 & is_unique_vec_b[naive_idx]))/length(naive_idx)
-quantile(difference_Bvec[naive_idx[which(maxX[naive_idx] == 0)]])
+  (tmp[1]-tmp[2])
+}), decreasing = F)[1:10],]
+tab_mat2[order(apply(tab_mat2[,5:7],1,function(x){
+  tmp <- sort(x, decreasing = T)[1:2]
+  (tmp[1]-tmp[2])
+}), decreasing = T)[1:10],]
 
-table(table(argmaxBhat))
-table(table(argmaxBhat[is_unique_vec_b]))
-table(table(argmaxBhat[naive_idx]))
-table(table(argmaxBhat[intersect(naive_idx,which(is_unique_vec_b))]))
-which(table(argmaxBhat[naive_idx]) == 3527)
-length(which(argmaxBhat == 1))
-head(which(argmaxBhat == 1))
-quantile(maxX[which(argmaxBhat == 1)]) # oohh.....
-quantile(barcoding_res$Bhat[,2])
 
-table(is_unique_vec_b[naive_idx])
-length(which(is_unique_vec_b[naive_idx]))/length(naive_idx)
+tab_mat2 <- tab_mat[rowSums(tab_mat[,2:4])>20,]
+tab_mat2[order(apply(tab_mat2[,2:4],1,function(x){
+  tmp <- sort(x, decreasing = T)[1:2]
+  (tmp[1]-tmp[2])/tmp[2]
+}), decreasing = F)[1:10],]
+tab_mat2[order(apply(tab_mat2[,2:4],1,function(x){
+  tmp <- sort(x, decreasing = T)[1:2]
+  (tmp[1]-tmp[2])
+}), decreasing = T)[1:10],]
 
