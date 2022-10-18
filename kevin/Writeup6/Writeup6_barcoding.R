@@ -70,7 +70,13 @@ save(all_data, date_of_run, session_info,
 ###################################
 
 all_data2 <- all_data
-load("../../../../out/kevin/Writeup6/Writeup6_timeAll_simplified.RData")
+load("../../../../out/kevin/Writeup4e/Writeup4e_timeAll_peakmerging_complete.RData")
+all_data2[["fasttopic_CIS"]] <- all_data[["fasttopic_CIS"]]
+all_data2[["fasttopic_COCL2"]] <- all_data[["fasttopic_COCL2"]]
+all_data2[["fasttopic_DABTRAM"]] <- all_data[["fasttopic_DABTRAM"]]
+all_data <- all_data2
+save(all_data, date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup6/Writeup6_all-data_lineage-assigned.RData")
 
 ###################################
 
