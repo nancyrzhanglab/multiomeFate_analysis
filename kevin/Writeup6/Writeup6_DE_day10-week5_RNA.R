@@ -71,9 +71,8 @@ de_ExpandvsShrunk <- lapply(treatment_vec, function(dataset){
                       only.pos = F,
                       verbose = F)
 })
-names(de_day10vsweek5) <- treatment_vec
+names(de_ExpandvsShrunk) <- treatment_vec
 print("Finished expand vs shrink, day10")
-
 
 # head(de_ExpandvsShrunk)
 # de_ExpandvsShrunk[de_ExpandvsShrunk$p_val <= 1e-3,]
@@ -126,7 +125,6 @@ save(date_of_run, session_info,
      de_day10vsweek5, de_ExpandvsShrunk,
      de_week5_pairwise, 
      file = "../../../../out/kevin/Writeup6/Writeup6_DE_day10-week5.RData")
-
 
 # sapply(de_week5_pairwise, function(x){
 #   length(which(x$p_val <= 1e-4))
