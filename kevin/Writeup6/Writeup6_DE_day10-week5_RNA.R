@@ -104,7 +104,7 @@ de_week5_pairwise <- lapply(treatment_vec, function(dataset){
   combn_mat <- rbind(tmp1, tmp2)
   
   de_list <- lapply(1:ncol(combn_mat), function(j){
-    print(j)
+    print(paste0(j, " out of ", ncol(combn_mat)))
     
     set.seed(10)
     Seurat::FindMarkers(all_data,
@@ -158,11 +158,11 @@ de_day10_pairwise <- lapply(treatment_vec, function(dataset){
   combn_mat <- rbind(tmp1, tmp2)
   
   de_list <- lapply(1:ncol(combn_mat), function(j){
-    print(j)
+    print(paste0(j, " out of ", ncol(combn_mat)))
     
     ident_1 <- paste0(combn_mat[1,j], "_day10")
     ident_2 <- paste0(combn_mat[2,j], "_day10")
-    if(length(which(all_data$key == ident_1)) < 2 || length(which(all_data$key == ident_2)) < 2){
+    if(length(which(all_data$key == ident_1)) <= 3 || length(which(all_data$key == ident_2)) <= 3){
       tmp <- matrix(NA, nrow = 0, ncol = 5)
       colnames(tmp) <- c("p_val", "avg_log2FC", "pct.1", "pct.2", "p_val_adj")
       return(tmp)
