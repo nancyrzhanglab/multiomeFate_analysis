@@ -121,6 +121,13 @@ de_week5_pairwise <- lapply(treatment_vec, function(dataset){
 names(de_week5_pairwise) <- treatment_vec
 print("Finished week5 expand")
 
+
+save(date_of_run, session_info,
+     de_day10vsweek5, de_ExpandvsShrunk,
+     de_week5_pairwise, 
+     file = "../../../../out/kevin/Writeup6/Writeup6_DE_day10-week5.RData")
+
+
 # sapply(de_week5_pairwise, function(x){
 #   length(which(x$p_val <= 1e-4))
 # })
@@ -156,7 +163,7 @@ de_day10_pairwise <- lapply(treatment_vec, function(dataset){
     ident_1 <- paste0(combn_mat[1,j], "_day10")
     ident_2 <- paste0(combn_mat[2,j], "_day10")
     if(length(which(all_data$key == ident_1)) < 2 || length(which(all_data$key == ident_2)) < 2){
-      tmp <- matrix(NA, nrow = 0, ncol = 6)
+      tmp <- matrix(NA, nrow = 0, ncol = 5)
       colnames(tmp) <- c("p_val", "avg_log2FC", "pct.1", "pct.2", "p_val_adj")
       return(tmp)
     } else {
