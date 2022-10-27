@@ -123,7 +123,7 @@ print("Finished week5 expand")
 
 save(date_of_run, session_info,
      de_day10vsweek5, de_ExpandvsShrunk,
-     de_week5_pairwise, 
+     de_week5_pairwise, tab_mat,
      file = "../../../../out/kevin/Writeup6/Writeup6_DE_day10-week5.RData")
 
 # sapply(de_week5_pairwise, function(x){
@@ -194,6 +194,7 @@ print("Finished day10 expand")
 save(date_of_run, session_info,
      de_day10vsweek5, de_ExpandvsShrunk,
      de_week5_pairwise, de_day10_pairwise,
+     tab_mat,
      file = "../../../../out/kevin/Writeup6/Writeup6_DE_day10-week5.RData")
 
 

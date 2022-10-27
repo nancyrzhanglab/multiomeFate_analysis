@@ -5,7 +5,7 @@ library(Signac)
 library(EnsDb.Hsapiens.v86)
 library(tiltedCCA)
 
-load("../../../../out/kevin/Writeup4e/Writeup4e_timeAll_peakmerging_complete.RData")
+load("../../../../out/kevin/Writeup6/Writeup6_all-data_lineage-assigned.RData")
 n <- ncol(all_data)
 
 Seurat::DefaultAssay(all_data) <- "Saver"
@@ -79,7 +79,7 @@ multiSVD_obj <- tiltedCCA:::fine_tuning(input_obj = multiSVD_obj,
 multiSVD_obj <- tiltedCCA:::tiltedCCA_decomposition(input_obj = multiSVD_obj,
                                                     verbose = 1,
                                                     bool_modality_1_full = T,
-                                                    bool_modality_2_full = F)
+                                                    bool_modality_2_full = T)
 
 save(multiSVD_obj, all_data,
      date_of_run, session_info,
