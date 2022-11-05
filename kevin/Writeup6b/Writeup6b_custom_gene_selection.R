@@ -3,18 +3,43 @@ library(Seurat)
 library(Signac)
 library(igraph)
 
-load("../../../../out/kevin/Writeup6/Writeup6_tcca_selected-genes.RData")
 load("../../../../out/kevin/Writeup5a/Writeup5a_tcca_RNA-geneActivity.RData")
 source("../Writeup5a/color_palette.R")
 
-mat <- Matrix::t(all_data[["Saver"]]@scale.data)
+#CIS: 3,4,7,8,14,18,19,21,23,27,27,29
+#COCL2: 1,2,4,5,7,11,12,13,14,15,19,21,22,26,27,28,30
+#DABTRAM: 1,5,7,8,11,12,13,15,17,23,24,25,28,30
+
+treatment_vec <- c("CIS", "COCL2", "DABTRAM")
+topic_list <- list("CIS" = c(3,4,7,8,14,18,19,21,23,27,27,29),
+                   "COCL2" = c(1,2,4,5,7,11,12,13,14,15,19,21,22,26,27,28,30),
+                   "DABTRAM" = c(1,5,7,8,11,12,13,15,17,23,24,25,28,30))
+gene_all_list <- lapply(treatment_vec, function(treatment){
+  topic_gene_mat <- all_data[[paste0("fasttopic_", treatment)]]@feature.loadings
+  topic_vec <- topic_list[[treatment]]
+  
+  p <- nrow(topic_gene_mat)
+  gene_list <- lapply(topic_vec, function(topic){
+    rownames(topic_gene_mat)[which(topic_gene_mat[,topic] >= 15*1/p)]
+  })
+  gene_vec <- sort(unique(unlist(gene_list)))
+  gene_vec
+})
+gene_all_vec <- sort(unique(unlist(gene_all_list)))
+gene_all_vec <- intersect(intersect(gene_all_vec, rownames(multiSVD_obj$svd_1$v)), rownames(multiSVD_obj$svd_2$v))
+length(gene_all_vec)
+
+cell_cycling <- c(cc.genes$s.genes, cc.genes$g2m.genes)
+length(intersect(cell_cycling, gene_all_vec))
+
+#####################
+
 lineage_vec <- all_data$assigned_lineage
 dataset_vec <- all_data$dataset
 
 na_idx <- which(is.na(lineage_vec))
 lineage_vec <- lineage_vec[-na_idx]
 dataset_vec <- dataset_vec[-na_idx]
-mat <- mat[-na_idx,]
 
 n <- length(lineage_vec)
 combined_vec <- sapply(1:n, function(i){
@@ -25,91 +50,8 @@ combined_idx_list <- sapply(unique_combined, function(combined_name){
   which(combined_vec == combined_name)
 })
 names(combined_idx_list) <- unique_combined
-quantile(table(sapply(combined_idx_list, length)))
-max(unlist(combined_idx_list))
-dim(mat)
 
-mat_avg_split <- Matrix::t(sapply(1:length(combined_idx_list), function(i){
-  if(i %% floor(length(combined_idx_list)/10) == 0) cat('*')
-  matrixStats::colMedians(mat[combined_idx_list[[i]],,drop = F])
-}))
-rownames(mat_avg_split) <- names(combined_idx_list)
-
-# mat_avg_split2 <- mat_avg_split[,selection_res$selected_variables]
-set.seed(10)
-svd_res <- irlba::irlba(mat_avg_split, nv = 50)
-dimred <- svd_res$u %*% diag(svd_res$d)
-
-set.seed(10)
-umap_res <- Seurat::RunUMAP(dimred)
-umap_mat <- umap_res@cell.embeddings
-
-lineage_vec2 <- sapply(rownames(mat_avg_split), function(x){
-  strsplit(x, split = ":")[[1]][1]
-})
-dataset_vec2 <- sapply(rownames(mat_avg_split), function(x){
-  strsplit(x, split = ":")[[1]][2]
-})
-col_vec <- sapply(dataset_vec2, function(x){
-  col_palette[x]
-})
-
-png("../../../../out/figures/Writeup6b/Writeup6b_lineage-dataset_UMAP_all.png",
-    height = 3000, width = 3000, res = 500, units = "px")
-par(mar = c(4,4,4,0.5))
-plot(umap_mat[,1], umap_mat[,2],
-     col = col_vec, pch = 16, cex = 1, 
-     xlab = "UMAP 1", ylab = "UMAP 2",
-     main = "UMAP of lineage-dataset averages",
-     xaxt = "n", yaxt = "n", bty = "n")
-axis(1); axis(2)
-graphics.off()
-
-
-########################################
-
-saver_umap <- all_data[["saverumap"]]@cell.embeddings
-lineage_vec <- all_data$assigned_lineage
-dataset_vec <- all_data$dataset
-
-# make 7 plots, each showing how many cells are unlabeled
-treatment_vec <- sort(unique(dataset_vec))
-xlim <- range(saver_umap[,1]); ylim <- range(saver_umap[,2])
-for(treatment in treatment_vec){
-  print(treatment)
-  
-  png(paste0("../../../../out/figures/Writeup6b/Writeup6b_Saver-UMAP_", treatment, ".png"),
-      height = 2500, width = 5000, res = 500, units = "px")
-  par(mar = c(4,4,4,0.5), mfrow = c(1,2))
-  idx1 <- which(dataset_vec == treatment)
-  idx2 <- which(dataset_vec == treatment & !is.na(lineage_vec))
-  
-  plot(saver_umap[,1], saver_umap[,2],
-       col = rgb(0.8,0.8,0.8), pch = 16, cex = 1, 
-       xlab = "UMAP 1", ylab = "UMAP 2",
-       main = paste0("Saver UMAP of ", treatment, " (All)"),
-       xaxt = "n", yaxt = "n", bty = "n")
-  points(saver_umap[idx1,1], saver_umap[idx1,2],
-         col = "white", pch = 16, cex = 1)
-  points(saver_umap[idx1,1], saver_umap[idx1,2],
-         col = rgb(0.5,0.5,0.5,0.05), pch = 16, cex = 0.5)
-  axis(1); axis(2)
-  
-  plot(saver_umap[,1], saver_umap[,2],
-       col = rgb(0.8,0.8,0.8), pch = 16, cex = 1, 
-       xlab = "UMAP 1", ylab = "UMAP 2",
-       main = paste0("(Only lineage-assigned): ", round(100*length(idx2)/length(idx1)), "%"),
-       xaxt = "n", yaxt = "n", bty = "n")
-  points(saver_umap[idx2,1], saver_umap[idx2,2],
-         col = "white", pch = 16, cex = 1)
-  points(saver_umap[idx2,1], saver_umap[idx2,2],
-         col = rgb(0.5,0.5,0.5,0.05), pch = 16, cex = 0.5)
-  axis(1); axis(2)
-  
-  graphics.off()
-}
-
-########################################
+######################
 
 multiSVD_obj[["common_mat_1"]] <- NULL
 multiSVD_obj[["distinct_mat_1"]] <- NULL
@@ -121,8 +63,8 @@ multiSVD_obj <- tiltedCCA:::tiltedCCA_decomposition(input_obj = multiSVD_obj,
                                                     bool_modality_1_full = T,
                                                     bool_modality_2_full = T)
 
-common_mat_1 <- multiSVD_obj$common_mat_1[,selection_res$selected_variables]
-common_mat_2 <- multiSVD_obj$common_mat_2[,selection_res$selected_variables]
+common_mat_1 <- multiSVD_obj$common_mat_1[,gene_all_vec]
+common_mat_2 <- multiSVD_obj$common_mat_2[,gene_all_vec]
 
 common_mat_1 <- tiltedCCA:::.normalize_svd(input_obj = common_mat_1,
                                            averaging_mat = NULL,
@@ -177,7 +119,7 @@ col_vec <- sapply(dataset_vec2, function(x){
 set.seed(10)
 idx <- sample(1:nrow(umap_mat))
 
-png("../../../../out/figures/Writeup6b/Writeup6b_lineage-dataset_tcca-UMAP_all.png",
+png("../../../../out/figures/Writeup6b/Writeup6b_lineage-dataset_tcca_customGene2_UMAP_all.png",
     height = 3000, width = 3000, res = 500, units = "px")
 par(mar = c(4,4,4,0.5))
 plot(umap_mat[idx,1], umap_mat[idx,2],
@@ -188,7 +130,7 @@ plot(umap_mat[idx,1], umap_mat[idx,2],
 axis(1); axis(2)
 graphics.off()
 
-########
+#################
 
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 treatment_vec <- c("CIS", "COCL2", "DABTRAM")
@@ -206,7 +148,7 @@ for(treatment in treatment_vec){
   set.seed(10)
   idx <- sample(1:nrow(umap_mat))
   
-  png(paste0("../../../../out/figures/Writeup6b/Writeup6b_lineage-dataset_tcca-UMAP_day0_expandingDay10vsWeek5-", treatment, ".png"),
+  png(paste0("../../../../out/figures/Writeup6b/Writeup6b_lineage-dataset_tcca_customGene2_UMAP_day0_expandingDay10vsWeek5-", treatment, ".png"),
       height = 3000, width = 3000, res = 500, units = "px")
   par(mar = c(4,4,4,0.5))
   plot(umap_mat[idx,1], umap_mat[idx,2],
@@ -246,7 +188,7 @@ for(treatment in treatment_vec){
   set.seed(10)
   idx <- sample(1:nrow(umap_mat))
   
-  png(paste0("../../../../out/figures/Writeup6b/Writeup6b_lineage-dataset_tcca-UMAP_day10_expandingDay10vsWeek5-", treatment, ".png"),
+  png(paste0("../../../../out/figures/Writeup6b/Writeup6b_lineage-dataset_tcca_customGene2_UMAP_day10_expandingDay10vsWeek5-", treatment, ".png"),
       height = 3000, width = 3000, res = 500, units = "px")
   par(mar = c(4,4,4,0.5))
   plot(umap_mat[idx,1], umap_mat[idx,2],
@@ -286,7 +228,7 @@ for(treatment in treatment_vec){
   set.seed(10)
   idx <- sample(1:nrow(umap_mat))
   
-  png(paste0("../../../../out/figures/Writeup6b/Writeup6b_lineage-dataset_tcca-UMAP_week5_expandingDay10vsWeek5-", treatment, ".png"),
+  png(paste0("../../../../out/figures/Writeup6b/Writeup6b_lineage-dataset_tcca_customGene2_UMAP_week5_expandingDay10vsWeek5-", treatment, ".png"),
       height = 3000, width = 3000, res = 500, units = "px")
   par(mar = c(4,4,4,0.5))
   plot(umap_mat[idx,1], umap_mat[idx,2],
