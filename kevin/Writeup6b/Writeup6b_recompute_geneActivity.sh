@@ -2,6 +2,6 @@
 #$ -N geneActivity
 #$ -j y
 #$ -o ../../../../out/kevin/Writeup6b/qsub/
-#$ -l m_mem_free=50G
+#$ -l m_mem_free=100G
 
 Rscript --no-save Writeup6b_recompute_geneActivity.R
