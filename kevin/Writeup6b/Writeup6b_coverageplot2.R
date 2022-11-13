@@ -34,7 +34,7 @@ for(treatment in treatment_vec){
   all_data$ident <- ident_vec
   Seurat::Idents(all_data) <- "ident"
   
-  pdf(paste0("../../../../out/figures/Writeup6b/Writeup6b_coverage_", treatment, ".png"),
+  pdf(paste0("../../../../out/figures/Writeup6b/Writeup6b_coverage_", treatment, ".pdf"),
       width = 6, height = 5)
   for(gene in gene_vec){
     print(gene)
@@ -46,6 +46,7 @@ for(treatment in treatment_vec){
       extend.upstream = 5000,
       extend.downstream = 5000
     )
+    plot1
   }
   graphics.off()
 }
