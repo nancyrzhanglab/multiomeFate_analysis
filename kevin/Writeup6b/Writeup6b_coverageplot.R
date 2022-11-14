@@ -33,9 +33,9 @@ for(treatment in treatment_vec){
   all_data$ident <- ident_vec
   Seurat::Idents(all_data) <- "ident"
   
+  pdf(paste0("../../../../out/figures/Writeup6b/Writeup6b_coverage_", treatment, "_1000bp.pdf"),
+      onefile = T)
   for(gene in gene_vec){
-    print(gene)
-    
     plot1 <- Signac::CoveragePlot(
       object = all_data,
       region = gene,
@@ -44,9 +44,10 @@ for(treatment in treatment_vec){
       extend.downstream = 1000
     )
     
-    ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6b/Writeup6b_coverage_", treatment, "_", gene, ".png"),
-                    plot1, device = "png", width = 6, height = 5, units = "in")
+    print(plot1)
   }
+  
+  dev.off() 
 }
 
 
