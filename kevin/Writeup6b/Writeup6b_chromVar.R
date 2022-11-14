@@ -8,6 +8,7 @@ library(motifmatchr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 
 load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
+source("gene_list.R")
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
@@ -53,6 +54,18 @@ motif.positions <- motifmatchr::matchMotifs(
   subject = GenomicRanges::granges(all_data[["ATAC"]]),
   out = "positions",
   genome = "hg38"
+)
+
+motif <- Signac::CreateMotifObject(
+  data = motif.matrix,
+  positions = motif.positions,
+  pwm = pfm
+)
+
+all_data[["ATAC"]] <- Seurat::SetAssayData(
+  object = all_data[["ATAC"]],
+  slot = 'motifs',
+  new.data = motif
 )
 
 all_data <- Signac::RunChromVAR(
