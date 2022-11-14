@@ -25,14 +25,6 @@ main.chroms <- GenomeInfoDb::standardChromosomes(BSgenome.Hsapiens.UCSC.hg38::BS
 keep.peaks <- which(as.character(GenomeInfoDb::seqnames(GenomicRanges::granges(all_data[["ATAC"]]))) %in% main.chroms)
 all_data[["ATAC"]] <- subset(all_data[["ATAC"]], features = rownames(all_data[["ATAC"]])[keep.peaks])
 
-# annotations <- Signac::GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86::EnsDb.Hsapiens.v86) # takes a while
-# GenomeInfoDb::seqlevelsStyle(annotations) <- "NCBI" # chromosome 1 is called "chr1"
-# ## see https://github.com/Bioconductor/GenomeInfoDb/issues/14 ?
-# annotations
-# chrom_assay <- all_data[["ATAC"]]
-# Signac::Annotation(chrom_assay) <- annotations
-# all_data[["ATAC"]] <- chrom_assay
-
 Seurat::DefaultAssay(all_data) <- "ATAC"
 # all_data <- Signac::AddMotifs(
 #   object = all_data,
@@ -40,6 +32,7 @@ Seurat::DefaultAssay(all_data) <- "ATAC"
 #   pfm = pfm
 # )
 
+# the above line didnt' work for some reason, so we'll run it piece by piece below
 ## see https://github.com/stuart-lab/signac/blob/master/R/motifs.R
 motif.matrix <- Signac::CreateMotifMatrix(
   features = GenomicRanges::granges(all_data[["ATAC"]]),
@@ -48,6 +41,9 @@ motif.matrix <- Signac::CreateMotifMatrix(
   use.counts = FALSE
 )
 
+save(date_of_run, session_info, motif.matrix,
+     file = "../../../../out/kevin/Writeup6b/Writeup6b_chromVar.RData")
+
 motif.positions <- motifmatchr::matchMotifs(
   pwms = pfm,
   subject = GenomicRanges::granges(all_data[["ATAC"]]),
@@ -55,11 +51,17 @@ motif.positions <- motifmatchr::matchMotifs(
   genome = "hg38"
 )
 
+save(date_of_run, session_info, motif.matrix, motif.positions,
+     file = "../../../../out/kevin/Writeup6b/Writeup6b_chromVar.RData")
+
 motif <- Signac::CreateMotifObject(
   data = motif.matrix,
   positions = motif.positions,
   pwm = pfm
 )
+
+save(date_of_run, session_info, motif.matrix, motif.positions, motif,
+     file = "../../../../out/kevin/Writeup6b/Writeup6b_chromVar.RData")
 
 all_data[["ATAC"]] <- Seurat::SetAssayData(
   object = all_data[["ATAC"]],
@@ -71,3 +73,7 @@ all_data <- Signac::RunChromVAR(
   object = all_data,
   genome = "hg38"
 )
+
+save(date_of_run, session_info, motif.matrix, motif.positions, motif,
+     all_data,
+     file = "../../../../out/kevin/Writeup6b/Writeup6b_chromVar.RData")
