@@ -4,6 +4,7 @@ library(Signac)
 library(fastTopics)
 
 load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
+source("gene_list.R")
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
