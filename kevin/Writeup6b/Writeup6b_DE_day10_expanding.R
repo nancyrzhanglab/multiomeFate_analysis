@@ -32,13 +32,13 @@ for(kk in 1:length(treatment_vec)){
   Seurat::Idents(all_data) <- "ident"
   
   set.seed(10)
-  de_list[kk] <- Seurat::FindMarkers(all_data,
-                                     ident.1 = paste0("day10_win_", treatment),
-                                     ident.2 = paste0("day10_lose_", treatment),
-                                     test.use = "wilcox",
-                                     slot = "data",
-                                     only.pos = F,
-                                     verbose = F)
+  de_list[[kk]] <- Seurat::FindMarkers(all_data,
+                                       ident.1 = paste0("day10_win_", treatment),
+                                       ident.2 = paste0("day10_lose_", treatment),
+                                       test.use = "wilcox",
+                                       slot = "data",
+                                       only.pos = F,
+                                       verbose = F)
 }
 
 save(date_of_run, session_info, de_list,
