@@ -78,36 +78,48 @@ coverage_extractor <- function(
     cutmat[idx_vec,]
   })
   
+  ##############################
+  # compute the normalized cut matrix
+  ##############################
+  
   # multiply cutmat by the rolling average matrix to smooth out the entries
   avg_mat <- .construct_averaging_mat(p = ncol(cutmat),
                                       window = window)
-  cutmat_list <- lapply(cutmat_list, function(mat){
+  cutmat_norm_list <- lapply(cutmat_list, function(mat){
     tmp <- mat %*% avg_mat
     colnames(tmp) <- colnames(mat)[floor(window/2):(ncol(mat)-floor(window/2))]
     tmp
   })
   
   # normalize all the value
-  for(i in 1:length(cutmat_list)){
-    cutmat_list[[i]]@x <- cutmat_list[[i]]@x / group.scale.factors[which_ident[i]] * scale.factor
+  for(i in 1:length(cutmat_norm_list)){
+    cutmat_norm_list[[i]]@x <- cutmat_norm_list[[i]]@x / group.scale.factors[which_ident[i]] * scale.factor
   }
   
   # compute the median and the quantiles
-  coverage_mean <- sapply(cutmat_list, function(mat){
+  coverage_mean <- sapply(cutmat_norm_list, function(mat){
     Matrix::colMeans(mat)
   })
-  
-  coverage_sd <- sapply(cutmat_list, function(mat){
-    sparseMatrixStats::colSds(mat)
-  })
-  
   colnames(coverage_mean) <- which_ident
-  colnames(coverage_sd) <- which_ident
-  rownames(coverage_mean) <- colnames(cutmat_list[[1]])
-  rownames(coverage_sd) <- colnames(cutmat_list[[1]])
+  rownames(coverage_mean) <- colnames(cutmat_norm_list[[1]])
+  
+  ##############################
+  # now, for the unprocessed version, compute the list where you see how many cells have a fragment at a bp
+  ##############################
+  
+  coverage_count <- sapply(cutmat_list, function(mat){
+    mat@x <- rep(1, length(mat@x))
+    Matrix::colSums(mat)
+  })
+  colnames(coverage_count) <- which_ident
+  coverage_count <- coverage_count[rownames(coverage_mean),]
+  
+  total_vec <- sapply(cutmat_list, nrow)
+  names(total_vec) <- which_ident
   
   list(coverage_mean = coverage_mean,
-       coverage_sd = coverage_sd)
+       coverage_count = coverage_count,
+       total_vec = total_vec)
 }
 
 .construct_averaging_mat <- function(p,
