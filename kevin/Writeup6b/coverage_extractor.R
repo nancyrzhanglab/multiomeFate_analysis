@@ -97,27 +97,17 @@ coverage_extractor <- function(
     Matrix::colMeans(mat)
   })
   
-  # vv=== old code ===vv #
-  coverages <- Signac:::ApplyMatrixByGroup(
-    mat = cutmat,
-    fun = colSums,
-    groups = obj.groups,
-    group.scale.factors = group.scale.factors,
-    scale.factor = scale.factor,
-    normalize = TRUE
-  )
-  coverages <- dplyr::group_by(.data = coverages, group)
-  coverages <- dplyr::mutate(.data = coverages, 
-                             coverage = RcppRoll::roll_sum(
-                               x = norm.value, 
-                               n = window, 
-                               fill = NA, 
-                               align = "center"
-                             ))
-  coverages <- dplyr::ungroup(x = coverages)
-  coverages <- coverages[!is.na(x = coverages$coverage), ]
-  coverages <- dplyr::group_by(.data = coverages, group)
+  coverage_sd <- sapply(cutmat_list, function(mat){
+    sparseMatrixStats::colSds(mat)
+  })
   
+  colnames(coverage_mean) <- which_ident
+  colnames(coverage_sd) <- which_ident
+  rownames(coverage_mean) <- colnames(cutmat_list[[1]])
+  rownames(coverage_sd) <- colnames(cutmat_list[[1]])
+  
+  list(coverage_mean = coverage_mean,
+       coverage_sd = coverage_sd)
 }
 
 .construct_averaging_mat <- function(p,
