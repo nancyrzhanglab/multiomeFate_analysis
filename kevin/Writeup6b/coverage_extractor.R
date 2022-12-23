@@ -1,18 +1,17 @@
 coverage_extractor <- function(
     object,
     region,
-    which_ident,
+    group.by, # name of ident you want to use
+    which_ident, # which values of the ident do you want to output cells for?
     assay = "ATAC",
     cells = NULL,
     extend.downstream = 1000,
     extend.upstream = 1000,
-    group.by = NULL,
-    idents = NULL,
     multipler = 1e6,
     scale.factor = NULL,
     sep = c("-", "-"),
     window = 100
-  ){
+){
   
   # some default things
   cells <- Signac:::SetIfNull(x = cells, y = colnames(x = object))
@@ -22,11 +21,7 @@ coverage_extractor <- function(
   if (!is.null(x = group.by)) {
     Seurat::Idents(object = object) <- group.by
   }
-  if (!is.null(x = idents)) {
-    ident.cells <- Signac:::WhichCells(object = object, idents = idents)
-    cells <- intersect(x = cells, y = ident.cells)
-  }
-  
+
   ##########
   
   region <- Signac:::FindRegion(
@@ -44,7 +39,7 @@ coverage_extractor <- function(
   obj.groups <- Signac:::GetGroups(
     object = object,
     group.by = group.by,
-    idents = idents
+    idents = NULL
   )
   cm.list <- list()
   sf.list <- list()
@@ -65,15 +60,12 @@ coverage_extractor <- function(
   )
   colnames(cutmat) <- (IRanges::start(x = region)):(IRanges::end(x = region))
   group.scale.factors <- suppressWarnings(reads.per.group * cells.per.group)
-  group.scale.factors <- group.scale.factors[[1]]
-  scale.factor <- Signac::SetIfNull(
+  scale.factor <- Signac:::SetIfNull(
     x = scale.factor, y = median(x = group.scale.factors)
   )
-  scale.factor <- scale.factor[[1]]
- 
+  
   ##########
   
-  levels.use <- levels(x = obj.groups)
   chromosome <- as.character(x = seqnames(x = region))
   start.pos <- IRanges::start(x = region)
   end.pos <- IRanges::end(x = region)
@@ -86,7 +78,7 @@ coverage_extractor <- function(
     cutmat[idx_vec,]
   })
   
-  # multiply cutmat by the rolling average matrix
+  # multiply cutmat by the rolling average matrix to smooth out the entries
   avg_mat <- .construct_averaging_mat(p = ncol(cutmat),
                                       window = window)
   cutmat_list <- lapply(cutmat_list, function(mat){
