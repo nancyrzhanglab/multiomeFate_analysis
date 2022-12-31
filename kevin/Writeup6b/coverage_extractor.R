@@ -21,7 +21,7 @@ coverage_extractor <- function(
   if (!is.null(x = group.by)) {
     Seurat::Idents(object = object) <- group.by
   }
-
+  
   ##########
   
   region <- Signac:::FindRegion(
@@ -75,7 +75,7 @@ coverage_extractor <- function(
     which(Seurat::Idents(object) == ident)
   })
   cutmat_list <- lapply(idx_list, function(idx_vec){
-    cutmat[idx_vec,]
+    cutmat[idx_vec,,drop=F]
   })
   
   ##############################
@@ -83,8 +83,8 @@ coverage_extractor <- function(
   ##############################
   
   # multiply cutmat by the rolling average matrix to smooth out the entries
-  avg_mat <- .construct_averaging_mat(p = ncol(cutmat),
-                                      window = window)
+  avg_mat <- .construct_sum_mat(p = ncol(cutmat),
+                                window = window)
   cutmat_norm_list <- lapply(cutmat_list, function(mat){
     tmp <- mat %*% avg_mat
     colnames(tmp) <- colnames(mat)[floor(window/2):(ncol(mat)-floor(window/2))]
@@ -96,12 +96,12 @@ coverage_extractor <- function(
     cutmat_norm_list[[i]]@x <- cutmat_norm_list[[i]]@x / group.scale.factors[which_ident[i]] * scale.factor
   }
   
-  # compute the median and the quantiles
-  coverage_mean <- sapply(cutmat_norm_list, function(mat){
-    Matrix::colMeans(mat)
+  # compute the mean 
+  coverage_sum <- sapply(cutmat_norm_list, function(mat){
+    Matrix::colSums(mat)
   })
-  colnames(coverage_mean) <- which_ident
-  rownames(coverage_mean) <- colnames(cutmat_norm_list[[1]])
+  colnames(coverage_sum) <- which_ident
+  rownames(coverage_sum) <- colnames(cutmat_norm_list[[1]])
   
   ##############################
   # now, for the unprocessed version, compute the list where you see how many cells have a fragment at a bp
@@ -112,18 +112,18 @@ coverage_extractor <- function(
     Matrix::colSums(mat)
   })
   colnames(coverage_count) <- which_ident
-  coverage_count <- coverage_count[rownames(coverage_mean),]
+  coverage_count <- coverage_count[rownames(coverage_sum),,drop=F]
   
   total_vec <- sapply(cutmat_list, nrow)
   names(total_vec) <- which_ident
   
-  list(coverage_mean = coverage_mean,
+  list(coverage_sum = coverage_sum,
        coverage_count = coverage_count,
        total_vec = total_vec)
 }
 
-.construct_averaging_mat <- function(p,
-                                     window){
+.construct_sum_mat <- function(p,
+                               window){
   stopifnot(window + 1 < p)
   
   i_vec <- unlist(lapply(1:(p-window+1), function(i){
@@ -133,7 +133,7 @@ coverage_extractor <- function(
     rep(j, window)
   }))
   x_vec <- unlist(lapply(1:(p-window+1), function(x){
-    rep(1/window, window)
+    rep(1, window)
   }))
   
   Matrix::sparseMatrix(i = i_vec, j = j_vec, x = x_vec, dims = c(p, p-window+1))
