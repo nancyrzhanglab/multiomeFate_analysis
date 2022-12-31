@@ -90,6 +90,7 @@ save(track_list_1, track_ll, session_info, date_of_run,
 ###################
 
 # do some merging
+print("Doing merging")
 
 track_list <- track_list_1
 len <- length(track_list)
