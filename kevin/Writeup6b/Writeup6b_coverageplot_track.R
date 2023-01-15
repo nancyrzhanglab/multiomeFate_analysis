@@ -96,22 +96,22 @@ track_list <- track_list_1
 len <- length(track_list)
 for(j in 1:len){
   for(kk in 1:3){
-    track_list[[j]]$coverage_mean <- cbind(track_list[[j]]$coverage_mean, track_ll[[kk]][[j]]$coverage_mean[,1])
-    colnames(track_list[[j]]$coverage_mean)[ncol(track_list[[j]]$coverage_mean)] <- colnames(track_ll[[kk]][[j]]$coverage_mean)[1]
+    track_list[[j]]$coverage_sum <- cbind(track_list[[j]]$coverage_sum, track_ll[[kk]][[j]]$coverage_sum[,1])
+    colnames(track_list[[j]]$coverage_sum)[ncol(track_list[[j]]$coverage_sum)] <- colnames(track_ll[[kk]][[j]]$coverage_sum)[1]
   }
   
-  track_list[[j]]$coverage_mean <- track_list[[j]]$coverage_mean[,colnames(track_list[[j]]$coverage_mean)]
+  track_list[[j]]$coverage_sum <- track_list[[j]]$coverage_sum[,colnames(track_list[[j]]$coverage_sum)]
  
   for(kk in 1:3){
-    track_list[[j]]$coverage_count <- cbind(track_list[[j]]$coverage_count, track_ll[[kk]][[j]]$coverage_count)
-    colnames(track_list[[j]]$coverage_count)[ncol(track_list[[j]]$coverage_count)] <- colnames(track_ll[[kk]][[j]]$coverage_mean)[1]
+    track_list[[j]]$coverage_count <- cbind(track_list[[j]]$coverage_count, track_ll[[kk]][[j]]$coverage_count[,1])
+    colnames(track_list[[j]]$coverage_count)[ncol(track_list[[j]]$coverage_count)] <- colnames(track_ll[[kk]][[j]]$coverage_sum)[1]
   }
   
   track_list[[j]]$coverage_count <- track_list[[j]]$coverage_count[,colnames(track_list[[j]]$coverage_count)]
   
   for(kk in 1:3){
     track_list[[j]]$total_vec <- c(track_list[[j]]$total_vec, track_ll[[kk]][[j]]$total_vec[1])
-    names(track_list[[j]]$total_vec)[length(track_list[[j]]$total_vec)] <- colnames(track_ll[[kk]][[j]]$coverage_mean)[1]
+    names(track_list[[j]]$total_vec)[length(track_list[[j]]$total_vec)] <- colnames(track_ll[[kk]][[j]]$coverage_sum)[1]
   }
   
   track_list[[j]]$total_vec <- track_list[[j]]$total_vec[names(track_list[[j]]$total_vec)]

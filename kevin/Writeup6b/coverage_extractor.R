@@ -83,10 +83,10 @@ coverage_extractor <- function(
   ##############################
   
   # multiply cutmat by the rolling average matrix to smooth out the entries
-  avg_mat <- .construct_sum_mat(p = ncol(cutmat),
+  sum_mat <- .construct_sum_mat(p = ncol(cutmat),
                                 window = window)
   cutmat_norm_list <- lapply(cutmat_list, function(mat){
-    tmp <- mat %*% avg_mat
+    tmp <- mat %*% sum_mat
     colnames(tmp) <- colnames(mat)[floor(window/2):(ncol(mat)-floor(window/2))]
     tmp
   })
