@@ -11,6 +11,7 @@ set.seed(10)
 
 dim(genome_bin_matrix)
 genome_bin_matrix[1:5,1:5]
+sum(genome_bin_matrix@x)
 
 ######################
 # let's test one random chromosome region
