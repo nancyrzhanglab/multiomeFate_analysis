@@ -50,11 +50,11 @@ multiSVD_obj <- tiltedCCA:::form_metacells(input_obj = multiSVD_obj,
                                            verbose = 1)
 multiSVD_obj2 <- multiSVD_obj
 multiSVD_obj <- tiltedCCA:::compute_snns(input_obj = multiSVD_obj2,
-                                         latent_k = 15,
-                                         num_neigh = 5,
+                                         latent_k = 20,
+                                         num_neigh = 15,
                                          bool_cosine = T,
                                          bool_intersect = F,
-                                         min_deg = 5,
+                                         min_deg = 15,
                                          verbose = 2)
 
 tmp <- all_data; tmp_mat <- multiSVD_obj$laplacian_list$common_laplacian
