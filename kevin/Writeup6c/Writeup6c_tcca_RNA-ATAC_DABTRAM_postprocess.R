@@ -111,7 +111,8 @@ par(mfrow = c(1,2), mar = c(4,4,4,0.5))
 
 hist(all_data$alignment[cells.1], breaks = 50, col = "gray", 
      main = paste0("Cells in ",earlierday_cond_str," whose lineage\nhas > ",min_cell_count," cells in ",later_cond),
-     cex.main = 0.6)
+     cex.main = 0.6,
+     xlim = range(all_data$alignment))
 mean_val <- mean(all_data$alignment[cells.1])
 median_val <- median(all_data$alignment[cells.1])
 lines(rep(mean_val, 2), c(-1e6,1e6), col = 2, lwd = 2, lty = 2)
@@ -119,7 +120,8 @@ lines(rep(median_val, 2), c(-1e6,1e6), col = 3, lwd = 2, lty = 2)
 
 hist(all_data$alignment[cells.2], breaks = 50, col = "gray", 
      main = paste0("Cells in ",earlierday_cond_str," whose lineage\nhas < ",min_cell_count," cells in ",later_cond),
-     cex.main = 0.6)
+     cex.main = 0.6,
+     xlim = range(all_data$alignment))
 mean_val <- mean(all_data$alignment[cells.2])
 median_val <- median(all_data$alignment[cells.2])
 lines(rep(mean_val, 2), c(-1e6,1e6), col = 2, lwd = 2, lty = 2)
@@ -157,6 +159,50 @@ plot3 <- plot3 + ggplot2::theme(legend.text = ggplot2::element_text(size = 5))
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6c/Writeup6c_tcca-RNA-ATAC_DABTRAM_umap_distinct2.png"),
                 plot3, device = "png", width = 6, height = 5, units = "in")
 
+#################################################
+
+# make a plot of alignment-score against number-of-cells-in-future
+
+cell_idx <- intersect(intersect(which(all_data$dataset == "day10_DABTRAM"),
+                      which(all_data$assigned_posterior > 0.5)),
+                      which(!is.na(all_data$assigned_lineage)))
+alignment_vec <- all_data$alignment[cell_idx]
+posterior_vec <- (all_data$assigned_posterior > 0.5)[cell_idx]
+lineage_vec <- all_data$assigned_lineage[cell_idx]
+
+tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
+future_num_vec <- sapply(lineage_vec, function(lineage){
+  tab_mat[lineage,"week5_DABTRAM"]
+})
+
+number_uniq <- sort(unique(future_num_vec))
+average_synchrony <- sapply(number_uniq, function(val){
+  median(alignment_vec[which(future_num_vec == val)])
+})
+
+png(paste0("../../../../out/figures/Writeup6c/Writeup6c_tcca-RNA-ATAC_DABTRAM_synchrony-vs-number.png"),
+    height = 2000, width = 2000, units = "px", res = 500)
+plot(alignment_vec, log1p(future_num_vec),
+     xlab = "DABTRAM day10 synchrony",
+     ylab = "Log1p # week5 cells in lineage",
+     pch = 16, col = rgb(0.5,0.5,0.5,0.2))
+
+for(i in 1:length(number_uniq)){
+  points(average_synchrony[i], log1p(number_uniq[i]),
+         col = "white", cex = 2, pch = 16)
+  points(average_synchrony[i], log1p(number_uniq[i]),
+         col = 2, cex = 1.5, pch = 16)
+}
+
+lines(c(-1e2,1e2), rep(log1p(50),2), col = 3, lwd = 2, lty = 2)
+graphics.off()
+
+
+
+
+#################################################
+#################################################
+#################################################
 #################################################
 
 source("../Writeup6b/gene_list.R")
