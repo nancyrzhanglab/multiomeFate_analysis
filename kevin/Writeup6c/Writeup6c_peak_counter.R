@@ -15,7 +15,7 @@ gene_vec <- all_data[["Saver"]]@var.features
 countmat_nopeak <- sapply(1:length(gene_vec), function(i){
   print(paste0("Gene ",i, " out of ", length(gene_vec)))
   
-  coverage_extractor(object = all_data,
+  peak_counter(object = all_data,
                      gene = gene_vec[i])
 })
 
