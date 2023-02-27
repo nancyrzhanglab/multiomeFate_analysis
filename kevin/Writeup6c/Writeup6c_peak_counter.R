@@ -1,6 +1,7 @@
 rm(list=ls())
 library(Seurat)
 library(Signac)
+library(GenomicRanges)
 
 load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
 source("peak_counter.R")
