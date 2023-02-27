@@ -21,7 +21,7 @@ peak_counter <- function(
     assay = assay
   )
   # make sure gene exists
-  if(is.null(tmp)) {
+  if(all(is.null(tmp))) {
     tmp <- rep(0, ncol(object))
     names(tmp) <- colnames(object)
     return(tmp)
@@ -43,6 +43,12 @@ peak_counter <- function(
     cells = cells,
     verbose = FALSE
   )
+  
+  if(all(is.null(cutmat))){
+    tmp <- rep(0, ncol(object))
+    names(tmp) <- colnames(object)
+    return(tmp)
+  }
   colnames(cutmat) <- (IRanges::start(x = region)):(IRanges::end(x = region))
   cell_total <- Matrix::rowSums(cutmat)
   

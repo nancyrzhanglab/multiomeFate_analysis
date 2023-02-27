@@ -16,7 +16,7 @@ countmat_nopeak <- sapply(1:length(gene_vec), function(i){
   print(paste0("Gene ",i, " out of ", length(gene_vec)))
   
   peak_counter(object = all_data,
-                     gene = gene_vec[i])
+               gene = gene_vec[i])
 })
 
 save(countmat_nopeak, 
