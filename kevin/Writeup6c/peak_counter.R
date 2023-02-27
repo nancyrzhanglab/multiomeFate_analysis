@@ -15,6 +15,18 @@ peak_counter <- function(
   
   ##########
   
+  tmp <- Signac::LookupGeneCoords(
+    object = object,
+    gene = gene,
+    assay = assay
+  )
+  # make sure gene exists
+  if(is.null(tmp)) {
+    tmp <- rep(0, ncol(object))
+    names(tmp) <- colnames(object)
+    return(tmp)
+  }
+  
   region <- Signac:::FindRegion(
     object = object,
     region = gene,
@@ -46,7 +58,6 @@ peak_counter <- function(
   if(length(overlap_res) > 0){
     region_gene_peaks <- all_atac_peak[overlap_res@from]
     for(i in 1:length(region_gene_peaks)){
-      print(i)
       region_gene_peaks[i] <- intersect(x = region_gene_peaks[i],
                                         y = region)
     }
