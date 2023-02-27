@@ -7,7 +7,6 @@ coverage_extractor <- function(
     cells = NULL,
     extend.downstream = 1000,
     extend.upstream = 1000,
-    multipler = 1e6,
     scale.factor = NULL,
     sep = c("-", "-"),
     window = 100
@@ -65,10 +64,6 @@ coverage_extractor <- function(
   )
   
   ##########
-  
-  chromosome <- as.character(x = seqnames(x = region))
-  start.pos <- IRanges::start(x = region)
-  end.pos <- IRanges::end(x = region)
   
   # seperate cutmat by the relevant rows
   idx_list <- lapply(which_ident, function(ident){

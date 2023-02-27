@@ -4,7 +4,7 @@ library(Signac)
 
 load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
 
-## from https://github.com/stuart-lab/signac/blob/master/R/visualization.R
+## from https://github.com/stuart-lab/signac/blob/master/R/visualization.R#L888
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()

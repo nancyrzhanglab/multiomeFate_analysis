@@ -129,6 +129,16 @@ lines(rep(median_val, 2), c(-1e6,1e6), col = 3, lwd = 2, lty = 2)
 
 graphics.off()
 
+set.seed(10)
+t_test <- stats::t.test(x = all_data$alignment[cells.1],
+                        y = all_data$alignment[cells.2],
+                        alternative = "two.sided")
+wilcox_test <- stats::wilcox.test(x = all_data$alignment[cells.1],
+                                  y = all_data$alignment[cells.2],
+                                  alternative = "two.sided")
+# DABTRAM
+t_test
+wilcox_test
 
 #############################
 
