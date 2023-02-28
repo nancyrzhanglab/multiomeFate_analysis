@@ -51,7 +51,7 @@ atac_pred <- tcrossprod(tiltedCCA:::.mult_mat_vec(svd_2$u %*% rotation_mat, svd_
 # for a gene, compute the regression line regressing alignment onto future fitness across all the cells
 target_genes <- colnames(rna_common)
 
-order_vec <- order(future_num_vec, decreasing = F)
+order_vec <- order(future_num_vec_smoothed, decreasing = F)
 rna_mat <- rna_common[cell_idx[order_vec],target_genes]
 atac_mat <- atac_pred[cell_idx[order_vec],target_genes]
 
@@ -83,7 +83,7 @@ coef_vec <- sapply(1:ncol(pred_diff_mat), function(j){
   stats::coef(tmp_lm)["x"]
 })
 
-save(pred_diff_mat, coef_vec, nn_mat,
+save(pred_diff_mat, coef_vec, nn_mat, order_vec,
      rna_mat, atac_mat, future_num_vec, future_num_vec_smoothed,
      date_of_run, session_info,
      file = "../../../../out/kevin/Writeup6c/Writeup6c_RNA-ATAC_DABTRAM_synchrony-fitness_scan_nn.RData")
