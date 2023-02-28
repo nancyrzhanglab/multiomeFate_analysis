@@ -7,11 +7,6 @@ date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 set.seed(10)
 
-# compute nearest-neighbors
-set.seed(10)
-mat <- all_data[["pca"]]@cell.embeddings
-num_neigh <- 30
-nn_mat <- RANN::nn2(mat, k = num_neigh+1)$nn.idx
 
 ######################
 
@@ -24,6 +19,12 @@ tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 future_num_vec <- sapply(lineage_vec, function(lineage){
   tab_mat[lineage,"week5_DABTRAM"]
 })
+
+# compute nearest-neighbors, just among the valid day10 cells
+set.seed(10)
+mat <- all_data[["pca"]]@cell.embeddings[cell_idx,]
+num_neigh <- 30
+nn_mat <- RANN::nn2(mat, k = num_neigh+1)$nn.idx
 
 # form smoothing nearest-neighbor matrix
 n <- nrow(nn_mat)
