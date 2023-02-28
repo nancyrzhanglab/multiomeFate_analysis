@@ -37,6 +37,17 @@ avg_mat <- Matrix::sparseMatrix(i = i_vec,
 avg_mat <- Matrix::t(avg_mat)
 future_num_vec_smoothed <- as.numeric(future_num_vec %*% avg_mat)
 
+# compute alignment
+rna_common <- multiSVD_obj$common_mat_1
+multiSVD_obj <- tiltedCCA:::.set_defaultAssay(multiSVD_obj, assay = 1)
+svd_1 <- tiltedCCA:::.get_SVD(multiSVD_obj)
+multiSVD_obj <- tiltedCCA:::.set_defaultAssay(multiSVD_obj, assay = 2)
+svd_2 <- tiltedCCA:::.get_SVD(multiSVD_obj)
+tmp <- crossprod(svd_2$u, svd_1$u)
+svd_tmp <- svd(tmp)
+rotation_mat <- tcrossprod(svd_tmp$u, svd_tmp$v)
+atac_pred <- tcrossprod(tiltedCCA:::.mult_mat_vec(svd_2$u %*% rotation_mat, svd_1$d), svd_1$v)
+
 # for a gene, compute the regression line regressing alignment onto future fitness across all the cells
 target_genes <- colnames(rna_common)
 
