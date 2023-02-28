@@ -12,19 +12,17 @@ set.seed(10)
 
 gene_vec <- all_data[["Saver"]]@var.features 
 
+extend_width <- 5000
 countmat_nopeak <- sapply(1:length(gene_vec), function(i){
   print(paste0("Gene ",i, " out of ", length(gene_vec)))
   
   peak_counter(object = all_data,
-               gene = gene_vec[i])
+               gene = gene_vec[i],
+               extend.downstream = extend_width,
+               extend.upstream = extend_width)
 })
-
-save(countmat_nopeak, 
-     date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6c/Writeup6c_peak_counter.RData")
-
 colnames(countmat_nopeak) <- gene_vec
 
-save(countmat_nopeak, 
+save(countmat_nopeak, extend_width,
      date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6c/Writeup6c_peak_counter.RData")
+     file = "../../../../out/kevin/Writeup6c/Writeup6c_peak_counter_5000.RData")

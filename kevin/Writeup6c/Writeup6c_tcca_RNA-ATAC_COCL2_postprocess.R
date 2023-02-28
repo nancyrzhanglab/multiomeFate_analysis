@@ -22,6 +22,10 @@ cells.1 <- which(all_data$assigned_lineage %in% sel.lineages
                  & all_data$assigned_posterior > 0.5
                  & all_data$dataset == earlierday_cond_str)
 
+cells.2 <- which(!all_data$assigned_lineage %in% sel.lineages 
+                 & all_data$assigned_posterior > 0.5
+                 & all_data$dataset == earlierday_cond_str)
+
 ############
 
 latercol <- "chartreuse4"
@@ -102,9 +106,6 @@ plot(x = all_data@reductions[["umap"]]@cell.embeddings[,1],
      cex.main = 0.5)
 graphics.off()
 
-cells.2 <- which(!all_data$assigned_lineage %in% sel.lineages 
-                 & all_data$assigned_posterior > 0.5
-                 & all_data$dataset == earlierday_cond_str)
 
 png(paste0("../../../../out/figures/Writeup6c/Writeup6c_tcca-RNA-ATAC_COCL2_synchrony-histogram.png"),
     height = 1500, width = 3000, units = "px", res = 500)
