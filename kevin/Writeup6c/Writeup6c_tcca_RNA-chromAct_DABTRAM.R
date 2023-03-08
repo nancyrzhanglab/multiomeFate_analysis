@@ -3,7 +3,6 @@ library(Seurat)
 library(Signac)
 
 load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
-source("../Writeup6b/gene_list.R")
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
@@ -19,6 +18,8 @@ Seurat::DefaultAssay(all_data) <- "Saver"
 mat_1 <- Matrix::t(all_data[["Saver"]]@data[Seurat::VariableFeatures(object = all_data),])
 Seurat::DefaultAssay(all_data) <- "geneActivity"
 mat_2 <- Matrix::t(all_data[["geneActivity"]]@data[Seurat::VariableFeatures(object = all_data),])
+
+gene_vec <- sort(intersect(colnames(mat_1), colnames(mat_2)))
 
 mat_1b <- mat_1[,gene_vec]
 sd_vec <- sparseMatrixStats::colSds(mat_1b)
