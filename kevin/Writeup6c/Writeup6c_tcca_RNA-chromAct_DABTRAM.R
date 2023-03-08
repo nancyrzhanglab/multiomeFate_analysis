@@ -20,11 +20,6 @@ mat_1 <- Matrix::t(all_data[["Saver"]]@data[Seurat::VariableFeatures(object = al
 Seurat::DefaultAssay(all_data) <- "geneActivity"
 mat_2 <- Matrix::t(all_data[["geneActivity"]]@data[Seurat::VariableFeatures(object = all_data),])
 
-gene_vec <- sort(unique(unlist(keygenes)))
-gene_vec <- gene_vec[which(gene_vec %in% colnames(mat_1))]
-gene_vec <- gene_vec[which(gene_vec %in% colnames(mat_2))]
-length(gene_vec)
-
 mat_1b <- mat_1[,gene_vec]
 sd_vec <- sparseMatrixStats::colSds(mat_1b)
 if(any(sd_vec <= 1e-6)){
@@ -41,7 +36,7 @@ if(any(sd_vec <= 1e-6)){
 
 set.seed(10)
 multiSVD_obj <- tiltedCCA:::create_multiSVD(mat_1 = mat_1b, mat_2 = mat_2b,
-                                            dims_1 = 1:10, dims_2 = 2:10,
+                                            dims_1 = 1:50, dims_2 = 2:50,
                                             center_1 = T, center_2 = T,
                                             normalize_row = T,
                                             normalize_singular_value = T,
