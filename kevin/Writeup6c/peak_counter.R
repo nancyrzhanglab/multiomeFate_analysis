@@ -2,6 +2,7 @@ peak_counter <- function(
     object,
     gene,
     assay = "ATAC",
+    bool_offpeak = T,
     extend.downstream = 1000,
     extend.upstream = 1000,
     sep = c("-", "-")
@@ -86,12 +87,21 @@ peak_counter <- function(
     cell_total_inpeak <- sapply(1:len, function(i){
       Matrix::rowSums(cutmat_inpeak_list[[i]])
     })
-    res <- cell_total - Matrix::rowSums(cell_total_inpeak)
-  
+    
+    if(bool_offpeak){
+      res <- cell_total - Matrix::rowSums(cell_total_inpeak)
+    } else {
+      res <- Matrix::rowSums(cell_total_inpeak)
+    }
+    
   } else {
-    res <- cell_total
+    if(bool_offpeak){
+      res <- cell_total
+    } else {
+      res <- rep(0, ncol(object))
+      names(res) <- colnames(object)
+    }
   }
   
   res
 }
-  

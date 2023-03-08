@@ -18,7 +18,7 @@ countmat_nopeak <- sapply(1:length(gene_vec), function(i){
   
   peak_counter(object = all_data,
                gene = gene_vec[i],
-               bool_offpeak = T,
+               bool_offpeak = F,
                extend.downstream = extend_width,
                extend.upstream = extend_width)
 })
@@ -26,4 +26,4 @@ colnames(countmat_nopeak) <- gene_vec
 
 save(countmat_nopeak, extend_width,
      date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6c/Writeup6c_peak_counter_5000.RData")
+     file = "../../../../out/kevin/Writeup6c/Writeup6c_peak_counter_5000_onpeak.RData")
