@@ -77,27 +77,30 @@ length(die_idx) == length(die_idx2)
 
 # 1) do number of active genes
 active_gene_vec <- all_data$nFeature_RNA[cell_idx]
-stats::cor(active_gene_vec[c(survive_idx, die_idx)], 
-           fitness_vec2[c(survive_idx2, die_idx2)], 
-           method = "spearman")
-stats::wilcox.test(x = active_gene_vec[survive_idx],
-                   y = active_gene_vec[die_idx])
-stats::wilcox.test(x = active_gene_vec[survive_idx],
-                   y = active_gene_vec[c(die_idx, unknown_idx)])
+peak_plotting_func(active_gene_vec = active_gene_vec, 
+                   fitness_vec2 = fitness_vec2, 
+                   survive_idx = survive_idx, die_idx = die_idx, unknown_idx = unknown_idx,
+                   survive_idx2 = survive_idx2, die_idx2 = die_idx2,
+                   filename = "../../../../out/figures/Writeup6c/Writeup6c_DABTRAM_peakcounter_plotter_num-active-genes.png",
+                   condition_name = "DABTRAM",
+                   main4 = "num. active genes", 
+                   xlab = "# of active genes", 
+                   ylab4 = "# of active genes")
 
-# pretty promising
 active_gene_vec2 <- sapply(cell_idx, function(i){
   length(which(
     .nonzero_col(all_data[["Saver"]]@data, col_idx = i, bool_value = T) > 0.5
   ))
 })
-stats::cor(active_gene_vec2[c(survive_idx, die_idx)], 
-           fitness_vec2[c(survive_idx2, die_idx2)], 
-           method = "spearman")
-stats::wilcox.test(x = active_gene_vec2[survive_idx],
-                   y = active_gene_vec2[die_idx])
-stats::wilcox.test(x = active_gene_vec2[survive_idx],
-                   y = active_gene_vec2[c(die_idx, unknown_idx)])
+peak_plotting_func(active_gene_vec = active_gene_vec2, 
+                   fitness_vec2 = fitness_vec2, 
+                   survive_idx = survive_idx, die_idx = die_idx, unknown_idx = unknown_idx,
+                   survive_idx2 = survive_idx2, die_idx2 = die_idx2,
+                   filename = "../../../../out/figures/Writeup6c/Writeup6c_DABTRAM_peakcounter_plotter_num-active-genes_threshold.png",
+                   condition_name = "DABTRAM",
+                   main4 = "num. active genes (thres.)", 
+                   xlab = "# of active genes (thres.)", 
+                   ylab4 = "# of active genes (thres.)")
 
 ##########################
 
@@ -107,13 +110,15 @@ active_gene_vec <- sapply(cell_idx, function(i){
     .nonzero_col(all_data[["offpeak"]]@data, col_idx = i, bool_value = T)
   )
 })
-stats::cor(active_gene_vec[c(survive_idx, die_idx)], 
-           fitness_vec2[c(survive_idx2, die_idx2)], 
-           method = "spearman")
-stats::wilcox.test(x = active_gene_vec[survive_idx],
-                   y = active_gene_vec[die_idx])
-stats::wilcox.test(x = active_gene_vec[survive_idx],
-                   y = active_gene_vec[c(die_idx, unknown_idx)])
+peak_plotting_func(active_gene_vec = active_gene_vec, 
+                   fitness_vec2 = fitness_vec2, 
+                   survive_idx = survive_idx, die_idx = die_idx, unknown_idx = unknown_idx,
+                   survive_idx2 = survive_idx2, die_idx2 = die_idx2,
+                   filename = "../../../../out/figures/Writeup6c/Writeup6c_DABTRAM_peakcounter_plotter_num-offpeak-active-genes.png",
+                   condition_name = "DABTRAM",
+                   main4 = "num. genes w/ offpeaks", 
+                   xlab = "# of genes w/ offpeaks", 
+                   ylab4 = "# of genes w/ offpeaks")
 
 ##########################
 
@@ -123,13 +128,15 @@ active_gene_vec <- sapply(cell_idx, function(i){
     .nonzero_col(all_data[["offpeak"]]@counts, col_idx = i, bool_value = T)
   )
 })
-stats::cor(active_gene_vec[c(survive_idx, die_idx)], 
-           fitness_vec2[c(survive_idx2, die_idx2)], 
-           method = "spearman")
-stats::wilcox.test(x = active_gene_vec[survive_idx],
-                   y = active_gene_vec[die_idx])
-stats::wilcox.test(x = active_gene_vec[survive_idx],
-                   y = active_gene_vec[c(die_idx, unknown_idx)])
+peak_plotting_func(active_gene_vec = active_gene_vec, 
+                   fitness_vec2 = fitness_vec2, 
+                   survive_idx = survive_idx, die_idx = die_idx, unknown_idx = unknown_idx,
+                   survive_idx2 = survive_idx2, die_idx2 = die_idx2,
+                   filename = "../../../../out/figures/Writeup6c/Writeup6c_DABTRAM_peakcounter_plotter_sum-offpeak.png",
+                   condition_name = "DABTRAM",
+                   main4 = "sum of offpeaks", 
+                   xlab = "Sum of offpeaks", 
+                   ylab4 = "Sum of offpeaks")
 
 #############################
 
@@ -142,13 +149,15 @@ active_gene_vec <- sapply(cell_idx, function(i){
     .nonzero_col(all_data[["offpeak"]]@data, col_idx = i, bool_value = T)
   )
 })
-stats::cor(active_gene_vec[c(survive_idx, die_idx)], 
-           fitness_vec2[c(survive_idx2, die_idx2)], 
-           method = "spearman")
-stats::wilcox.test(x = active_gene_vec[survive_idx],
-                   y = active_gene_vec[die_idx])
-stats::wilcox.test(x = active_gene_vec[survive_idx],
-                   y = active_gene_vec[c(die_idx, unknown_idx)])
+peak_plotting_func(active_gene_vec = active_gene_vec, 
+                   fitness_vec2 = fitness_vec2, 
+                   survive_idx = survive_idx, die_idx = die_idx, unknown_idx = unknown_idx,
+                   survive_idx2 = survive_idx2, die_idx2 = die_idx2,
+                   filename = "../../../../out/figures/Writeup6c/Writeup6c_DABTRAM_peakcounter_plotter_sum-normalized-offpeak.png",
+                   condition_name = "DABTRAM",
+                   main4 = "sum of norm. offpeaks", 
+                   xlab = "Sum of norm. offpeaks", 
+                   ylab4 = "Sum of norm. offpeaks")
 
 # 5) TF-IDF the off-peak counts, and then sum
 Seurat::DefaultAssay(all_data) <- "offpeak"
@@ -159,14 +168,18 @@ active_gene_vec <- sapply(cell_idx, function(i){
     .nonzero_col(all_data[["offpeak"]]@data, col_idx = i, bool_value = T)
   )
 })
-stats::cor(active_gene_vec[c(survive_idx, die_idx)], 
-           fitness_vec2[c(survive_idx2, die_idx2)], 
-           method = "spearman")
-stats::wilcox.test(x = active_gene_vec[survive_idx],
-                   y = active_gene_vec[die_idx])
-stats::wilcox.test(x = active_gene_vec[survive_idx],
-                   y = active_gene_vec[c(die_idx, unknown_idx)])
+peak_plotting_func(active_gene_vec = active_gene_vec, 
+                   fitness_vec2 = fitness_vec2, 
+                   survive_idx = survive_idx, die_idx = die_idx, unknown_idx = unknown_idx,
+                   survive_idx2 = survive_idx2, die_idx2 = die_idx2,
+                   filename = "../../../../out/figures/Writeup6c/Writeup6c_DABTRAM_peakcounter_plotter_sum-tfidf-offpeak.png",
+                   condition_name = "DABTRAM",
+                   main4 = "sum of TF-IDF offpeaks", 
+                   xlab = "Sum of TF-IDF offpeaks", 
+                   ylab4 = "Sum of TF-IDF offpeaks")
 
+#############################
+#############################
 #############################
 
 lineage_fitness_vec <- sapply(lineage_names, function(lineage_name){

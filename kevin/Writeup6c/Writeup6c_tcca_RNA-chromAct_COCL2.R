@@ -11,7 +11,7 @@ set.seed(10)
 all_data$common_tcca <- NULL
 all_data$distinct1_tcca <- NULL
 all_data$distinct2_tcca <- NULL
-all_data <- subset(all_data, dataset %in% c("day0", "day10_DABTRAM", "week5_DABTRAM"))
+all_data <- subset(all_data, dataset %in% c("day0", "day10_COCL2", "week5_COCL2"))
 n <- ncol(all_data)
 
 Seurat::DefaultAssay(all_data) <- "Saver"
@@ -76,7 +76,7 @@ plot1 <- Seurat::DimPlot(tmp, reduction = "common_laplacian",
                          repel = TRUE, label.size = 2.5)
 plot1 <- plot1 + ggplot2::ggtitle(paste0("Target common laplacian"))
 plot1 <- plot1 + ggplot2::theme(legend.text = ggplot2::element_text(size = 5))
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6c/Writeup6c_tcca_RNA-chromAct_DABTRAM_laplacian.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6c/Writeup6c_tcca_RNA-chromAct_COCL2_laplacian.png"),
                 plot1, device = "png", width = 6, height = 5, units = "in")
 
 ##########################
@@ -89,10 +89,6 @@ multiSVD_obj <- tiltedCCA:::tiltedCCA_decomposition(input_obj = multiSVD_obj,
                                                     verbose = 1,
                                                     bool_modality_1_full = T,
                                                     bool_modality_2_full = T)
-
-save(multiSVD_obj, all_data,
-     date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6c/Writeup6c_tcca_RNA-chromAct_DABTRAM.RData")
 
 #################################
 
@@ -120,4 +116,4 @@ all_data[["distinct2_tcca"]] <- tiltedCCA:::create_SeuratDim(input_obj = multiSV
 
 save(multiSVD_obj, all_data,
      date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6c/Writeup6c_tcca_RNA-chromAct_DABTRAM.RData")
+     file = "../../../../out/kevin/Writeup6c/Writeup6c_tcca_RNA-chromAct_COCL2.RData")
