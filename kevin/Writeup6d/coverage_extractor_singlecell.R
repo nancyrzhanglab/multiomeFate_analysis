@@ -46,7 +46,7 @@ coverage_extractor_singlecell <- function(
   sum_mat <- .construct_sum_mat_triangle(p = ncol(cutmat),
                                          window = window)
   tmp <- cutmat %*% sum_mat
-  colnames(tmp) <- colnames(cutmat)[floor(window/2):(ncol(cutmat)-floor(window/2))]
+  colnames(tmp) <- colnames(cutmat)[floor(window/2):(floor(window/2)+ncol(tmp)-1)]
   rownames(tmp) <- cells
   tmp
 }
