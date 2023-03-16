@@ -44,6 +44,7 @@ coverage_extractor <- function(
   sf.list <- list()
   gsf.list <- list()
   
+  # https://github.com/stuart-lab/signac/blob/master/R/utilities.R#L94 : Mean nCount of ATAC across the group
   reads.per.group <- Signac:::AverageCounts(
     object = object,
     assay = assay,
@@ -77,7 +78,7 @@ coverage_extractor <- function(
   # compute the normalized cut matrix
   ##############################
   
-  # multiply cutmat by the rolling average matrix to smooth out the entries
+  # smooth cutmat by the rolling average matrix to smooth out the entries
   sum_mat <- .construct_sum_mat(p = ncol(cutmat),
                                 window = window)
   cutmat_norm_list <- lapply(cutmat_list, function(mat){
