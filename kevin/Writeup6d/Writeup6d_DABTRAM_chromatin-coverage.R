@@ -13,7 +13,7 @@ gene_vec <- sort(unique(c(unlist(keygenes), keygenes_csc)))
 gene_vec <- gene_vec[-73] # TEMPORARY 
 
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
-surviving_lineages <- rownames(tab_mat)[which(tab_mat[,"day10_CIS"] >= 20)]
+surviving_lineages <- rownames(tab_mat)[which(tab_mat[,"day10_DABTRAM"] >= 20)]
 dying_lineages <- rownames(tab_mat)[which(apply(tab_mat,1,max)<=1)]
 winning_idx <- intersect(
   intersect(which(all_data$assigned_lineage %in% surviving_lineages),
