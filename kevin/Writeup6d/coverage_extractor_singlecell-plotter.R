@@ -1,18 +1,25 @@
 plot_coveragetracks <- function(
     cutmat,
     peaks,
+    atac_count = NULL,
+    atac_count_max = NULL,
     cell_nopeak_offset = 1/100,
     col_nopeak_cell = 2,
     col_peak = rgb(255, 102, 102, alpha = 0.2*255, maxColorValue = 255),
+    col_scale = c('lightgrey', 'blue'),
     col_track = rgb(0.5,0.5,0.5,0.8),
     max_height = max(cutmat@x),
     main = "",
+    rna_gene_count = NULL,
+    rna_gene_count_max = NULL,
     tol = 1e-5
 ){
   n <- nrow(cutmat)
   p <- ncol(cutmat)
   x_vec <- as.numeric(colnames(cutmat))
   
+  sum_vec <- Matrix::rowSums(cutmat)
+  main <- paste0(main, " (", round(length(which(sum_vec > tol))/length(sum_vec)*100), "% non-zero chrom. frag)")
   graphics::plot(NA, 
                  xlab = "Basepair",
                  xlim = range(x_vec), 
@@ -52,11 +59,12 @@ plot_coveragetracks <- function(
     )
   }
   
+  xmult <- .getXmult()
+  
   # mark cells that had no peak
-  sum_vec <- Matrix::rowSums(cutmat)
   if(any(sum_vec <= tol)){
     cell_idx <- which(sum_vec <= tol)
-    x_val <- x_vec[1] + cell_nopeak_offset*diff(range(range(x_vec)))
+    x_val <- x_vec[1] + 0.5*xmult
     .draw_circle(
       x_vec = rep(x_val, length(cell_idx)),
       y_vec = cell_idx-1,
@@ -65,7 +73,101 @@ plot_coveragetracks <- function(
     )
   }
   
+  # plot RNA count for this specific gene
+  if(!any(is.null(rna_gene_count)) & !is.null(rna_gene_count_max)){
+    stopifnot(length(rna_gene_count) == nrow(cutmat))
+    rna_gene_count <- pmin(rna_gene_count, rna_gene_count_max)
+    
+    # compute the appropriate values
+    col_pal <- grDevices::colorRampPalette(col_scale)(100)
+    break_vec <- seq(0, rna_gene_count_max, length.out = 100)
+    col_vec <- sapply(rna_gene_count, function(x){
+      col_pal[which.min(abs(x - break_vec))]
+    })
+    height_pal <- seq(0, 1, length.out = 100)
+    height_vec <- sapply(rna_gene_count, function(x){
+      height_pal[which.min(abs(x - break_vec))]
+    })
+    
+    # plot
+    x_val <- x_vec[1] + 1*xmult
+    for(i in 1:length(col_vec)){
+      graphics::polygon(
+        x = c(rep(x_val, 2), rep(x_val+1.5*xmult, 2)),
+        y = (i-1)+c(0,rep(height_vec[i],2),0),
+        border = NA,
+        density = NULL,
+        col = col_vec[i]
+      )
+    }
+    
+    graphics::text(x = x_val, y = n, labels = "RNA count", cex = 0.5)
+  }
+  
+  # plot ATAC count
+  if(!any(is.null(atac_count)) & !is.null(atac_count_max)){
+    stopifnot(length(atac_count) == nrow(cutmat))
+    atac_count <- pmin(atac_count, atac_count_max)
+    
+    # compute the appropriate values
+    col_pal <- grDevices::colorRampPalette(col_scale)(100)
+    break_vec <- seq(0, atac_count_max, length.out = 100)
+    col_vec <- sapply(atac_count, function(x){
+      col_pal[which.min(abs(x - break_vec))]
+    })
+    height_pal <- seq(0, 1, length.out = 100)
+    height_vec <- sapply(atac_count, function(x){
+      height_pal[which.min(abs(x - break_vec))]
+    })
+    
+    # plot
+    x_val <- max(x_vec) - xmult
+    for(i in 1:length(col_vec)){
+      graphics::polygon(
+        x = c(rep(x_val, 2), rep(x_val+xmult, 2)),
+        y = (i-1)+c(0,rep(height_vec[i],2),0),
+        border = NA,
+        density = NULL,
+        col = col_vec[i]
+      )
+    }
+    
+    graphics::text(x = x_val, y = n, labels = "Total ATAC", cex = 0.5)
+  }
+  
   invisible()
+}
+
+rna_gene_count_extractor <- function(
+    object,
+    gene,
+    assay = "RNA",
+    cells = NULL,
+    slot = "data",
+    scale_factor = 1e6
+){
+  cells <- Signac:::SetIfNull(x = cells, y = colnames(x = object))
+  cells <- intersect(cells, colnames(x = object))
+  
+  mat <- Seurat::GetAssayData(object = object, assay = assay, slot = slot)
+  idx <- which(rownames(mat) == gene)
+  if(length(idx) != 1) return(NULL)
+  
+  res <- as.numeric(mat[idx,cells])/object$nCount_RNA[cells]*scale_factor
+  names(res) <- cells
+  res
+}
+
+atac_count_extractor <- function(
+    object,
+    cells = NULL
+){
+  res <- object$nCount_ATAC
+  
+  cells <- Signac:::SetIfNull(x = cells, y = colnames(x = object))
+  cells <- intersect(cells, colnames(x = object))
+  
+  res[cells]
 }
 
 ######################################
