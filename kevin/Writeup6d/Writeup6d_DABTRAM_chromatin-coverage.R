@@ -10,7 +10,7 @@ source("coverage_extractor_singlecell-plotter.R")
 source("../Writeup6b/gene_list.R")
 source("gene_list_csc.R")
 gene_vec <- sort(unique(c(unlist(keygenes), keygenes_csc)))
-gene_vec <- gene_vec[74:length(gene_vec)] # TEMPORARY 
+gene_vec <- gene_vec[-73] # TEMPORARY 
 
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 surviving_lineages <- rownames(tab_mat)[which(tab_mat[,"day10_DABTRAM"] >= 20)]
