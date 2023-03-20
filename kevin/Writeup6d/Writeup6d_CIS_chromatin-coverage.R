@@ -30,6 +30,13 @@ length(winning_idx); length(dying_idx)
 # initializing
 set.seed(10)
 rng_idx <- sample(1:length(dying_idx), length(winning_idx))
+atac_count <- atac_count_extractor(
+  object = all_data
+)
+atac_count_max <- quantile(atac_count[c(winning_idx, dying_idx)], probs = 0.95)
+winning_order <- order(atac_count[winning_idx], decreasing = T)
+dying_order <- order(atac_count[dying_idx[rng_idx]], decreasing = T)
+
 for(i in 1:length(gene_vec)){
   print(paste0("Gene ", i, " out of ", length(gene_vec), ": ", gene_vec[i]))
   
@@ -43,14 +50,14 @@ for(i in 1:length(gene_vec)){
     winning_tracks <- coverage_extractor_singlecell(
       object = all_data,
       gene = gene_vec[i],
-      cells = colnames(all_data)[winning_idx],
+      cells = colnames(all_data)[winning_idx][winning_order],
       window = window_size
     )
     
     dying_tracks <- coverage_extractor_singlecell(
       object = all_data,
       gene = gene_vec[i],
-      cells = colnames(all_data)[dying_idx[rng_idx]],
+      cells = colnames(all_data)[dying_idx[rng_idx]][dying_order],
       window = window_size
     )
     
@@ -59,15 +66,11 @@ for(i in 1:length(gene_vec)){
       gene = gene_vec[i]
     )
     
-    atac_count <- atac_count_extractor(
-      object = all_data
-    )
-    atac_count_max <- quantile(atac_count, probs = 0.95)
     rna_gene_count <- rna_gene_count_extractor(
       object = all_data,
       gene = gene_vec[i]
     )
-    rna_gene_count_max <- quantile(rna_gene_count, probs = 0.95)
+    rna_gene_count_max <- quantile(rna_gene_count[c(winning_idx, dying_idx)], probs = 0.95)
     
     # make the plot
     png(paste0("../../../../out/figures/Writeup6d/Writeup6d_CIS_coverage_", gene_vec[i], ".png"),
@@ -77,22 +80,22 @@ for(i in 1:length(gene_vec)){
     plot_coveragetracks(
       cutmat = winning_tracks,
       peaks = peaks,
-      atac_count = atac_count[winning_idx],
+      atac_count = atac_count[winning_idx][winning_order],
       atac_count_max = atac_count_max, 
-      max_height = max(winning_tracks@x)/4,
+      max_height = max(max(winning_tracks@x)/4, 1e-4),
       main = paste0("CIS: Winning for ", gene_vec[i]),
-      rna_gene_count = rna_gene_count[winning_idx],
+      rna_gene_count = rna_gene_count[winning_idx][winning_order],
       rna_gene_count_max = rna_gene_count_max
     )
     
     plot_coveragetracks(
       cutmat = dying_tracks,
       peaks = peaks,
-      atac_count = atac_count[dying_idx[rng_idx]],
+      atac_count = atac_count[dying_idx[rng_idx]][dying_order],
       atac_count_max = atac_count_max, 
-      max_height = max(dying_tracks@x)/4,
+      max_height = max(max(dying_tracks@x)/4, 1e-4),
       main = paste0("CIS: Losing for ", gene_vec[i], " (Subsampled)"),
-      rna_gene_count = rna_gene_count[dying_idx[rng_idx]],
+      rna_gene_count = rna_gene_count[dying_idx[rng_idx]][dying_order],
       rna_gene_count_max = rna_gene_count_max
     )
     
