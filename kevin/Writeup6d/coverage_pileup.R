@@ -52,14 +52,90 @@ coverage_pileup <- function(
   # return 2-column vector
   # - one vector is the number of fragments in a particular basepair point
   # - one vector of is distances to the nearest peak region
-  res2 <- do.call(res, rbind)
+  res2 <- do.call(rbind, res)
   rownames(res2) <- names(res)
   colnames(res2) <- c("value", "distance")
-  res2
+
+  peak_width <- apply(peak_matrix, 1, diff)
+  list(pileup_mat = res2,
+       peak_width_median = stats::median(peak_width),
+       peak_width_max = max(peak_width))
+}
+
+compute_pileup_curve <- function(
+    pileup_mat,
+    inflation_factor = 2,
+    peak_width_max = NULL, # to normalize, peak_width_max should be not NULL
+    peak_width_median = NULL,
+    window = 100
+){
+  cutvec <- .form_cutvec_from_pileup(pileup_mat,
+                                     window = 100)
+  sum_mat <- .construct_sum_mat_triangle(p = length(cutvec),
+                                         window = window)
+  vec <- cutvec %*% sum_mat
+  vec <- as.numeric(vec)
+  names(vec) <- names(cutvec)[1:length(vec)]
   
+  # center the vector
+  left_bp <- as.numeric(names(vec)[1])
+  right_bp <- as.numeric(names(vec)[length(vec)])
+  stopifnot(left_bp < 0, right_bp > 0)
+  if(abs(left_bp) > abs(right_bp)){
+    vec <- c(vec, rep(0, abs(left_bp)-abs(right_bp)))
+    names(vec) <- seq(left_bp, abs(left_bp))
+  } else {
+    vec <- c(rep(0, abs(right_bp)-abs(left_bp)), vec)
+    names(vec) <- seq(-right_bp, right_bp)
+  }
+  
+  # normalize
+  if(!is.null(peak_width_max)){
+    # figure out which entries are in the "middle"
+    midpoint_idx <- round(length(vec)/2)
+    midpoint_window <- round(c(-1,1)*inflation_factor*peak_width_max + midpoint_idx)
+    midpoint_window <- pmax(pmin(midpoint_window, length(vec)), 1)
+    
+    # normalize by dividing by the mean value outside the peak region
+    idx <- c(1:length(vec))[-(midpoint_window[1]:midpoint_window[2])]
+    if(length(idx) > 0) vec <- vec/mean(vec[idx])
+  }
+  
+  # compute score
+  if(!is.null(peak_width_median)){
+    # figure out which entries are in the "middle"
+    midpoint_idx <- round(length(vec)/2)
+    midpoint_window <- round(c(-.5,.5)*peak_width_median + midpoint_idx)
+    midpoint_window <- pmax(pmin(midpoint_window, length(vec)), 1)
+    
+    # mean value inside the peak region
+    score <- mean(vec[midpoint_window[1]:midpoint_window[2]])
+  } else {
+    score <- NULL
+  }
+  
+  list(inflation_factor = inflation_factor,
+       peak_width_max = peak_width_max,
+       peak_width_median = peak_width_median,
+       pileup_vec = vec,
+       score = score)
 }
 
 #######################
+
+.form_cutvec_from_pileup <- function(pileup_mat,
+                                     window){
+  width <- diff(range(pileup_mat[,"distance"]))
+  width <- width + 2*window
+  
+  min_distance <- min(pileup_mat[,"distance"])
+  column_vec <- pileup_mat[,"distance"] - min_distance + 1 + window
+  vec <- rep(0, width)
+  vec[column_vec] <- pileup_mat[,"value"]
+  min_basepair <- min(pileup_mat[,"distance"]) - window
+  names(vec) <- seq(min_basepair,(min_basepair+length(vec)-1))
+  vec
+}
 
 ## see https://www.r-bloggers.com/2020/03/what-is-a-dgcmatrix-object-made-of-sparse-matrix-format-in-r/
 # if you want to find the nonzero entries for a row, I suggest
