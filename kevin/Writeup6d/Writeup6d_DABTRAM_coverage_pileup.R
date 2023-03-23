@@ -19,6 +19,20 @@ source("../Writeup6b/gene_list.R")
 source("gene_list_csc.R")
 gene_vec <- sort(unique(c(unlist(keygenes), keygenes_csc)))
 
+# remove any genes not found
+tmp <- sapply(gene_vec, function(gene){
+  tmp <- Signac::LookupGeneCoords(
+    object = all_data,
+    gene = gene,
+    assay = "ATAC"
+  )
+  # make sure gene exists
+  if(all(is.null(tmp))) return(T) else return(F)
+})
+if(any(tmp)){
+  gene_vec <- gene_vec[-which(tmp)]
+}
+
 # find the winning and losing cells
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 surviving_lineages <- rownames(tab_mat)[which(tab_mat[,paste0("day10_", treatment)] >= 20)]

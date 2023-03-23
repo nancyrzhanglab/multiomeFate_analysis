@@ -19,6 +19,20 @@ source("../Writeup6b/gene_list.R")
 source("gene_list_csc.R")
 gene_vec <- sort(unique(c(unlist(keygenes), keygenes_csc)))
 
+# remove any genes not found
+tmp <- sapply(gene_vec, function(gene){
+  tmp <- Signac::LookupGeneCoords(
+    object = all_data,
+    gene = gene,
+    assay = "ATAC"
+  )
+  # make sure gene exists
+  if(all(is.null(tmp))) return(T) else return(F)
+})
+if(any(tmp)){
+  gene_vec <- gene_vec[-which(tmp)]
+}
+
 # find the winning and losing cells
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 surviving_lineages <- rownames(tab_mat)[which(tab_mat[,paste0("day10_", treatment)] >= 20)]
@@ -44,7 +58,7 @@ dying_curve_list_master <- numeric(0)
 for(i in 1:ceiling(length(gene_vec)/5)){
   print(paste0("Batch number ", i, " out of ", ceiling(length(gene_vec)/5)))
   gene_vec_small <- gene_vec[((i-1)*5+1):min(i*5, length(gene_vec))]
- 
+  
   winning_curve_list <- vector("list", length(gene_vec_small))
   names(winning_curve_list) <- gene_vec_small
   dying_curve_list <- winning_curve_list

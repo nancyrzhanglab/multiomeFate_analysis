@@ -81,12 +81,14 @@ compute_pileup_curve <- function(
   left_bp <- as.numeric(names(vec)[1])
   right_bp <- as.numeric(names(vec)[length(vec)])
   stopifnot(left_bp < 0, right_bp > 0)
-  if(abs(left_bp) > abs(right_bp)){
-    vec <- c(vec, rep(0, abs(left_bp)-abs(right_bp)))
-    names(vec) <- seq(left_bp, abs(left_bp))
-  } else {
-    vec <- c(rep(0, abs(right_bp)-abs(left_bp)), vec)
-    names(vec) <- seq(-right_bp, right_bp)
+  if(abs(left_bp) != abs(right_bp)){
+    if(abs(left_bp) > abs(right_bp)){
+      vec <- c(vec, rep(0, abs(left_bp)-abs(right_bp)))
+      names(vec) <- seq(left_bp, abs(left_bp))
+    } else {
+      vec <- c(rep(0, abs(right_bp)-abs(left_bp)), vec)
+      names(vec) <- seq(-right_bp, right_bp)
+    }
   }
   
   # normalize
