@@ -74,7 +74,7 @@ for(i in 1:ceiling(length(gene_vec)/5)){
       cells = winning_cells
     )
     winning_curve_list[[j]] <- compute_pileup_curve(
-      tmp$pileup_mat,
+      pileup_mat = tmp$pileup_mat,
       peak_width_max = tmp$peak_width_max,
       peak_width_median = tmp$peak_width_median
     )
@@ -87,7 +87,7 @@ for(i in 1:ceiling(length(gene_vec)/5)){
       cells = dying_cells
     )
     dying_curve_list[[j]] <- compute_pileup_curve(
-      tmp$pileup_mat,
+      pileup_mat = tmp$pileup_mat,
       peak_width_max = tmp$peak_width_max,
       peak_width_median = tmp$peak_width_median
     )
@@ -99,7 +99,7 @@ for(i in 1:ceiling(length(gene_vec)/5)){
   save(date_of_run, session_info,
        winning_curve_list_master, dying_curve_list_master,
        treatment,
-       file = paste0("../../../../out/kevin/Writeup6b/Writeup6d_coverage_pileup_", treatment, ".RData"))
+       file = paste0("../../../../out/kevin/Writeup6d/Writeup6d_coverage_pileup_", treatment, ".RData"))
   
   png(paste0("../../../../out/figures/Writeup6d/Writeup6d_", treatment, "_coverage-pileup_", i, ".png"),
       width = 1200, height = 3000, units = "px", res = 300)

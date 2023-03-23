@@ -48,14 +48,18 @@ coverage_pileup <- function(
   })
   names(res) <- colnames(cutmat)
   res <- res[which(sapply(res, length) > 0)]
+  if(length(res) == 0){
+    res2 <- matrix(NA, nrow = 0, ncol = 2)
+    colnames(res2) <- c("value", "distance")
+  } else {
+    # return 2-column vector
+    # - one vector is the number of fragments in a particular basepair point
+    # - one vector of is distances to the nearest peak region
+    res2 <- do.call(rbind, res)
+    rownames(res2) <- names(res)
+    colnames(res2) <- c("value", "distance")
+  }
   
-  # return 2-column vector
-  # - one vector is the number of fragments in a particular basepair point
-  # - one vector of is distances to the nearest peak region
-  res2 <- do.call(rbind, res)
-  rownames(res2) <- names(res)
-  colnames(res2) <- c("value", "distance")
-
   peak_width <- apply(peak_matrix, 1, diff)
   list(pileup_mat = res2,
        peak_width_median = stats::median(peak_width),
@@ -69,8 +73,13 @@ compute_pileup_curve <- function(
     peak_width_median = NULL,
     window = 100
 ){
-  cutvec <- .form_cutvec_from_pileup(pileup_mat,
-                                     window = 100)
+  if(nrow(pileup_mat) == 0){
+    cutvec <- rep(0, 201)
+    names(cutvec) <- seq(-100,100)
+  } else {
+    cutvec <- .form_cutvec_from_pileup(pileup_mat,
+                                       window = 100)
+  }
   sum_mat <- .construct_sum_mat_triangle(p = length(cutvec),
                                          window = window)
   vec <- cutvec %*% sum_mat
@@ -80,17 +89,30 @@ compute_pileup_curve <- function(
   # center the vector
   left_bp <- as.numeric(names(vec)[1])
   right_bp <- as.numeric(names(vec)[length(vec)])
-  stopifnot(left_bp < 0, right_bp > 0)
-  if(abs(left_bp) != abs(right_bp)){
-    if(abs(left_bp) > abs(right_bp)){
-      vec <- c(vec, rep(0, abs(left_bp)-abs(right_bp)))
-      names(vec) <- seq(left_bp, abs(left_bp))
-    } else {
-      vec <- c(rep(0, abs(right_bp)-abs(left_bp)), vec)
-      names(vec) <- seq(-right_bp, right_bp)
+  if(left_bp < 0 & right_bp > 0){
+    if(abs(left_bp) != abs(right_bp)){
+      if(abs(left_bp) > abs(right_bp)){
+        vec <- c(vec, rep(0, abs(left_bp)-abs(right_bp)))
+        names(vec) <- seq(left_bp, abs(left_bp))
+      } else {
+        vec <- c(rep(0, abs(right_bp)-abs(left_bp)), vec)
+        names(vec) <- seq(-right_bp, right_bp)
+      }
     }
+  } else if(left_bp < 0 & right_bp < 0){
+    big_num <- abs(left_bp)
+    small_num <- abs(right_bp)
+    
+    vec <- c(vec, rep(0, big_num-small_num+1+big_num))
+    names(vec) <- seq(-big_num, big_num)
+  } else if(left_bp > 0 & right_bp > 0) {
+    big_num <- abs(right_bp)
+    small_num <- abs(right_bp)
+    
+    vec <- c(rep(0, big_num-small_num+1+big_num), vec)
+    names(vec) <- seq(-big_num, big_num)
   }
-  
+ 
   # normalize
   if(!is.null(peak_width_max)){
     # figure out which entries are in the "middle"

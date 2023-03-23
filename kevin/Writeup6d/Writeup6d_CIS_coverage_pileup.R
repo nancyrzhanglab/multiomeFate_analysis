@@ -99,7 +99,7 @@ for(i in 1:ceiling(length(gene_vec)/5)){
   save(date_of_run, session_info,
        winning_curve_list_master, dying_curve_list_master,
        treatment,
-       file = paste0("../../../../out/kevin/Writeup6b/Writeup6d_coverage_pileup_", treatment, ".RData"))
+       file = paste0("../../../../out/kevin/Writeup6d/Writeup6d_coverage_pileup_", treatment, ".RData"))
   
   png(paste0("../../../../out/figures/Writeup6d/Writeup6d_", treatment, "_coverage-pileup_", i, ".png"),
       width = 1200, height = 3000, units = "px", res = 300)
