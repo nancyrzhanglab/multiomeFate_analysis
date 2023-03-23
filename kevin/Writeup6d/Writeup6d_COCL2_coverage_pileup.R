@@ -7,7 +7,7 @@ load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
 source("coverage_extractor_singlecell.R")
 source("coverage_extractor_singlecell-plotter.R")
 source("coverage_pileup.R")
-source("coverage_pileup-plotter.R")
+source("coverage_pileup_plotter.R")
 
 set.seed(10)
 date_of_run <- Sys.time()
