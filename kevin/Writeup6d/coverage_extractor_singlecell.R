@@ -8,35 +8,17 @@ coverage_extractor_singlecell <- function(
     sep = c("-", "-"),
     window = 100
 ){
-  
-  cells <- Signac:::SetIfNull(x = cells, y = colnames(x = object))
-  
-  tmp <- Signac::LookupGeneCoords(
+  cutmat <- .compute_cutmatrix(
     object = object,
     gene = gene,
-    assay = assay
-  )
-  # make sure gene exists
-  if(all(is.null(tmp))) return(NULL)
-  
-  region <- Signac:::FindRegion(
-    object = object,
-    region = gene,
-    sep = sep,
     assay = assay,
+    cells = cells, 
+    extend.downstream = extend.downstream,
     extend.upstream = extend.upstream,
-    extend.downstream = extend.downstream
+    sep = sep,
+    window = window
   )
-  
-  # form cutmatrix
-  cutmat <- Signac:::CutMatrix(
-    object = object,
-    region = region,
-    assay = assay,
-    cells = cells,
-    verbose = FALSE
-  )
-  colnames(cutmat) <- (IRanges::start(x = region)):(IRanges::end(x = region))
+  if(all(is.null(cutmat))) return(NULL)
   
   # normalize values for each cell based on that row
   cell_size <- pmax(Matrix::rowSums(cutmat),1)
@@ -134,6 +116,49 @@ compute_windowsize <- function(
 }
 
 ######################################################
+
+.compute_cutmatrix <- function(
+    object,
+    gene, # name of gene
+    assay = "ATAC",
+    cells = NULL, #NULL or names of cells
+    extend.downstream = 5000,
+    extend.upstream = 5000,
+    sep = c("-", "-"),
+    window = 100
+){
+  
+  cells <- Signac:::SetIfNull(x = cells, y = colnames(x = object))
+  
+  tmp <- Signac::LookupGeneCoords(
+    object = object,
+    gene = gene,
+    assay = assay
+  )
+  # make sure gene exists
+  if(all(is.null(tmp))) return(NULL)
+  
+  region <- Signac:::FindRegion(
+    object = object,
+    region = gene,
+    sep = sep,
+    assay = assay,
+    extend.upstream = extend.upstream,
+    extend.downstream = extend.downstream
+  )
+  
+  # form cutmatrix
+  cutmat <- Signac:::CutMatrix(
+    object = object,
+    region = region,
+    assay = assay,
+    cells = cells,
+    verbose = FALSE
+  )
+  colnames(cutmat) <- (IRanges::start(x = region)):(IRanges::end(x = region))
+  
+  cutmat
+}
 
 .mult_vec_mat <- function(vec, mat){
   stopifnot(inherits(mat, c("matrix", "dgCMatrix")), 
