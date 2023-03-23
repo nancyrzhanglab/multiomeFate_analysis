@@ -55,7 +55,7 @@ dying_cells <- colnames(all_data)[dying_idx]
 winning_curve_list_master <- numeric(0)
 dying_curve_list_master <- numeric(0)
 
-for(i in 1:ceiling(length(gene_vec)/5)){
+for(i in 10:ceiling(length(gene_vec)/5)){
   print(paste0("Batch number ", i, " out of ", ceiling(length(gene_vec)/5)))
   gene_vec_small <- gene_vec[((i-1)*5+1):min(i*5, length(gene_vec))]
  
