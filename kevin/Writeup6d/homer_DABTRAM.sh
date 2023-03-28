@@ -1,7 +1,7 @@
 #!/bin/bash/
 #$ -N homer_dabtram
 #$ -j y
-#$ -o $HOME/project/Multiome_fate/out/kevin/Writeup6d/qsub
+#$ -o ../../../../out/kevin/Writeup6d/qsub
 #$ -l m_mem_free=100G
 
 cd $HOME/project/Multiome_fate/out/kevin/Writeup6d
