@@ -130,7 +130,7 @@ compute_pileup_curve <- function(
     
     # normalize by dividing by the mean value outside the peak region
     idx <- c(1:length(vec))[-(midpoint_window[1]:midpoint_window[2])]
-    if(length(idx) > 0) vec <- vec/mean(vec[idx])
+    if(length(idx) > 0) vec <- vec/(mean(vec[idx])+1)
   }
   
   # compute score
