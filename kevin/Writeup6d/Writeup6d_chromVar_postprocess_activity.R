@@ -183,6 +183,9 @@ all_data[["ATAC"]]@motifs@pwm[[1]]
 head(all_data[["ATAC"]]@motifs@motif.names)
 all_data[["ATAC"]]@motifs@positions[[1]]
 
+dim(all_data[["ATAC"]]@motifs@data)
+dim(all_data[["ATAC"]]@data)
+
 zz <- all_data[["ATAC"]]@motifs@data
 idx <- .nonzero_col(zz, col_idx = 1, bool_value = F)
 length(idx)

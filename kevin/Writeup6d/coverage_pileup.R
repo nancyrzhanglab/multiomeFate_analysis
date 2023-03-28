@@ -103,15 +103,21 @@ compute_pileup_curve <- function(
     big_num <- abs(left_bp)
     small_num <- abs(right_bp)
     stopifnot(big_num > small_num)
+    # print("Scenario A")
+    # print(paste0(big_num, ":", small_num, "::", left_bp, ":", right_bp, "::", length(vec)))
     
-    vec <- c(vec, rep(0, big_num-small_num+1+big_num))
+    vec <- c(vec, rep(0, small_num+big_num))
+    # print(length(vec))
     names(vec) <- seq(-big_num, big_num)
   } else if(left_bp > 0 & right_bp > 0) {
     big_num <- abs(right_bp)
     small_num <- abs(left_bp)
     stopifnot(big_num > small_num)
+    # print("Scenario B")
+    # print(paste0(big_num, ":", small_num, "::", left_bp, right_bp, "::", length(vec)))
     
-    vec <- c(rep(0, big_num-small_num+1+big_num), vec)
+    vec <- c(rep(0, small_num+big_num), vec)
+    # print(length(vec))
     names(vec) <- seq(-big_num, big_num)
   }
  
