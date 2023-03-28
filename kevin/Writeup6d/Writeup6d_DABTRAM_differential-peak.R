@@ -16,23 +16,18 @@ Seurat::DefaultAssay(all_data) <- "ATAC"
 
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 surviving_lineages <- rownames(tab_mat)[which(tab_mat[,paste0("day10_", treatment)] >= 20)]
-dying_lineages <- rownames(tab_mat)[which(apply(tab_mat,1,max)<=1)]
-winning_idx <- intersect(
-  intersect(which(all_data$assigned_lineage %in% surviving_lineages),
-            which(all_data$assigned_posterior >= 0.5)),
-  which(all_data$dataset == "day0")
-)
-dying_idx <- intersect(
-  intersect(which(all_data$assigned_lineage %in% dying_lineages),
-            which(all_data$assigned_posterior >= 0.5)),
-  which(all_data$dataset == "day0")
-)
+dying_lineages <- rownames(tab_mat)[which(tab_mat[,paste0("day10_", treatment)] < 20)]
+winning_idx <- intersect(which(all_data$assigned_lineage %in% surviving_lineages),
+                         which(all_data$dataset == "day0"))
+dying_idx <- intersect(which(all_data$assigned_lineage %in% dying_lineages),
+                       which(all_data$dataset == "day0"))
 ident_vec <- rep(NA, ncol(all_data))
 names(ident_vec) <- colnames(all_data)
 ident_vec[winning_idx] <- paste0("day0_win_", treatment)
 ident_vec[dying_idx] <- paste0("day0_lose_", treatment)
 all_data$ident <- ident_vec
 Seurat::Idents(all_data) <- "ident"
+table(Seurat::Idents(all_data))
 
 # from https://stuartlab.org/signac/articles/pbmc_vignette.html#find-differentially-accessible-peaks-between-clusters
 set.seed(10)
