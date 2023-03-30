@@ -17,7 +17,7 @@ Seurat::DefaultAssay(all_data) <- "ATAC"
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 lineage_names <- rownames(tab_mat)[which(tab_mat[,paste0("week5_", treatment)] >= 50)]
 cell_names1 <- colnames(all_data)[which(all_data$assigned_lineage %in% lineage_names)]
-cell_names2 <- colnames(all_data)[which(all_data$dataset == "day10")]
+cell_names2 <- colnames(all_data)[which(all_data$dataset == paste0("day10_", treatment))]
 cell_names_winning <- intersect(cell_names1, cell_names2)
 cell_names_losing <- setdiff(cell_names2, cell_names1)
 ident_vec <- rep(NA, ncol(all_data))
