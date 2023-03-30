@@ -15,7 +15,7 @@ treatment <- "DABTRAM"
 Seurat::DefaultAssay(all_data) <- "ATAC"
 
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
-lineage_names <- rownames(tab_mat)[which(tab_mat[,paste0("week5_", treatment)] >= 50)]
+lineage_names <- rownames(tab_mat)[which(tab_mat[,paste0("week5_", treatment)] >= 10)]
 cell_names1 <- colnames(all_data)[which(all_data$assigned_lineage %in% lineage_names)]
 cell_names2 <- colnames(all_data)[which(all_data$dataset == "day0")]
 cell_names_winning <- intersect(cell_names1, cell_names2)
