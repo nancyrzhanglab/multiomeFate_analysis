@@ -4,8 +4,6 @@ library(Signac)
 library(GenomicRanges)
 
 load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
-source("../Writeup6d/coverage_extractor_singlecell.R")
-source("peak_entropy.R")
 
 source("../Writeup6b/gene_list.R")
 source("../Writeup6d/gene_list_csc.R")
@@ -54,12 +52,12 @@ for(i in 1:length(gene_vec)){
   print(gene)
   print("Computing cutmat")
   
-  cutmat_winning <- .compute_cutmatrix(
+  cutmat_winning <- extract_cutmatrix(
     object = all_data,
     gene = gene,
     cells = winning_cells
   )
-  cutmat_dying <- .compute_cutmatrix(
+  cutmat_dying <- extract_cutmatrix(
     object = all_data,
     gene = gene,
     cells = dying_cells
@@ -80,28 +78,28 @@ for(i in 1:length(gene_vec)){
   print("Computing thetas")
   res_winning <- peak_mixture_modeling(
     bin_midpoints = bin_midpoints, 
-    mat = cutmat_winning, 
+    cutmat = cutmat_winning, 
     peak_locations = peak_locations,
     peak_prior = peak_prior,
-    verbose = F
+    verbose = 3
   )
   round(res_winning$theta_vec,2)
   
   res_dying <- peak_mixture_modeling(
     bin_midpoints = bin_midpoints, 
-    mat = cutmat_dying, 
+    cutmat = cutmat_dying, 
     peak_locations = peak_locations,
     peak_prior = peak_prior,
-    verbose = F
+    verbose = 3
   )
   round(res_dying$theta_vec,2)
   
   res_all <- peak_mixture_modeling(
     bin_midpoints = bin_midpoints, 
-    mat = cutmat_all, 
+    cutmat = cutmat_all, 
     peak_locations = peak_locations,
     peak_prior = peak_prior,
-    verbose = F
+    verbose = 3
   )
   round(res_all$theta_vec,2)
   
