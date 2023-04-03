@@ -25,7 +25,7 @@ set.seed(10)
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 
-treatment <- "CIS"
+treatment <- "DABTRAM"
 
 # find the winning and losing cells
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
