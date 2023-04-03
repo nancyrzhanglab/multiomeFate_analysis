@@ -101,28 +101,28 @@ for(i in 1:ceiling(length(gene_vec)/5)){
        treatment,
        file = paste0("../../../../out/kevin/Writeup6d/Writeup6d_coverage_pileup_", treatment, ".RData"))
   
-  png(paste0("../../../../out/figures/Writeup6d/Writeup6d_", treatment, "_coverage-pileup_", i, ".png"),
-      width = 1200, height = 3000, units = "px", res = 300)
-  par(mfrow = c(5,2))
-  for(j in 1:length(gene_vec_small)){
-    ymax <- max(winning_curve_list[[j]]$pileup_vec, dying_curve_list[[j]]$pileup_vec)
-    
-    coverage_pileup_plotter(
-      pileup_res = winning_curve_list[[j]],
-      col_curve = 3,
-      main = paste0(gene_vec_small[j], " Winning (", treatment, ")"),
-      ylim = c(0,ymax)
-    )
-    
-    coverage_pileup_plotter(
-      pileup_res = dying_curve_list[[j]], 
-      col_curve = 2,
-      main = paste0(gene_vec_small[j], " Losing (", treatment, ")"),
-      ylim = c(0,ymax)
-    )
-  }
-  
-  graphics.off()
+  # png(paste0("../../../../out/figures/Writeup6d/Writeup6d_", treatment, "_coverage-pileup_", i, ".png"),
+  #     width = 1200, height = 3000, units = "px", res = 300)
+  # par(mfrow = c(5,2))
+  # for(j in 1:length(gene_vec_small)){
+  #   ymax <- max(winning_curve_list[[j]]$pileup_vec, dying_curve_list[[j]]$pileup_vec)
+  #   
+  #   coverage_pileup_plotter(
+  #     pileup_res = winning_curve_list[[j]],
+  #     col_curve = 3,
+  #     main = paste0(gene_vec_small[j], " Winning (", treatment, ")"),
+  #     ylim = c(0,ymax)
+  #   )
+  #   
+  #   coverage_pileup_plotter(
+  #     pileup_res = dying_curve_list[[j]], 
+  #     col_curve = 2,
+  #     main = paste0(gene_vec_small[j], " Losing (", treatment, ")"),
+  #     ylim = c(0,ymax)
+  #   )
+  # }
+  # 
+  # graphics.off()
 }
 
 
