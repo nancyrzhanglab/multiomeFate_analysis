@@ -121,8 +121,8 @@ for(i in 1:length(gene_vec)){
   result_list[[i]] <- list(
     num_cells_winning = nrow(cutmat_winning),
     num_cells_dying = nrow(cutmat_dying),
-    num_frag_winning = nrow(res_winning$assignment_mat),
-    num_frag_dying = nrow(res_dying$assignment_mat),
+    num_frag_winning = res_winning$num_frags,
+    num_frag_dying = res_dying$num_frags,
     theta_winning = res_winning$theta_vec,
     theta_dying = res_dying$theta_vec,
     theta_all = res_all$theta_vec,
