@@ -1,65 +1,176 @@
 rm(list=ls())
-set.seed(10)
-g <- igraph::graph_from_edgelist(matrix(c(4,1, 4,5, 2,5, 3,5), nrow = 4, ncol = 2, byrow = T), 
-                                 directed = F)
-g <- igraph::set_vertex_attr(g, name = "lag", index = 4, value = 3)
-g <- igraph::set_vertex_attr(g, name = "lag", index = 5, value = 5)
-idx_root <- 4; num_waves <- 10; num_per_wave <- 5; distinct_waves <- 2
-combn_wave_mat <- simulate_combn_wave_mat(g, idx_root, num_waves = num_waves,
-                                          num_per_wave = num_per_wave, 
-                                          distinct_waves = distinct_waves)
+load("tests/assets/test.RData")
 
-res <- simulate_data_input(combn_wave_mat, 
-                           x_exp_baseline = 0.1, x_exp_max = 0.7,
-                           x_sd_biological = 0.5, x_sd_technical = 0.1, 
-                           y_exp_baseline = 0.1, y_sd_technical = 1.5,
-                           num_unrelated_x = 100, num_unrelated_y = 50, 
-                           time_on = 15, time_windup = 15, 
-                           max_lag = 20, min_lag = 10,
-                           x_unrelated_intervals = 2,
-                           x_unrelated_max = 0.1, y_unrelated_max = 2)
-df_x <- res$df_x; df_y <- res$df_y
-list_xnoise <- res$list_xnoise; list_ynoise <- res$list_ynoise
+bandwidth <- 200
+discretization_stepsize <- 10
 
-df_cell <- simulate_df_cell(1000, time_max = max(df_y$time_end_scaffold, na.rm = T),
-                            num_branch = 3)
+frag_win <- .extract_fragment_from_cutmat(cutmat_winning)
+frag_die <- .extract_fragment_from_cutmat(cutmat_dying)
+frag_all <- c(frag_win, frag_die)
 
-set.seed(10)
-res <- simulate_data(df_x, df_y, list_xnoise, list_ynoise, df_cell,
-                     jitter = 0.01)
-mat_x <- res$mean_x; mat_y <- res$mean_y
+trials <- 10
 
-###############################
+i <- 1
+set.seed(10*i)
+idx <- sample(1:length(frag_all), size = round(length(frag_all)/2))
+idx_die <- sample(1:length(idx), size = round(length(idx)/2))
+idx_win <- sample(1:(length(frag_all) - length(idx)),
+                  size = round((length(frag_all) - length(idx))/2))
 
-vec_start <- which(df_cell$time <= 10)
-list_end <- lapply(sort(unique(df_cell$branch)), function(branch){
-  intersect(which(df_cell$branch == branch), which(df_cell$time >= 90))
-})
-# zz <- svd(mat_x); plot(zz$d[1:50])
-rank_x <- 20
-# zz <- svd(mat_y); plot(zz$d[1:50])
-rank_y <- 20
-set.seed(10)
-prep_obj <- chromatin_potential_prepare(mat_x, mat_y, df_x, df_y, 
-                                        vec_start, list_end,
-                                        est_method = "glmnet",
-                                        rec_method = "distant_cor_oracle",
-                                        options = list(nn_nn = 10, dim_nlatent_x = rank_x,
-                                                       dim_nlatent_y = rank_y, est_cis_window = 30))
+# res <- .compute_crossfit_teststat(
+#   bandwidth = bandwidth,
+#   frag_die = frag_all[idx],
+#   frag_win = frag_all[-idx],
+#   idx_die = idx_die,
+#   idx_win = idx_win,
+#   peak_locations = peak_locations,
+#   peak_prior = peak_prior,
+#   peak_width = peak_width,
+#   discretization_stepsize = discretization_stepsize,
+#   bool_lock_within_peak = T,
+#   max_iter = 100,
+#   min_fragments = 6,
+#   min_prior = 0.01,
+#   num_peak_limit = 4,
+#   tol = 1e-6,
+#   verbose = 0
+# )
+# res$teststat
 
-load("tmp.RData")
+############################
 
-zz <- .estimate_g(mat_x1, mat_y2, prep_obj$options$est_options)
+bool_lock_within_peak = T 
+max_iter = 100
+min_fragments = 6
+min_prior = 0.01
+num_peak_limit = 4
+tol = 1e-6
+verbose = 0
+frag_die = frag_all[idx] 
+frag_win = frag_all[-idx]
 
-########
+# fit1 <- .lrt_onefold(
+#   bandwidth = bandwidth,
+#   frag_die = frag_die, 
+#   frag_win = frag_win,
+#   idx_die_split1 = idx_die,
+#   idx_win_split1 = idx_win,
+#   peak_locations = peak_locations,
+#   peak_prior = peak_prior,
+#   peak_width = peak_width,
+#   discretization_stepsize = discretization_stepsize, 
+#   bool_lock_within_peak = bool_lock_within_peak, 
+#   max_iter = max_iter,
+#   min_prior = min_prior,
+#   num_peak_limit = num_peak_limit,
+#   tol = tol,
+#   verbose = verbose
+# )
 
-png("../../out/fig/writeup3/tmp.png", height = 1500, width = 1500, res = 300, units = "px")
-image(.rotate(mat_x1))
-graphics.off()
+#################
+idx_die_split1 = idx_die
+idx_win_split1 = idx_win
+len_die <- length(frag_die); len_win <- length(frag_win)
 
+fit_win <- peak_mixture_modeling(
+  bandwidth = bandwidth,
+  cutmat = NULL, 
+  peak_locations = peak_locations,
+  peak_prior = peak_prior,
+  peak_width = peak_width,
+  discretization_stepsize = discretization_stepsize, 
+  bool_lock_within_peak = bool_lock_within_peak, 
+  bool_freeze_prior = T, # assumed to not have a lot of fragments, so we need to freeze
+  fragment_locations = frag_win[idx_win_split1], 
+  max_iter = max_iter,
+  min_prior = min_prior,
+  num_peak_limit = num_peak_limit,
+  return_dist_mat = T,
+  tol = tol,
+  verbose = verbose
+)
 
+print("fit die")
+fit_die <- peak_mixture_modeling(
+  bandwidth = bandwidth,
+  cutmat = NULL, 
+  peak_locations = peak_locations,
+  peak_prior = peak_prior,
+  peak_width = peak_width,
+  discretization_stepsize = discretization_stepsize, 
+  bool_lock_within_peak = bool_lock_within_peak, 
+  bool_freeze_prior = T,
+  fragment_locations = frag_die[idx_die_split1], 
+  max_iter = max_iter,
+  min_prior = min_prior,
+  num_peak_limit = num_peak_limit,
+  return_dist_mat = T,
+  tol = tol,
+  verbose = verbose
+)
 
+# p0 is for the null
+# compute the win=die on the second fold
+print("fit both")
+fit_both <- peak_mixture_modeling(
+  bandwidth = bandwidth,
+  cutmat = NULL, 
+  peak_locations = peak_locations,
+  peak_prior = peak_prior,
+  peak_width = peak_width,
+  discretization_stepsize = discretization_stepsize, 
+  bool_lock_within_peak = bool_lock_within_peak, 
+  bool_freeze_prior = T,
+  fragment_locations = c(frag_win[-idx_win_split1], frag_die[-idx_die_split1]), 
+  max_iter = max_iter,
+  min_prior = min_prior,
+  num_peak_limit = num_peak_limit,
+  return_dist_mat = T, # needed for the numerator likelihood later
+  tol = tol,
+  verbose = verbose
+)
+stopifnot(nrow(fit_both$dist_mat) == len_win + len_die - length(idx_win_split1) - length(idx_die_split1))
+loglikelihood_denom <- fit_both$loglikelihood_val
 
+# compute the likelihood ratio of L(win!=die)/L(win=die) on the second fold
+# that is, p1(Y_second)/p0(Y_second)
+loglikelihood_outofsample_win <- .compute_loglikelihood(
+  dist_mat = fit_both$dist_mat[1:(len_win - length(idx_win_split1)),],
+  grenander_obj = fit_win$grenander_obj,
+  prior_vec = fit_win$prior_vec
+)
+loglikelihood_outofsample_die <- .compute_loglikelihood(
+  dist_mat = fit_both$dist_mat[(len_win-length(idx_win_split1)+1):nrow(fit_both$dist_mat),],
+  grenander_obj = fit_die$grenander_obj,
+  prior_vec = fit_die$prior_vec
+)
+loglikelihood_num <- loglikelihood_outofsample_win + loglikelihood_outofsample_die
 
+# return test statistic
+teststat <- exp(loglikelihood_num - loglikelihood_denom)
 
+#####################
+
+# compute ll of win based on fit-win
+ll1 <- .compute_loglikelihood(
+  dist_mat = fit_win$dist_mat,
+  grenander_obj = fit_win$grenander_obj,
+  prior_vec = fit_win$prior_vec
+)
+
+# compute ll of win based on fit-both or fit-die
+ll2 <- .compute_loglikelihood(
+  dist_mat = fit_win$dist_mat,
+  grenander_obj = fit_both$grenander_obj,
+  prior_vec = fit_win$prior_vec
+)
+ll3 <- .compute_loglikelihood(
+  dist_mat = fit_win$dist_mat,
+  grenander_obj = fit_die$grenander_obj,
+  prior_vec = fit_win$prior_vec
+)
+
+stopifnot(ll1 > max(ll2,ll3)) #uh oh....
+plot(fit_win$grenander_obj$x, fit_win$grenander_obj$pdf)
+plot(fit_both$grenander_obj$x, fit_both$grenander_obj$pdf)
 

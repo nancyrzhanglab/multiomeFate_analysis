@@ -1,142 +1,156 @@
 rm(list=ls())
 load("tests/assets/test.RData")
+
 bandwidth <- 200
 discretization_stepsize <- 10
-cutmat_all <- rbind(cutmat_dying, cutmat_winning)
+
+frag_win <- .extract_fragment_from_cutmat(cutmat_winning)
+frag_die <- .extract_fragment_from_cutmat(cutmat_dying)
+frag_all <- c(frag_win, frag_die)
+
 trials <- 10
 
 i <- 1
 set.seed(10*i)
-idx1 <- sample(1:nrow(cutmat_all), round(nrow(cutmat_all)/2))
+idx <- sample(1:length(frag_all), size = round(length(frag_all)/2))
+idx_die <- sample(1:length(idx), size = round(length(idx)/2))
+idx_win <- sample(1:(length(frag_all) - length(idx)),
+                  size = round((length(frag_all) - length(idx))/2))
 
-res <- peak_testing(
-  bandwidth = bandwidth,
-  cutmat_dying = cutmat_all[idx1,],
-  cutmat_winning = cutmat_all[-idx1,],
-  peak_locations = peak_locations,
-  peak_prior = peak_prior,
-  peak_width = peak_width,
-  discretization_stepsize = discretization_stepsize,
-  verbose = 0
-)
+# res <- .compute_crossfit_teststat(
+#   bandwidth = bandwidth,
+#   frag_die = frag_all[idx],
+#   frag_win = frag_all[-idx],
+#   idx_die = idx_die,
+#   idx_win = idx_win,
+#   peak_locations = peak_locations,
+#   peak_prior = peak_prior,
+#   peak_width = peak_width,
+#   discretization_stepsize = discretization_stepsize,
+#   bool_lock_within_peak = T,
+#   max_iter = 100,
+#   min_fragments = 6,
+#   min_prior = 0.01,
+#   num_peak_limit = 4,
+#   tol = 1e-6,
+#   verbose = 0
+# )
+# res$teststat
 
-###########################
+############################
 
-cutmat_dying = cutmat_all[idx1,]
-cutmat_winning = cutmat_all[-idx1,]
-bool_lock_within_peak = T
+bool_lock_within_peak = T 
 max_iter = 100
 min_fragments = 6
 min_prior = 0.01
 num_peak_limit = 4
 tol = 1e-6
-verbose = 1
+verbose = 0
+frag_die = frag_all[idx] 
+frag_win = frag_all[-idx]
 
-frag_win <- .extract_fragment_from_cutmat(cutmat_winning)
-frag_die <- .extract_fragment_from_cutmat(cutmat_dying)
-
-idx_win <- sample(1:length(frag_win), size = round(length(frag_win)/2))
-idx_die <- sample(1:length(frag_die), size = round(length(frag_die)/2))
-
-idx_die_split1 = idx_die
-idx_win_split1 = idx_win
-
-# fit_die <- peak_mixture_modeling(
+# fit1 <- .lrt_onefold(
 #   bandwidth = bandwidth,
-#   cutmat = NULL, 
+#   frag_die = frag_die, 
+#   frag_win = frag_win,
+#   idx_die_split1 = idx_die,
+#   idx_win_split1 = idx_win,
 #   peak_locations = peak_locations,
 #   peak_prior = peak_prior,
 #   peak_width = peak_width,
 #   discretization_stepsize = discretization_stepsize, 
 #   bool_lock_within_peak = bool_lock_within_peak, 
-#   bool_freeze_prior = T,
-#   fragment_locations = frag_die[idx_die_split1], 
 #   max_iter = max_iter,
 #   min_prior = min_prior,
 #   num_peak_limit = num_peak_limit,
-#   return_dist_mat = F,
 #   tol = tol,
 #   verbose = verbose
 # )
 
-##################
+#################
+idx_die_split1 = idx_die
+idx_win_split1 = idx_win
+len_die <- length(frag_die); len_win <- length(frag_win)
 
-fragment_locations = frag_die[idx_die_split1]
-cutmat <- NULL
-return_assignment_mat = F
-return_dist_mat = F
-bool_freeze_prior = T
-
-dist_mat <- .compute_frag_peak_matrix(
-  bool_lock_within_peak = bool_lock_within_peak,
-  cutmat = cutmat,
-  fragment_locations = fragment_locations,
-  num_peak_limit = num_peak_limit,
-  peak_locations = peak_locations,
-  peak_width = peak_width
-)
-num_frags <- nrow(dist_mat)
-if(is.na(discretization_stepsize)) discretization_stepsize <- max(round(max(dist_mat@x)/2000),5)
-
-grenander_obj <- .initialize_grenander(bandwidth = bandwidth,
-                                       dist_mat = dist_mat,
-                                       discretization_stepsize = discretization_stepsize)
-
-iter <- 1
-loglikelihood_vec <- .compute_loglikelihood(
-  dist_mat = dist_mat,
-  grenander_obj = grenander_obj,
-  prior_vec = peak_prior
-)
-if(verbose > 1) print(paste0("Initial log-likelihood: ", round(loglikelihood_vec[1],2)))
-prior_vec <- peak_prior
-
-# TODO: Return if there are no fragments
-
-while(TRUE){
-  if(iter > max_iter) break()
-  
-  if(verbose > 1) print("E-step")
-  assignment_mat <- .e_step(
-    dist_mat = dist_mat,
-    grenander_obj = grenander_obj,
-    prior_vec = prior_vec
-  )
-  print(length(assignment_mat@x))
-  
-  if(verbose > 1) print("M-step")
-  grenander_obj_new <- .m_step(
-    assignment_mat = assignment_mat,
-    bandwidth = bandwidth,
-    dist_mat = dist_mat,
-    discretization_stepsize = discretization_stepsize
-  )
-  if(!bool_freeze_prior) { prior_vec <- .compute_prior(assignment_mat = assignment_mat, min_prior = min_prior) }
-  
-  if(verbose) print("Computing likelihood")
-  loglikelihood_val <- .compute_loglikelihood(
-    dist_mat = dist_mat,
-    grenander_obj = grenander_obj_new,
-    prior_vec = peak_prior
-  )
-  
-  loglikelihood_vec <- c(loglikelihood_vec, loglikelihood_val)
-  iter <- length(loglikelihood_vec)
-  if(length(loglikelihood_vec) >= 2){
-    if(verbose > 0) print(paste0("Iteration: ", iter, ", log-likelihood: ", round(loglikelihood_vec[iter],2)))
-    if(abs(loglikelihood_vec[iter] - loglikelihood_vec[iter-1]) <= tol) break()
-  }
-  grenander_obj <- grenander_obj_new
-}
-
-###########
-
-# let's see where it crashed
-grenander_obj_new <- .m_step(
-  assignment_mat = assignment_mat,
+fit_win <- peak_mixture_modeling(
   bandwidth = bandwidth,
-  dist_mat = dist_mat,
-  discretization_stepsize = discretization_stepsize
+  cutmat = NULL, 
+  peak_locations = peak_locations,
+  peak_prior = peak_prior,
+  peak_width = peak_width,
+  discretization_stepsize = discretization_stepsize, 
+  bool_lock_within_peak = bool_lock_within_peak, 
+  bool_freeze_prior = T, # assumed to not have a lot of fragments, so we need to freeze
+  fragment_locations = frag_win[idx_win_split1], 
+  max_iter = max_iter,
+  min_prior = min_prior,
+  num_peak_limit = num_peak_limit,
+  return_dist_mat = F,
+  tol = tol,
+  verbose = verbose
 )
-length(assignment_mat@x)
-length(dist_mat@x)
+
+print("fit die")
+fit_die <- peak_mixture_modeling(
+  bandwidth = bandwidth,
+  cutmat = NULL, 
+  peak_locations = peak_locations,
+  peak_prior = peak_prior,
+  peak_width = peak_width,
+  discretization_stepsize = discretization_stepsize, 
+  bool_lock_within_peak = bool_lock_within_peak, 
+  bool_freeze_prior = T,
+  fragment_locations = frag_die[idx_die_split1], 
+  max_iter = max_iter,
+  min_prior = min_prior,
+  num_peak_limit = num_peak_limit,
+  return_dist_mat = F,
+  tol = tol,
+  verbose = verbose
+)
+
+# p0 is for the null
+# compute the win=die on the second fold
+print("fit both")
+fit_both <- peak_mixture_modeling(
+  bandwidth = bandwidth,
+  cutmat = NULL, 
+  peak_locations = peak_locations,
+  peak_prior = peak_prior,
+  peak_width = peak_width,
+  discretization_stepsize = discretization_stepsize, 
+  bool_lock_within_peak = bool_lock_within_peak, 
+  bool_freeze_prior = T,
+  fragment_locations = c(frag_win[-idx_win_split1], frag_die[-idx_die_split1]), 
+  max_iter = max_iter,
+  min_prior = min_prior,
+  num_peak_limit = num_peak_limit,
+  return_dist_mat = T, # needed for the numerator likelihood later
+  tol = tol,
+  verbose = verbose
+)
+stopifnot(nrow(fit_both$dist_mat) == len_win + len_die - length(idx_win_split1) - length(idx_die_split1))
+loglikelihood_denom <- fit_both$loglikelihood_val
+
+# compute the likelihood ratio of L(win!=die)/L(win=die) on the second fold
+# that is, p1(Y_second)/p0(Y_second)
+loglikelihood_outofsample_win <- .compute_loglikelihood(
+  dist_mat = fit_both$dist_mat[1:(len_win - length(idx_win_split1)),],
+  grenander_obj = fit_win$grenander_obj,
+  prior_vec = fit_win$prior_vec
+)
+loglikelihood_outofsample_die <- .compute_loglikelihood(
+  dist_mat = fit_both$dist_mat[(len_win-length(idx_win_split1)+1):nrow(fit_both$dist_mat),],
+  grenander_obj = fit_die$grenander_obj,
+  prior_vec = fit_die$prior_vec
+)
+loglikelihood_num <- loglikelihood_outofsample_win + loglikelihood_outofsample_die
+
+# return test statistic
+teststat <- exp(loglikelihood_num - loglikelihood_denom)
+
+#####################
+
+plot(fit_win$grenander_obj$x, fit_win$grenander_obj$pdf, main = "Win")
+plot(fit_die$grenander_obj$x, fit_die$grenander_obj$pdf, main = "Die")
+plot(fit_both$grenander_obj$x, fit_both$grenander_obj$pdf, main = "Both")
