@@ -87,28 +87,28 @@ for(i in 1:length(gene_vec)){
   
   print("Computing crossfit")
   set.seed(i)
-  res_win <- eSVD2:::peak_mixture_modeling(cutmat = cutmat_dying,
-                                           peak_locations = peak_locations,
-                                           peak_prior = peak_prior,
-                                           peak_width = peak_width,
-                                           return_dist_mat = T,
-                                           max_iter = 100,
-                                           verbose = 1)
-  res_die <- eSVD2:::peak_mixture_modeling(cutmat = cutmat_winning,
-                                           peak_locations = peak_locations,
-                                           peak_prior = peak_prior,
-                                           peak_width = peak_width,
-                                           return_dist_mat = T,
-                                           max_iter = 100,
-                                           verbose = 1)
-  res_both <- eSVD2:::peak_mixture_modeling(cutmat = rbind(cutmat_winning,
-                                                           cutmat_dying),
-                                            peak_locations = peak_locations,
-                                            peak_prior = peak_prior,
-                                            peak_width = peak_width,
-                                            return_dist_mat = T,
-                                            max_iter = 100,
-                                            verbose = 1)
+  res_win <- multiomeFate:::peak_mixture_modeling(cutmat = cutmat_dying,
+                                                  peak_locations = peak_locations,
+                                                  peak_prior = peak_prior,
+                                                  peak_width = peak_width,
+                                                  return_dist_mat = T,
+                                                  max_iter = 100,
+                                                  verbose = 1)
+  res_die <- multiomeFate:::peak_mixture_modeling(cutmat = cutmat_winning,
+                                                  peak_locations = peak_locations,
+                                                  peak_prior = peak_prior,
+                                                  peak_width = peak_width,
+                                                  return_dist_mat = T,
+                                                  max_iter = 100,
+                                                  verbose = 1)
+  res_both <- multiomeFate:::peak_mixture_modeling(cutmat = rbind(cutmat_winning,
+                                                                  cutmat_dying),
+                                                   peak_locations = peak_locations,
+                                                   peak_prior = peak_prior,
+                                                   peak_width = peak_width,
+                                                   return_dist_mat = T,
+                                                   max_iter = 100,
+                                                   verbose = 1)
   
   result_list[[i]] <- list(res_win = res_win,
                            res_die = res_die,
