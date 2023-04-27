@@ -12,7 +12,7 @@ gene_vec_all <- sort(gene_vec_all)
 set.seed(10)
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
-bulk_number <- 1
+bulk_number <- 3
 bulk_total <- 5
 
 treatment <- "COCL2"
