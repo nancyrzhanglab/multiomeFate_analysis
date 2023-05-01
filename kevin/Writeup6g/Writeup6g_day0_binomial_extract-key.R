@@ -68,13 +68,13 @@ for(treatment in treatment_vec){
       object = all_data,
       gene = gene
     )
-    peak_locations <- multiomeFate:::compute_peak_locations(peak_mat)
+    peak_prior <-  multiomeFate:::compute_peak_prior(cutmat = cutmat_all,
+                                                     peak_mat = peak_mat)
     
     # remove peaks with less than 0.05
-    if(any(peak_prior <= 0.05)){
-      if(length(which(peak_prior >= 0.05)) == 0) return(NULL)
+    if(any(peak_prior <= 0.05) & any(peak_prior >= 0.05)){
       idx <- which(peak_prior <= 0.05)
-      peak_locations <- peak_locations[-idx]
+      peak_mat <- peak_mat[-idx,]
     }
     
     collapse_win <- Matrix::colSums(cutmat_winning)
