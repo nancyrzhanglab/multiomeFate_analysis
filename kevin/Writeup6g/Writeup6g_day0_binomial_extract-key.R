@@ -74,7 +74,7 @@ for(treatment in treatment_vec){
     # remove peaks with less than 0.05
     if(any(peak_prior <= 0.05) & any(peak_prior >= 0.05)){
       idx <- which(peak_prior <= 0.05)
-      peak_mat <- peak_mat[-idx,]
+      peak_mat <- peak_mat[-idx,,drop = F]
     }
     
     collapse_win <- Matrix::colSums(cutmat_winning)

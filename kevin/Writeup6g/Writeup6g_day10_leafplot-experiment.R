@@ -65,12 +65,30 @@ for(treatment in treatment_vec){
   
   color_vec <- rep(NA, ncol(all_data2))
   color_palette <- grDevices::colorRampPalette(c("lightgray", "dodgerblue4"))(3)
-  color_vec[which(all_data2$keep ==  paste0("1loser_", treatment))] <- color_palette[1]
-  color_vec[which(all_data2$keep ==  paste0("2mid_winner_", treatment))] <- color_palette[2]
-  color_vec[which(all_data2$keep ==  paste0("3high_winner_", treatment))] <- color_palette[3]
+  idx1 <- which(all_data2$keep ==  paste0("1loser_", treatment))
+  idx2 <- which(all_data2$keep ==  paste0("2mid_winner_", treatment))
+  idx3 <- which(all_data2$keep ==  paste0("3high_winner_", treatment))
   
-  png("../../../../out/figures/Writeup6f/")
-  
-  
-  dev.off() 
+  for(kk in 1:2){
+    png(paste0("../../../../out/figures/Writeup6g/Writeup6g_day10_leafplot_", treatment, "_", kk, ".png"),
+        height = 3000, width = 2500, res = 300, units = "px")
+    par(mfrow = c(5,5), mar = c(4,4,3,0.5))
+    
+    gene_vec_tmp <- gene_vec[((kk-1)*25+1):min(kk*25, length(gene_vec))]
+    for(gene in gene_vec_tmp){
+      print(gene)
+      vec1 <- all_data2[["Saver"]]@data[gene,]
+      vec2 <- all_data2[["geneActivity"]]@data[gene,]
+      
+      xlim <- quantile(vec1, probs = c(0.05, 0.95))
+      ylim <- quantile(vec2, probs = c(0.05, 0.95))
+      
+      plot(NA, xlim = xlim, ylim = ylim, xlab = "Saver", ylab = "Chr.Act.", main = gene)
+      points(vec1[idx1], vec2[idx1], col = color_palette[1], pch = 16, cex = 0.5)
+      points(vec1[idx2], vec2[idx2], col = color_palette[2], pch = 16, cex = 1)
+      points(vec1[idx3], vec2[idx3], col = color_palette[3], pch = 16, cex = 1)
+    }
+    
+    graphics.off()
+  }
 }
