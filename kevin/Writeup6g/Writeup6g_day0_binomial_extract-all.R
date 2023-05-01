@@ -36,7 +36,7 @@ for(treatment in treatment_vec){
   
   #############
   result_list[[treatment]] <- lapply(1:length(gene_vec_all), function(i){
-    print(paste0(i, " of " length(gene_vec_all), "in ", treatment))
+    print(paste0(i, " of ", length(gene_vec_all), "in ", treatment))
     gene <- gene_vec_all[i]
     
     cutmat_winning <- multiomeFate:::extract_cutmatrix(
