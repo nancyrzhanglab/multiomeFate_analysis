@@ -1,4 +1,37 @@
 rm(list=ls())
+library(Seurat)
+library(Signac)
+library(GenomicRanges)
+library(multiomeFate)
+library(IRanges)
+
+load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
+
+set.seed(10)
+date_of_run <- Sys.time()
+session_info <- devtools::session_info()
+
+treatment <- "COCL2"
+
+# find the winning and losing cells
+tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
+surviving_lineages <- rownames(tab_mat)[which(tab_mat[,paste0("day10_", treatment)] >= 20)]
+dying_lineages <- rownames(tab_mat)[which(apply(tab_mat,1,max)<=1)]
+winning_idx <- intersect(
+  intersect(which(all_data$assigned_lineage %in% surviving_lineages),
+            which(all_data$assigned_posterior >= 0.5)),
+  which(all_data$dataset == "day0")
+)
+dying_idx <- intersect(
+  intersect(which(all_data$assigned_lineage %in% dying_lineages),
+            which(all_data$assigned_posterior >= 0.5)),
+  which(all_data$dataset == "day0")
+)
+length(winning_idx); length(dying_idx)
+winning_cells <- colnames(all_data)[winning_idx]
+dying_cells <- colnames(all_data)[dying_idx]
+
+##############################
 
 result_list_total <- vector("list", 0)
 bulk_total <- 5
@@ -38,21 +71,10 @@ lrt_vec_all[names(result_list)] <- lrt_vec
 
 length(which(!is.na(lrt_vec_all)))
 
-save(lrt_vec_all, result_list,
-     file = "../../../../out/kevin/Writeup6f/tmp.RData")
-
-zz <- cbind(quantile(lrt_vec, probs = seq(0,1,length.out=11)), 
-            quantile(lrt_vec_bulk, probs = seq(0,1,length.out=11)))
-round(zz)
-
-################################
-
-rm(list=ls())
-load("../../out/Writeup6f/tmp.RData")
+############################
 
 lrt_vec_all <- lrt_vec_all[!is.na(lrt_vec_all)]
 lrt_vec_all <- lrt_vec_all[sort(names(lrt_vec_all))]
-hist(lrt_vec_all, breaks = 50)
 
 fn <- function(param_vec,
                N,
@@ -76,13 +98,13 @@ fn <- function(param_vec,
 
 z_vec <- lrt_vec_all
 N <- length(z_vec)
-ub <- stats::quantile(z_vec, probs = 0.99)
+ub <- stats::quantile(z_vec, probs = 0.95)
 idx <- which(z_vec <= ub)
 N0 <- length(idx)
 z0_vec <- z_vec[idx]
 
 init_df <- mean(z0_vec)
-init_theta <- 0.99* stats::pchisq(ub, df = init_df)
+init_theta <- 0.95 * stats::pchisq(ub, df = init_df)
 
 optim_res <- stats::optim(par = c(init_df, init_theta),
                           fn = fn,
@@ -94,107 +116,70 @@ optim_res <- stats::optim(par = c(init_df, init_theta),
 optim_res$par
 df_est <- optim_res$par[1]
 
-hist_res <- hist(z_vec, breaks = 50, plot = F)
-hist_res$counts <- hist_res$density
-
-x_vec <- hist_res$breaks
-midpoints <- sapply(2:length(x_vec), function(i){
-  mean(x_vec[c(i,i-1)])
+pvalue_vec <- sapply(lrt_vec_all, function(x){
+  1-stats::pchisq(x, df = df_est)
 })
-prob_vec <- sapply(2:length(x_vec), function(i){
-  stats::pchisq(x_vec[i], df = df_est) - stats::pchisq(x_vec[i-1], df = df_est) 
-})
-plot(hist_res, col = "gray")
-points(midpoints, prob_vec, pch = 16, col = 2)
+idx <- which(pvalue_vec <= 0.05)
 
-####################
+round(sort(lrt_vec_all[idx], decreasing = T))
 
-i <- which(names(result_list) == "NDRG1")
-par(mfrow = c(1,2))
-plot(result_list[[i]]$res_win$grenander_obj$x,
-     result_list[[i]]$res_win$grenander_obj$pdf, main = "Win")
-plot(result_list[[i]]$res_die$grenander_obj$x,
-     result_list[[i]]$res_die$grenander_obj$pdf, main = "Die")
+############################
+# now let's make some coverage tracks
 
-#####################
+keep_vec <- rep(NA, ncol(all_data))
+keep_vec[colnames(all_data) %in% winning_cells] <- "day0_win"
+keep_vec[colnames(all_data) %in% dying_cells] <- "day0_lose"
+all_data$keep <- keep_vec
+all_data <- subset(all_data, keep %in% c("day0_win", "day0_lose"))
 
-# what if we compute the center of mass
-obj <- result_list[[i]]$res_win$grenander_obj
-bin_cutoff <- seq(min(obj$x), max(obj$x), length.out = 1000)[-c(1,1000)]
-obj <- .add_cutoffs_to_grenander(obj = obj,
-                                 bin_cutoff = bin_cutoff)
-area_vec <- cumsum(diff(obj$x)*obj$pdf[-length(obj$pdf)])
-idx <- which.min(abs(area_vec - 0.5))
-if(area_vec[idx] >= 0.5){
-  # take the left
-  midpoint <- obj$x[idx]
-} else {
-  # take the right
-  midpoint <- obj$x[idx+1]
+Seurat::DefaultAssay(all_data) <- "ATAC"
+Seurat::Idents(all_data) <- "keep"
+
+gene_vec <- sort(names(idx))
+
+pdf(paste0("../../../../out/figures/Writeup6f/Writeup6f_coverage_", treatment, "_1000bp_highLRT.pdf"),
+    onefile = T,
+    width = 9, height = 4.5)
+for(gene in gene_vec){
+  plot1 <- Signac::CoveragePlot(
+    object = all_data,
+    region = gene,
+    features = gene,
+    extend.upstream = 1000,
+    extend.downstream = 1000
+  )
+  print(plot1)
 }
-midpoint*obj$scaling_factor/933
+dev.off() 
 
-obj <- result_list[[i]]$res_die$grenander_obj
-bin_cutoff <- seq(min(obj$x), max(obj$x), length.out = 1000)[-c(1,1000)]
-obj <- .add_cutoffs_to_grenander(obj = obj,
-                                 bin_cutoff = bin_cutoff)
-area_vec <- cumsum(diff(obj$x)*obj$pdf[-length(obj$pdf)])
-idx <- which.min(abs(area_vec - 0.5))
-if(area_vec[idx] >= 0.5){
-  # take the left
-  midpoint <- obj$x[idx]
-} else {
-  # take the right
-  midpoint <- obj$x[idx+1]
+#######################################
+
+for(gene in gene_vec){
+  if(!all(is.na(result_list_total[[gene]]))){
+    obj_win <- result_list_total[[gene]]$res_win$grenander_obj
+    obj_die <- result_list_total[[gene]]$res_die$grenander_obj
+  } else {
+    obj_win <- result_list[[gene]]$res_win$grenander_obj
+    obj_die <- result_list[[gene]]$res_die$grenander_obj
+  }
+  
+  area_vec1 <- cumsum(diff(obj_win$x)*obj_win$pdf[-length(obj_win$pdf)])
+  area_vec2 <- cumsum(diff(obj_win$x)*obj_win$pdf[-length(obj_win$pdf)])
+  
+  xmax1 <- obj_win$x[which.min(abs(area_vec1 - 0.9))]
+  xmax2 <- obj_win$x[which.min(abs(area_vec2 - 0.9))]
+  xmax <- max(xmax1, xmax2); xlim <- c(0, xmax)
+  ylim <- c(0, max(c(obj_win$pdf, obj_die$pdf)))
+  
+  png(paste0("../../../../out/figures/Writeup6f/Writeup6f_COCL_entropy_decr-density_", gene, ".png"),
+      height = 1500, width = 2500, units = "px", res = 300)
+  par(mfrow = c(1,2), mar = c(4,4,4,0.5))
+  plot_grenander(obj = obj_win,
+                 xlim = xlim, ylim = ylim, 
+                 main = paste0(gene, ": Win"))
+  plot_grenander(obj = obj_die,
+                 xlim = xlim, ylim = ylim, 
+                 main = paste0(gene, ": Die"))
+  graphics.off()
+  
 }
-midpoint*obj$scaling_factor/933
-
-plot(result_list[[i]]$res_die$grenander_obj$x,
-     log(result_list[[i]]$res_die$grenander_obj$pdf))
-points(result_list[[i]]$res_win$grenander_obj$x,
-     log(result_list[[i]]$res_win$grenander_obj$pdf), col = 2, cex = 0.5, pch = 16)
-
-obj_win <- result_list[[i]]$res_win$grenander_obj
-obj_die <- result_list[[i]]$res_die$grenander_obj
-x_lim <- c(max(min(obj_win$x), min(obj_die$x)),
-           min(max(obj_win$x), max(obj_die$x)))
-x_vec <- seq(x_lim[1], x_lim[2], length.out = 1000)[-1]*obj_win$scaling_factor
-pdf_win <- sapply(x_vec, function(x){evaluate_grenander(obj = obj_win, x = x)})
-pdf_die <- sapply(x_vec, function(x){evaluate_grenander(obj = obj_die, x = x)})
-
-plot(pdf_win, pdf_die, asp = T); lines(c(-1e6,1e6), c(-1e6,1e6), col = 2, lwd = 2, lty = 2)
-
-# [[IDEAS ABOUT APPROXIMATING IT BY AN EXPONENTIAL IS BORKED]]
-# x_vec <- seq(min(result_list[[i]]$res_win$grenander_obj$x), 
-#              max(result_list[[i]]$res_win$grenander_obj$x),
-#              length.out = 2000)[-1] * result_list[[i]]$res_win$grenander_obj$scaling_factor
-# pdf_vec <- sapply(x_vec, function(x){
-#   evaluate_grenander(obj = result_list[[i]]$res_win$grenander_obj,
-#                      x = x)})
-# log_vec <- log(pdf_vec)
-# x_vec <- x_vec / 1000
-# 
-# fn <- function(lambda, log_vec, x_vec){
-#   theoretical_log_vec <- log(lambda) - lambda*x_vec
-#   sum((theoretical_log_vec - log_vec)^2)/length(x_vec)
-# }
-# 
-# opt_res <- stats::optimise(f = fn, interval = c(1e-6,100),
-#                            log_vec = log_vec, x_vec = x_vec,
-#                            maximum = F)
-# 
-# plot(x_vec, log(pdf_vec))
-# lambda_est <- opt_res$minimum
-# theoretical_pdf <- sapply(x_vec, function(x){
-#   lambda_est*exp(-lambda_est*x)
-# })
-# points(x_vec, log(theoretical_pdf), col = 2, pch = 16)
-# 
-# # theoretical_pdf <- sapply(2:length(x_vec), function(i){
-# #   stats::pexp(x_vec[i], rate = lambda_est) - stats::pexp(x_vec[i-1], rate = lambda_est) 
-# # })
-# # x_midpoint <- sapply(2:length(x_vec), function(i){
-# #   mean(x_vec[c(i,i-1)])
-# # })
-# # points(x_midpoint, theoretical_pdf, col = 2, pch = 16, cex = 0.5)
-# 
