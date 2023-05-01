@@ -59,6 +59,7 @@ for(treatment in treatment_vec){
     
     peak_prior <-  multiomeFate:::compute_peak_prior(cutmat = cutmat_all,
                                                      peak_mat = peak_mat)
+    if(all(is.na(peak_prior))) return(NULL)
     
     # remove peaks with less than 0.05
     if(any(peak_prior <= 0.05) & any(peak_prior >= 0.05)){
