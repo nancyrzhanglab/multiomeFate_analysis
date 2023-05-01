@@ -64,6 +64,8 @@ for(treatment in treatment_vec){
       peak_mat <- peak_mat[-idx,,drop = F]
     }
 
+    if(nrow(peak_mat) == 0) return(NULL)
+    
     collapse_win <- Matrix::colSums(cutmat_winning)
     collapse_die <- Matrix::colSums(cutmat_dying)
     
