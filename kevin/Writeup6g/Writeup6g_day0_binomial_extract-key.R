@@ -6,7 +6,20 @@ library(multiomeFate)
 library(IRanges)
 
 load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
-load("../../../../out/kevin/Writeup6f/gene_vec.RData")
+
+source("../Writeup6b/gene_list.R")
+source("../Writeup6d/gene_list_csc.R")
+gene_vec <- sort(unique(c(unlist(keygenes), keygenes_csc)))
+
+tmp <- sapply(gene_vec, function(gene){
+  tmp <- Signac::LookupGeneCoords(
+    object = all_data,
+    gene = gene,
+    assay = "ATAC"
+  )
+  if(all(is.null(tmp))) return(F) else T
+})
+gene_vec <- gene_vec[which(tmp)]
 
 set.seed(10)
 date_of_run <- Sys.time()
@@ -35,9 +48,9 @@ for(treatment in treatment_vec){
   dying_cells <- colnames(all_data)[dying_idx]
   
   #############
-  result_list[[treatment]] <- lapply(1:length(gene_vec_all), function(i){
-    print(paste0(i, " of ", length(gene_vec_all), " in ", treatment))
-    gene <- gene_vec_all[i]
+  result_list[[treatment]] <- lapply(1:length(gene_vec), function(i){
+    print(paste0(i, " of ", length(gene_vec), " in ", treatment))
+    gene <- gene_vec[i]
     
     cutmat_winning <- multiomeFate:::extract_cutmatrix(
       object = all_data,
@@ -63,7 +76,7 @@ for(treatment in treatment_vec){
       idx <- which(peak_prior <= 0.05)
       peak_locations <- peak_locations[-idx]
     }
-
+    
     collapse_win <- Matrix::colSums(cutmat_winning)
     collapse_die <- Matrix::colSums(cutmat_dying)
     
@@ -102,9 +115,9 @@ for(treatment in treatment_vec){
     res
   })
   save(result_list, date_of_run, session_info,
-       file = "../../../../out/kevin/Writeup6g/day0_binomial_extract-all_tmp.RData")
+       file = "../../../../out/kevin/Writeup6g/day0_binomial_extract-key_tmp.RData")
   
-  names(result_list[[treatment]]) <- gene_vec_all
+  names(result_list[[treatment]]) <- gene_vec
   save(result_list, date_of_run, session_info,
-       file = "../../../../out/kevin/Writeup6g/day0_binomial_extract-all_tmp.RData")
+       file = "../../../../out/kevin/Writeup6g/day0_binomial_extract-key_tmp.RData")
 }
