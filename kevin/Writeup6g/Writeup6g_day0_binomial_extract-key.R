@@ -68,6 +68,8 @@ for(treatment in treatment_vec){
       object = all_data,
       gene = gene
     )
+    if(nrow(peak_mat) == 0) return(NULL)
+    
     peak_prior <-  multiomeFate:::compute_peak_prior(cutmat = cutmat_all,
                                                      peak_mat = peak_mat)
     
@@ -78,7 +80,7 @@ for(treatment in treatment_vec){
     }
     
     if(nrow(peak_mat) == 0) return(NULL)
-    
+   
     collapse_win <- Matrix::colSums(cutmat_winning)
     collapse_die <- Matrix::colSums(cutmat_dying)
     

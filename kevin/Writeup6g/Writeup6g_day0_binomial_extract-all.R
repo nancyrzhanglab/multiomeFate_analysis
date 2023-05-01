@@ -55,6 +55,8 @@ for(treatment in treatment_vec){
       object = all_data,
       gene = gene
     )
+    if(nrow(peak_mat) == 0) return(NULL)
+    
     peak_prior <-  multiomeFate:::compute_peak_prior(cutmat = cutmat_all,
                                                      peak_mat = peak_mat)
     
