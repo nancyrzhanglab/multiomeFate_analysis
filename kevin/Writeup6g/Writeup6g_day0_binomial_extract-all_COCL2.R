@@ -35,15 +35,16 @@ winning_cells <- colnames(all_data)[winning_idx]
 dying_cells <- colnames(all_data)[dying_idx]
 
 result_list[[treatment]] <- vector("list", length(gene_vec_all))
+names(result_list[[treatment]]) <- gene_vec_all
 
-for(i in 1:length(gene_vec_all)){
-  if(i %% 100 == 0) {
+for(zz in 1:length(gene_vec_all)){
+  if(zz %% 100 == 0) {
     save(result_list, date_of_run, session_info,
          file = paste0("../../../../out/kevin/Writeup6g/day0_binomial_extract-all_", treatment, "_tmp.RData"))
   }
   
   print(paste0(i, " of ", length(gene_vec_all), " in ", treatment))
-  gene <- gene_vec_all[i]
+  gene <- gene_vec_all[zz]
   
   cutmat_winning <- multiomeFate:::extract_cutmatrix(
     object = all_data,
@@ -112,7 +113,7 @@ for(i in 1:length(gene_vec_all)){
   rownames(res) <- c(paste0("Win_day0_", treatment),
                      paste0("Die_day0_", treatment))
   
-  result_list[[treatment]][[i]] <- res
+  result_list[[treatment]][[zz]] <- res
 }
 
 save(result_list, date_of_run, session_info,
