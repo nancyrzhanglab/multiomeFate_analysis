@@ -12,6 +12,7 @@ set.seed(10)
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 
+gene_vec_all <- sort(intersect(gene_vec_all, all_data[["Saver"]]@var.features))
 len <- length(gene_vec_all)
 result_list <- vector("list", length = len)
 names(result_list) <- gene_vec_all
@@ -65,6 +66,10 @@ for(i in 1:len){
     }
     
     ranges_obj <- region_gene_peaks@ranges
+    if(any(ranges_obj@width <= 150)){
+      ranges_obj <- ranges_obj[-which(ranges_obj@width <= 150)]
+    }
+    if(length(ranges_obj) == 0) next()
     tmp <- cbind(ranges_obj@start, ranges_obj@start + ranges_obj@width - 1)
     colnames(tmp) <- c("start", "end")
     
@@ -72,7 +77,7 @@ for(i in 1:len){
     chrAct_mat <- sapply(1:nrow(tmp), function(i){
       idx <- intersect(which(colname_vec >= tmp[i,"start"]),
                        which(colname_vec <= tmp[i,"end"]))
-      Matrix::rowSums(cutmat[,idx])
+      Matrix::rowSums(cutmat[,idx,drop = F])
     })
     
     chromosome_vec <- as.character(region_gene_peaks@seqnames)
