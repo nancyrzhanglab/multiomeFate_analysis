@@ -31,6 +31,7 @@ for(i in 1:len){
     object = all_data,
     gene = gene
   )
+  if(all(is.null(cutmat))) next()
   
   # make sure gene exists
   tmp <- Signac::LookupGeneCoords(
@@ -85,7 +86,7 @@ for(i in 1:len){
       paste0(gene, ":", chromosome_vec[kk], ":", tmp[kk,"start"], "-", tmp[kk,"end"])
     })
     
-    result_list[[i]] <- chrAct_mat
+    result_list[[i]] <- Matrix::Matrix(chrAct_mat, sparse = T)
   } 
   
   if(i %% 100 == 0) {

@@ -12,7 +12,7 @@ set.seed(10)
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 
-treatment <- "DABTRAM"
+treatment <- "CIS"
 
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 treatment_vec <- c("CIS", "COCL2", "DABTRAM")

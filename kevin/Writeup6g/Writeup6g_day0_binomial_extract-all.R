@@ -49,6 +49,7 @@ for(treatment in treatment_vec){
       gene = gene,
       cells = dying_cells
     )
+    if(all(is.null(cutmat_winning)) || all(is.null(cutmat_dying))) return(NULL)
     cutmat_all <- rbind(cutmat_winning, cutmat_dying)
     
     peak_mat <- multiomeFate:::extract_peaks(
