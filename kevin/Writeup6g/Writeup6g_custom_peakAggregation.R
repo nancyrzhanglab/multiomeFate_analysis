@@ -14,15 +14,17 @@ session_info <- devtools::session_info()
 
 gene_vec_all <- sort(intersect(gene_vec_all, all_data[["Saver"]]@var.features))
 len <- length(gene_vec_all)
-result_list <- vector("list", length = len)
-names(result_list) <- gene_vec_all
+# result_list <- vector("list", length = len)
+# names(result_list) <- gene_vec_all
+load("../../../../out/kevin/Writeup6g/custom_peakAggregation_tmp.RData")
 
 assay <- "ATAC"
 extend.downstream <- 5000
 extend.upstream <- 5000
 sep <- c("-", "-")
 
-for(i in 1:len){
+start_idx <- max(which(sapply(result_list, length) > 0))
+for(i in start_idx:len){
   gene <- gene_vec_all[i]
   print(paste0("Gene ", gene, " (", i, " out of ", len, ")"))
   

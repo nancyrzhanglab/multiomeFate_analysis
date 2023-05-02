@@ -48,9 +48,9 @@ for(treatment in treatment_vec){
   dying_cells <- colnames(all_data)[dying_idx]
   
   #############
-  result_list[[treatment]] <- lapply(1:length(gene_vec), function(i){
-    print(paste0(i, " of ", length(gene_vec), " in ", treatment))
-    gene <- gene_vec[i]
+  result_list[[treatment]] <- lapply(1:length(gene_vec), function(zz){
+    print(paste0(zz, " of ", length(gene_vec), " in ", treatment))
+    gene <- gene_vec[zz]
     
     cutmat_winning <- multiomeFate:::extract_cutmatrix(
       object = all_data,
