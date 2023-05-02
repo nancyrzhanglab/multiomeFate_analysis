@@ -43,7 +43,7 @@ for(zz in 1:length(gene_vec_all)){
          file = paste0("../../../../out/kevin/Writeup6g/day0_binomial_extract-all_", treatment, "_tmp.RData"))
   }
   
-  print(paste0(i, " of ", length(gene_vec_all), " in ", treatment))
+  print(paste0(zz, " of ", length(gene_vec_all), " in ", treatment))
   gene <- gene_vec_all[zz]
   
   cutmat_winning <- multiomeFate:::extract_cutmatrix(
