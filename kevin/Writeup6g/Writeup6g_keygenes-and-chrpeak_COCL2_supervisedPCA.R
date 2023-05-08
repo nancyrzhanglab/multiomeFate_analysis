@@ -59,7 +59,7 @@ if(any(sd_vec <= 1e-6)){
 rm(list=c("all_data", "all_data2"))
 gc()
 
-save(tab_mat, metadata, 
+save(tab_mat, metadata,  treatment,
      rna_mat,
      date_of_run, session_info,
      file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
@@ -176,10 +176,11 @@ for(i in 1:length(chr_peak_list)){
 ls_vec <- ls()
 ls_vec <- ls_vec[-which(ls_vec %in% c("rna_mat", "chr_peak_list", 
                                       "tier_vec", "tab_mat", "metadata",
-                                      "date_of_run", "session_info"))]
+                                      "date_of_run", "session_info",
+                                      "treatment"))]
 rm(list = ls_vec); gc()
 
-save(tab_mat, metadata, 
+save(tab_mat, metadata,  treatment,
      rna_mat, chr_peak_list,
      date_of_run, session_info,
      file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
@@ -212,7 +213,7 @@ for(i in 1:length(gene_vec)){
   spca_res_list[[gene]] <- multiomeFate:::supervised_pca(x = tmp, y = y)
 }
 
-save(spca_res_list,tab_mat, 
+save(spca_res_list,tab_mat,  treatment,
      metadata,
      rna_mat, chr_peak_list,
      date_of_run, session_info,
@@ -243,7 +244,7 @@ for(i in 1:length(spca_res_list)){
   cv_score_vec[gene] <- .five_fold_cv(x_mat, y_vec)
 }
 
-save(spca_res_list, tab_mat, 
+save(spca_res_list, tab_mat,  treatment,
      metadata,
      cv_score_vec, rna_mat,
      chr_peak_list,
