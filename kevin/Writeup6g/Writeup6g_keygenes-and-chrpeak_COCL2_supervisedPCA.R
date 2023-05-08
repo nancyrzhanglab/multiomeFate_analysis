@@ -9,6 +9,7 @@ load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
 
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 treatment_vec <- c("CIS", "COCL2", "DABTRAM")
+metadata <- all_data@meta.data
 
 ############################
 
@@ -50,9 +51,20 @@ rna_mat <- all_data2[["Saver"]]@data
 rna_mat <- t(rna_mat)
 tier_vec <- all_data2$keep
 dim(rna_mat); length(tier_vec); table(tier_vec)
+sd_vec <- sparseMatrixStats::colSds(rna_mat)
+if(any(sd_vec <= 1e-6)){
+  rna_mat <- rna_mat[,sd_vec >= 1e-6,drop = F]
+}
 
 rm(list=c("all_data", "all_data2"))
 gc()
+
+
+save(tab_mat, metadata, 
+     rna_mat,
+     date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
+
 
 #################################################
 
@@ -166,6 +178,11 @@ ls_vec <- ls()
 ls_vec <- ls_vec[-which(ls_vec %in% c("rna_mat", "chr_peak_list", "tier_vec", "date_of_run", "session_info"))]
 rm(list = ls_vec); gc()
 
+save(tab_mat, metadata, 
+     rna_mat, chr_peak_list,
+     date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
+
 #######################
 
 gene_vec <- sort(names(chr_peak_list))
@@ -183,7 +200,8 @@ for(i in 1:length(gene_vec)){
   spca_res_list[[gene]] <- multiomeFate:::supervised_pca(x = tmp, y = y)
 }
 
-save(spca_res_list,
+save(spca_res_list,tab_mat, 
+     metadata,
      rna_mat, chr_peak_list,
      date_of_run, session_info,
      file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
@@ -213,9 +231,9 @@ for(i in 1:length(spca_res_list)){
   cv_score_vec[gene] <- .five_fold_cv(x_mat, y_vec)
 }
 
-metadata <- all_data@meta.data
 
-save(spca_res_list, metadata,
+save(spca_res_list, tab_mat, 
+     metadata,
      cv_score_vec, rna_mat,
      chr_peak_list,
      date_of_run, session_info,
