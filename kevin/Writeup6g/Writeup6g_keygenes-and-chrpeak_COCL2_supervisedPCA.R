@@ -194,8 +194,14 @@ names(spca_res_list) <- gene_vec
 for(i in 1:length(gene_vec)){
   gene <- gene_vec[i]
   print(paste0(gene, ": ", i, " out of ", length(gene_vec)))
+  if(stats::sd(rna_mat[,gene]) <= 1e-6) next()
+  
   tmp <- cbind(rna_mat[,gene], chr_peak_list[[gene]])
   colnames(tmp)[1] <- paste0(gene, ":RNA")
+  sd_vec <- apply(tmp, 2, stats::sd)
+  if(any(sd_vec <= 1e-6)){
+    tmp <- tmp[,sd_vec >= 1e-6,drop=F]
+  }
   tmp <- scale(tmp)
   spca_res_list[[gene]] <- multiomeFate:::supervised_pca(x = tmp, y = y)
 }
