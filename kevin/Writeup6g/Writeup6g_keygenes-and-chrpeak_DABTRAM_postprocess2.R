@@ -90,6 +90,8 @@ save(spca_res_list, date_of_run, session_info, tab_mat,
 
 ##############################
 
+source("ordinal_functions.R")
+
 y_vec <- rep(NA, length(tier_vec))
 idx_list <- vector("list", length = 3)
 idx_list[[1]] <- which(tier_vec == paste0("1loser_", treatment))
@@ -107,11 +109,22 @@ for(i in 1:length(spca_res_list)){
   print(paste0(gene, ": ", i, " out of ", length(gene_vec)))
   set.seed(10)
   
-  x_mat <- spca_res_list[[gene]]$dimred
+  x_mat <- Re(spca_res_list[[gene]]$dimred)
   cv_score_vec[gene] <- .five_fold_cv(x_mat, y_vec)
 }
 table(is.na(cv_score_vec))
 round(quantile(100*cv_score_vec, na.rm = T))
+
+for(i in 1:length(spca_res_list)){
+  spca_res_list[[i]]$U <- Re(spca_res_list[[i]]$U)
+  spca_res_list[[i]]$dimred <- Re(spca_res_list[[i]]$dimred)
+}
+
+
+save(spca_res_list, date_of_run, session_info, tab_mat,
+     metadata, tier_vec, rna_mat,
+     chr_peak_list, cv_score_vec,
+     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM_spca.RData")
 
 ########
 

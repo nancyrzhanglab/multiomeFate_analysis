@@ -197,7 +197,12 @@ for(i in 1:length(gene_vec)){
   print(paste0(gene, ": ", i, " out of ", length(gene_vec)))
   if(stats::sd(rna_mat[,gene]) <= 1e-6) next()
   
-  tmp <- cbind(rna_mat[,gene], chr_peak_list[[gene]])
+  chr_peak_mat <- chr_peak_list[[gene]]
+  if(!is.matrix(chr_peak_mat)) {
+    chr_peak_mat <- matrix(chr_peak_mat, nrow = length(chr_peak_mat), ncol = 1)
+    colnames(chr_peak_mat) <- paste0(gene, ":ATAC")
+  }
+  tmp <- cbind(rna_mat[,gene], chr_peak_mat)
   colnames(tmp)[1] <- paste0(gene, ":RNA")
   sd_vec <- apply(tmp, 2, stats::sd)
   if(any(sd_vec <= 1e-6)){
@@ -237,7 +242,6 @@ for(i in 1:length(spca_res_list)){
   x_mat <- spca_res_list[[gene]]$dimred
   cv_score_vec[gene] <- .five_fold_cv(x_mat, y_vec)
 }
-
 
 save(spca_res_list, tab_mat, 
      metadata,
