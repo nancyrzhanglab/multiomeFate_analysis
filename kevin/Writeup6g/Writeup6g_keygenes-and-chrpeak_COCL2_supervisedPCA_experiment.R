@@ -7,21 +7,12 @@ library(IRanges)
 
 load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
 
-source("../Writeup6b/gene_list.R")
-source("../Writeup6d/gene_list_csc.R")
-gene_vec <- sort(unique(c(unlist(keygenes), keygenes_csc)))
-
-gene_vec <- intersect(gene_vec, rownames(all_data[["Saver"]]@data))
-gene_vec <- sort(gene_vec)
-length(gene_vec)
-
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 treatment_vec <- c("CIS", "COCL2", "DABTRAM")
 
 ############################
 
-treatment <- "DABTRAM"
-# find the winning and losing cells
+treatment <- "COCL2"
 tier1_lineages <- rownames(tab_mat)[which(tab_mat[,paste0("week5_", treatment)] >= 50)]
 tier2_lineages <- rownames(tab_mat)[intersect(which(tab_mat[,paste0("week5_", treatment)] >= 5),
                                               which(tab_mat[,paste0("week5_", treatment)] <= 25))]
@@ -74,7 +65,6 @@ session_info <- devtools::session_info()
 len <- sapply(result_list, length)
 if(any(len == 0)) result_list <- result_list[-which(len == 0)]
 gene_vec <- names(result_list)
-all(colnames(rna_mat) %in% gene_vec)
 if(any(!colnames(rna_mat) %in% gene_vec)){
   gene_vec <- sort(unique(intersect(names(result_list), colnames(rna_mat))))
   rna_mat <- rna_mat[,gene_vec]
@@ -176,6 +166,59 @@ ls_vec <- ls()
 ls_vec <- ls_vec[-which(ls_vec %in% c("rna_mat", "chr_peak_list", "tier_vec", "date_of_run", "session_info"))]
 rm(list = ls_vec); gc()
 
-save(rna_mat, chr_peak_list, tier_vec,
+#######################
+
+gene_vec <- sort(names(chr_peak_list))
+
+y <- multiomeFate:::form_onehot_classification_mat(tier_vec)
+
+spca_res_list <- vector("list", length = length(gene_vec))
+names(spca_res_list) <- gene_vec
+for(i in 1:length(gene_vec)){
+  gene <- gene_vec[i]
+  print(paste0(gene, ": ", i, " out of ", length(gene_vec)))
+  tmp <- cbind(rna_mat[,gene], chr_peak_list[[gene]])
+  colnames(tmp)[1] <- paste0(gene, ":RNA")
+  tmp <- scale(tmp)
+  spca_res_list[[gene]] <- multiomeFate:::supervised_pca(x = tmp, y = y)
+}
+
+save(spca_res_list,
+     rna_mat, chr_peak_list,
      date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM.RData")
+     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
+
+###########
+
+source("ordinal_functions.R")
+
+y_vec <- rep(NA, length(tier_vec))
+idx_list <- vector("list", length = 3)
+idx_list[[1]] <- which(tier_vec == paste0("1loser_", treatment))
+idx_list[[2]] <- which(tier_vec == paste0("2mid_winner_", treatment))
+idx_list[[3]] <- which(tier_vec == paste0("3high_winner_", treatment))
+for(i in 1:3){
+  y_vec[idx_list[[i]]] <- i
+}
+y_vec <- as.factor(y_vec)
+
+cv_score_vec <- rep(NA, length(spca_res_list))
+names(cv_score_vec) <- names(spca_res_list)
+for(i in 1:length(spca_res_list)){
+  gene <- names(spca_res_list)[i]
+  print(paste0(gene, ": ", i, " out of ", length(gene_vec)))
+  set.seed(10)
+  
+  x_mat <- spca_res_list[[gene]]$dimred
+  cv_score_vec[gene] <- .five_fold_cv(x_mat, y_vec)
+}
+
+metadata <- all_data@meta.data
+
+save(spca_res_list, metadata,
+     cv_score_vec, rna_mat,
+     chr_peak_list,
+     date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
+
+

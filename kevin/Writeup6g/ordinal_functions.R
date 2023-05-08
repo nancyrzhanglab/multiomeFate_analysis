@@ -75,3 +75,18 @@
   
   mean(cv_score)
 }
+
+.permutation_null_score <- function(x_mat, y_vec, 
+                                    trials = 100,
+                                    verbose = 1){
+  n <- nrow(x_mat)
+  
+  cv_score_trials <- sapply(1:trials, function(trial){
+    if(verbose > 0 && trial %% floor(trials/10) == 0) cat('*')
+    y_vec_null <- sample(y_vec)
+    .five_fold_cv(x_mat = x_mat,
+                  y_vec = y_vec_null)
+  })
+  
+  cv_score_trials
+}
