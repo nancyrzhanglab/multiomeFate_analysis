@@ -59,7 +59,6 @@ if(any(sd_vec <= 1e-6)){
 rm(list=c("all_data", "all_data2"))
 gc()
 
-
 save(tab_mat, metadata, 
      rna_mat,
      date_of_run, session_info,
@@ -175,7 +174,9 @@ for(i in 1:length(chr_peak_list)){
 }
 
 ls_vec <- ls()
-ls_vec <- ls_vec[-which(ls_vec %in% c("rna_mat", "chr_peak_list", "tier_vec", "date_of_run", "session_info"))]
+ls_vec <- ls_vec[-which(ls_vec %in% c("rna_mat", "chr_peak_list", 
+                                      "tier_vec", "tab_mat", "metadata",
+                                      "date_of_run", "session_info"))]
 rm(list = ls_vec); gc()
 
 save(tab_mat, metadata, 

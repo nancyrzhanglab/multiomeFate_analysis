@@ -6,8 +6,44 @@ library(multiomeFate)
 library(IRanges)
 library(ordinal)
 
+load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
+
+tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
+metadata <- all_data@meta.data
+
+treatment <- "DABTRAM"
+tier1_lineages <- rownames(tab_mat)[which(tab_mat[,paste0("week5_", treatment)] >= 50)]
+tier2_lineages <- rownames(tab_mat)[intersect(which(tab_mat[,paste0("week5_", treatment)] >= 5),
+                                              which(tab_mat[,paste0("week5_", treatment)] <= 25))]
+tier3_lineages <- rownames(tab_mat)[which(tab_mat[,paste0("week5_", treatment)] <= 2)]
+length(tier1_lineages); length(tier2_lineages); length(tier3_lineages)
+
+tier1_idx <- intersect(
+  intersect(which(all_data$assigned_lineage %in% tier1_lineages),
+            which(all_data$assigned_posterior >= 0.5)),
+  which(all_data$dataset == paste0("day10_", treatment))
+)
+tier2_idx <- intersect(
+  intersect(which(all_data$assigned_lineage %in% tier2_lineages),
+            which(all_data$assigned_posterior >= 0.5)),
+  which(all_data$dataset == paste0("day10_", treatment))
+)
+tier3_idx <- intersect(
+  intersect(which(all_data$assigned_lineage %in% tier3_lineages),
+            which(all_data$assigned_posterior >= 0.5)),
+  which(all_data$dataset == paste0("day10_", treatment))
+)
+keep_vec <- rep(NA, ncol(all_data))
+keep_vec[tier1_idx] <- paste0("3high_winner_", treatment)
+keep_vec[tier2_idx] <- paste0("2mid_winner_", treatment)
+keep_vec[tier3_idx] <- paste0("1loser_", treatment)
+names(keep_vec) <- colnames(all_data)
+
+##############
+
 load("../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM.RData")
 
+tier_vec <- keep_vec[rownames(rna_mat)]
 set.seed(10)
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
@@ -38,7 +74,9 @@ for(i in 1:length(gene_vec)){
   spca_res_list[[gene]] <- multiomeFate:::supervised_pca(x = tmp, y = y)
 }
 
-save(spca_res_list, date_of_run, session_info,
+save(spca_res_list, date_of_run, session_info, tab_mat,
+     metadata, tier_vec, rna_mat,
+     chr_peak_list,
      file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM_spca.RData")
 
 # head(spca_res_list[["FN1"]]$U)
