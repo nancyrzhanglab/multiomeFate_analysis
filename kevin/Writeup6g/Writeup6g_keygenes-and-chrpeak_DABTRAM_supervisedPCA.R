@@ -13,7 +13,7 @@ metadata <- all_data@meta.data
 
 ############################
 
-treatment <- "COCL2"
+treatment <- "DABTRAM"
 tier1_lineages <- rownames(tab_mat)[which(tab_mat[,paste0("week5_", treatment)] >= 50)]
 tier2_lineages <- rownames(tab_mat)[intersect(which(tab_mat[,paste0("week5_", treatment)] >= 3),
                                               which(tab_mat[,paste0("week5_", treatment)] <= 49))]
@@ -62,7 +62,7 @@ gc()
 save(tab_mat, metadata, 
      rna_mat,
      date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
+     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM_spca.RData")
 
 
 #################################################
@@ -182,7 +182,7 @@ rm(list = ls_vec); gc()
 save(tab_mat, metadata, 
      rna_mat, chr_peak_list,
      date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
+     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM_spca.RData")
 
 #######################
 
@@ -216,7 +216,7 @@ save(spca_res_list,tab_mat,
      metadata,
      rna_mat, chr_peak_list,
      date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
+     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM_spca.RData")
 
 ###########
 
@@ -248,6 +248,6 @@ save(spca_res_list, tab_mat,
      cv_score_vec, rna_mat,
      chr_peak_list,
      date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_COCL2_spca.RData")
+     file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM_spca.RData")
 
 

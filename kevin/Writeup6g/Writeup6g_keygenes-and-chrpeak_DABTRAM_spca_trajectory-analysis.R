@@ -33,8 +33,11 @@ seurat_obj[["RNA"]]@data <- seurat_obj[["RNA"]]@counts
 seurat_obj[["RNA"]]@scale.data <- as.matrix(seurat_obj[["RNA"]]@counts)
 seurat_obj[["RNA"]]@var.features <- rownames(seurat_obj)
 seurat_obj <- Seurat::RunPCA(seurat_obj, verbose = F)
-seurat_obj <- Seurat::RunUMAP(seurat_obj, dims = 1:50)
 seurat_obj$tier_vec <- tier_vec
+
+set.seed(10)
+seurat_obj <- Seurat::RunUMAP(seurat_obj, dims = 1:50, 
+                              min.dist = 0.01) # setting min.dist to exaggerate the "two" paths
 
 col_palette <- c("gray", "blue", "red")
 names(col_palette) <- c("1loser_DABTRAM", "2mid_winner_DABTRAM", "3high_winner_DABTRAM")
@@ -64,7 +67,7 @@ for(i in 1:length(lineage_vec)){
   
   p1 <- Seurat::DimPlot(seurat_obj, reduction = "umap",
                         cells.highlight = cell_names)
-  p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM: ", lineage_name, " (", length(cell_names), " day10 cells")) +
+  p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM: ", lineage_name, " (", length(cell_names), " day10 cells)\nNote: Only for lin. w/ 0-2,5-25,50+ Week5 cells")) +
     ggplot2::theme(plot.title=ggplot2::element_text(size=9)) + Seurat::NoLegend()
   print(p1)
 }
