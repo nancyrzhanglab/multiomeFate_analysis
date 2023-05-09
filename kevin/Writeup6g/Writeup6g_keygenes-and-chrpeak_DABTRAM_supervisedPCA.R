@@ -60,7 +60,7 @@ rm(list=c("all_data", "all_data2"))
 gc()
 
 save(tab_mat, metadata,  treatment,
-     rna_mat,
+     rna_mat, tier_vec,
      date_of_run, session_info,
      file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM_spca2.RData")
 
@@ -181,7 +181,7 @@ ls_vec <- ls_vec[-which(ls_vec %in% c("rna_mat", "chr_peak_list",
 rm(list = ls_vec); gc()
 
 save(tab_mat, metadata, treatment,
-     rna_mat, chr_peak_list,
+     rna_mat, chr_peak_list, tier_vec,
      date_of_run, session_info,
      file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM_spca2.RData")
 
@@ -214,7 +214,7 @@ for(i in 1:length(gene_vec)){
 }
 
 save(spca_res_list, tab_mat,  treatment,
-     metadata,
+     metadata, tier_vec,
      rna_mat, chr_peak_list,
      date_of_run, session_info,
      file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM_spca2.RData")
@@ -247,7 +247,7 @@ for(i in 1:length(spca_res_list)){
 
 save(spca_res_list, tab_mat, treatment, 
      metadata,
-     cv_score_vec, rna_mat,
+     cv_score_vec, rna_mat, tier_vec,
      chr_peak_list,
      date_of_run, session_info,
      file = "../../../../out/kevin/Writeup6g/Writeup6g_keygenes-and-chrpeak_DABTRAM_spca2.RData")
