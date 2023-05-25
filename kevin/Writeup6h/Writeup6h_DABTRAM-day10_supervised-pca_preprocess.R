@@ -51,10 +51,10 @@ all_data2 <- subset(all_data2, tier %in% c(paste0("3high_winner_", treatment),
                                            paste0("1loser_", treatment)))
 
 preprocess_res <- extract_relevant_peaks(peak_mapping_list = matching_list,
-                                            seurat_obj = all_data2,
-                                            slot_atac = "ATAC",
-                                            slot_rna = "Saver",
-                                            verbose = 3)
+                                         seurat_obj = all_data2,
+                                         slot_atac = "ATAC",
+                                         slot_rna = "Saver",
+                                         verbose = 3)
 preprocess_res <- preprocess_chromatin_peak(chr_peak_list = preprocess_res$chr_peak_list,
                                             rna_mat = preprocess_res$rna_mat,
                                             verbose = 3)
