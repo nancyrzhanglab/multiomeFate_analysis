@@ -20,7 +20,7 @@ keep_vec <- rep(F, ncol(all_data))
 keep_vec[which(all_data$dataset %in% c("day0", "day10_DABTRAM", "week5_DABTRAM"))] <- T
 all_data$keep <- keep_vec
 
-all_data <- subset(all_data, keep == T)
+all_data2 <- subset(all_data, keep == TRUE)
 metadata_mat <- all_data@meta.data
 
 preprocess_res <- multiomeFate:::extract_relevant_peaks(peak_mapping_list = matching_list,
