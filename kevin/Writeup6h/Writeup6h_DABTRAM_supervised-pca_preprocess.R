@@ -22,6 +22,7 @@ all_data$keep <- keep_vec
 
 all_data <- subset(all_data, keep == TRUE)
 metadata_mat <- all_data@meta.data
+print(all_data$dataset)
 
 preprocess_res <- multiomeFate:::extract_relevant_peaks(peak_mapping_list = matching_list,
                                          seurat_obj = all_data,
