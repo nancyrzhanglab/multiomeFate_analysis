@@ -43,11 +43,16 @@ names(tier_vec) <- rownames(metadata_mat)
 tier_vec[tier1_idx] <- paste0("3high_winner_", treatment)
 tier_vec[tier2_idx] <- paste0("2mid_winner_", treatment)
 tier_vec[tier3_idx] <- paste0("1loser_", treatment)
+tier_vec <- tier_vec[!is.na(tier_vec)]
+
+rna_mat <- rna_mat[names(tier_vec),,drop = F]
+chr_peak_list <- lapply(chr_peak_list, function(mat){
+  mat[names(tier_vec),,drop = F]
+})
 
 ##################
 
 cell_names <- names(tier_vec)[which(!is.na(tier_vec))]
-
 
 tier_vec <- tier_vec[rownames(rna_mat)]
 y <- multiomeFate:::form_onehot_classification_mat(tier_vec)
@@ -77,11 +82,10 @@ for(i in 1:length(gene_vec)){
                                                          orthogonalize = T)
 }
 
-
 save(spca_res_list, 
      tab_mat, treatment, tier_vec,
      date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6h/Writeup6h_DABTRAM-day10_supervised-pca.RData")
+     file = "../../../../out/kevin/Writeup6h/Writeup6h_DABTRAM_supervised-pca_day10-to-week5.RData")
 
 ##########
 
@@ -110,9 +114,8 @@ for(i in 1:length(gene_vec)){
   cv_score_vec[gene] <- .five_fold_cv(x_mat, y_vec)
 }
 
-
 save(spca_res_list, cv_score_vec,
      tab_mat, treatment, tier_vec,
      date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6h/Writeup6h_DABTRAM-day10_supervised-pca.RData")
+     file = "../../../../out/kevin/Writeup6h/Writeup6h_DABTRAM_supervised-pca_day10-to-week5.RData")
 
