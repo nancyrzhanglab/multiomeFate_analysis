@@ -23,12 +23,12 @@ all_data$keep <- keep_vec
 all_data <- subset(all_data, keep == T)
 metadata_mat <- all_data@meta.data
 
-preprocess_res <- extract_relevant_peaks(peak_mapping_list = matching_list,
+preprocess_res <- multiomeFate:::extract_relevant_peaks(peak_mapping_list = matching_list,
                                          seurat_obj = all_data,
                                          slot_atac = "ATAC",
                                          slot_rna = "Saver",
                                          verbose = 3)
-preprocess_res <- preprocess_chromatin_peak(chr_peak_list = preprocess_res$chr_peak_list,
+preprocess_res <- multiomeFate:::preprocess_chromatin_peak(chr_peak_list = preprocess_res$chr_peak_list,
                                             rna_mat = preprocess_res$rna_mat,
                                             verbose = 3)
 
