@@ -11,7 +11,7 @@ set.seed(10)
 all_data$common_tcca <- NULL
 all_data$distinct1_tcca <- NULL
 all_data$distinct2_tcca <- NULL
-all_data <- subset(all_data, dataset %in% c("day0", "day10_DABTRAM", "week5_DABTRAM"))
+all_data <- subset(all_data, dataset %in% c("day0", "day10_DABTRAM", "week5_DABTRAM") & assigned_posterior >= 0.5)
 n <- ncol(all_data)
 
 Seurat::DefaultAssay(all_data) <- "Saver"
