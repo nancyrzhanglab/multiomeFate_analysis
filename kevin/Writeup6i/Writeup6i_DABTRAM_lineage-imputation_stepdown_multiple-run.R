@@ -73,7 +73,7 @@ while(TRUE){
   print(paste0("On iteration ", iteration))
   
   if(iteration > 1) {
-    var_keep <- coefficient_list[[iteration-1]]$variables_to_be_kept
+    var_keep <- coefficient_list_list[[iteration-1]]$variables_to_be_kept
   } else {
     var_keep <- colnames(cell_features)
   }
