@@ -80,7 +80,7 @@ while(TRUE){
   print(var_keep)
   if(length(var_keep) < 2) break()
   
-  p <- length(var_idx)
+  p <- length(var_keep)
   tmp <- quantile(abs(cell_features[,setdiff(var_keep, "Intercept")]), probs = 0.95)
   coef_val <- 2*log(max(lineage_future_count/lineage_current_count))/((p-1)*tmp)
   coefficient_initial <- c(0, rep(coef_val, p-1))
