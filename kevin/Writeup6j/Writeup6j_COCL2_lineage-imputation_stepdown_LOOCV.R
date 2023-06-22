@@ -133,7 +133,7 @@ while(TRUE){
   set.seed(10)
   lineage_res <- multiomeFate:::lineage_imputation(cell_features = cell_features[,var_keep,drop=F],
                                                    cell_lineage = cell_lineage,
-                                                   coefficient_initial = coefficient_initial,
+                                                   coefficient_initial = coefficient_initial[var_keep],
                                                    lineage_future_count = lineage_future_count,
                                                    random_initializations = 10,
                                                    verbose = 1)
@@ -146,7 +146,7 @@ while(TRUE){
   coefficient_list$variables_to_be_kept <- var_keep
   
   # schedule the 10 variables with the lowest coefficients to be dropped next iteration
-  tmp <- names(coefficient_vec)[order(abs(coefficient_vec), decreasing = F)[1:min(10, length(coefficient_vec)-1)]]
+  tmp <- names(coefficient_vec)[order(abs(coefficient_vec), decreasing = F)[1:min(5, length(coefficient_vec)-1)]]
   coefficient_list$variables_to_be_rm <- setdiff(tmp, "Intercept")
   
   coefficient_list_list[[iteration]] <- coefficient_list
