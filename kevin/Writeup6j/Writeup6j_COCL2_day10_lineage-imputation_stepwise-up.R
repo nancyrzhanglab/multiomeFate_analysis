@@ -82,7 +82,7 @@ while(TRUE){
   
   coefficient_list_list[[iteration]] <- list(
     attempt_vec = attempt_vec,
-    var_next_iteration = sort(var_current, var_selected),
+    var_next_iteration = sort(c(var_current, var_selected)),
     var_selected = var_selected
   )
   iteration <- iteration+1
