@@ -58,6 +58,7 @@ while(TRUE){
   if(length(var_try) <= 1) break()
   
   attempt_vec <- sapply(var_try, function(variable){
+    print(variable)
     cell_features <- cell_features_full[,c(var_current, variable),drop=F]
     p <- ncol(cell_features)
     tmp <- quantile(abs(cell_features[,-which(colnames(cell_features) == "Intercept"),drop=F]), probs = 0.95)
