@@ -72,7 +72,6 @@ save(all_data2, all_data,
 
 ################################
 
-
 cell_lineage <- all_data2$assigned_lineage
 cell_lineage <- cell_lineage[!is.na(cell_lineage)]
 
