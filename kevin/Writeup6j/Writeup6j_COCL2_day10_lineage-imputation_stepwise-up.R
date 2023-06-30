@@ -1,4 +1,3 @@
-# try data fission. This one does not have pseudotime
 rm(list=ls())
 library(Seurat)
 library(Signac)
