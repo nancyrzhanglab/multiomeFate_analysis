@@ -5,7 +5,7 @@ library(GenomicRanges)
 library(multiomeFate)
 library(IRanges)
 
-load("../../../../out/kevin/Writeup6j/Writeup6j_DABTRAM-day0_extracted.RData")
+load("../../../../out/kevin/Writeup6j/Writeup6j_COCL2-day0_extracted.RData")
 all_data2$tier_vec <- all_data2$keep
 
 date_of_run <- Sys.time()
@@ -16,7 +16,7 @@ cell_lineage <- all_data2$assigned_lineage
 cell_lineage <- cell_lineage[!is.na(cell_lineage)]
 
 # construct cell_features matrix
-topic_mat <- all_data[["fasttopic_DABTRAM"]]@cell.embeddings[names(cell_lineage),]
+topic_mat <- all_data[["fasttopic_COCL2"]]@cell.embeddings[names(cell_lineage),]
 atac_mat <- all_data2[["lsi"]]@cell.embeddings
 
 log10pval_vec <- sapply(1:ncol(atac_mat), function(j){
@@ -29,7 +29,7 @@ names(log10pval_vec) <- colnames(atac_mat)
 
 # let's try using all the topics #Clueless
 cell_features_full <- cbind(1, scale(topic_mat), 
-                            scale(atac_mat[names(cell_lineage),which(log10pval_vec>=2)]))
+                            scale(atac_mat[names(cell_lineage),which(log10pval_vec>=1)]))
 p <- ncol(cell_features_full)
 colnames(cell_features_full)[1] <- "Intercept"
 
@@ -37,7 +37,7 @@ cell_features_full <- cell_features_full[names(cell_lineage),]
 uniq_lineage <- sort(unique(cell_lineage))
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 lineage_current_count <- tab_mat[uniq_lineage,"day0"]
-lineage_future_count <- tab_mat[uniq_lineage,"day10_DABTRAM"]
+lineage_future_count <- tab_mat[uniq_lineage,"day10_COCL2"]
 
 tmp <- quantile(abs(cell_features_full[,-1]), probs = 0.95)
 coef_val <- 2*log(max(lineage_future_count/lineage_current_count))/((p-1)*tmp)
@@ -89,9 +89,9 @@ while(TRUE){
   iteration <- iteration+1
   
   save(coefficient_list_list, date_of_run, session_info,
-       file = "../../../../out/kevin/Writeup6j/Writeup6j_DABTRAM_day0_lineage-imputation_step-up.RData")
+       file = "../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day0_lineage-imputation_step-up.RData")
 }
 
 save(coefficient_list_list, date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6j/Writeup6j_DABTRAM_day0_lineage-imputation_step-up.RData")
+     file = "../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day0_lineage-imputation_step-up.RData")
 
