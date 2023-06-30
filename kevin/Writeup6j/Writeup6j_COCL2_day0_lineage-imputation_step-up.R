@@ -63,7 +63,7 @@ while(TRUE){
     p <- ncol(cell_features)
     tmp <- quantile(abs(cell_features[,-which(colnames(cell_features) == "Intercept"),drop=F]), probs = 0.95)
     coef_val <- 2*log(max(lineage_future_count/lineage_current_count))/((p-1)*tmp)
-    coefficient_initial <- rep(coef_val, p)
+    coefficient_initial <- pmin(rep(coef_val, p), 5)
     names(coefficient_initial) <- colnames(cell_features)
     coefficient_initial["Intercept"] <- 0
     
