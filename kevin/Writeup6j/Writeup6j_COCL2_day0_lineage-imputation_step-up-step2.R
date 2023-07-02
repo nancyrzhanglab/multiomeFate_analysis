@@ -6,7 +6,7 @@ library(multiomeFate)
 library(IRanges)
 
 load("../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day0_lineage-imputation_step-up.RData")
-load("../../../../out/kevin/Writeup6i/Writeup6j_COCL2-day0_extracted.RData")
+load("../../../../out/kevin/Writeup6j/Writeup6j_COCL2-day0_extracted.RData")
 all_data2$tier_vec <- all_data2$keep
 
 date_of_run <- Sys.time()
