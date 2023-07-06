@@ -22,8 +22,9 @@ len <- length(cutmat_list)
 preprocessed_list <- vector("list", len)
 names(preprocessed_list) <- names(cutmat_list)
 for(idx in 1:len){
+  print(idx)
+  
   if(idx %% floor(len/10) == 0) {
-    cat('*')
     save(date_of_run, session_info,
          preprocessed_list,
          file = "../../../../out/kevin/Writeup6j/Writeup6j_DABTRAM_day0_entropy_tfidf-normalization.RData")
@@ -32,16 +33,14 @@ for(idx in 1:len){
   cutmat <- rbind(cutmat_list[[idx]]$cutmat_dying,
                   cutmat_list[[idx]]$cutmat_winning)
   peak_mat <- cutmat_list[[idx]]$peak_mat
+  stopifnot(is.matrix(peak_mat))
+  
   peak_prior <- cutmat_list[[idx]]$peak_prior
   thres1 <- 0.1; thres2 <- 0.05
   if(any(peak_prior >= thres1)){
-    peak_mat <- peak_mat[peak_prior >= thres1,,drop = F]
-    peak_prior <- peak_prior[peak_prior >= thres1]
-    peak_prior <- peak_prior/sum(peak_prior)
+    peak_mat <- peak_mat[which(peak_prior >= thres1),,drop = F]
   } else if(any(peak_prior >= thres2)){
-    peak_mat <- peak_mat[peak_prior >= thres2,,drop = F]
-    peak_prior <- peak_prior[peak_prior >= thres2]
-    peak_prior <- peak_prior/sum(peak_prior)
+    peak_mat <- peak_mat[which(peak_prior >= thres2),,drop = F]
   }
   
   peak_width <- stats::median(apply(peak_mat, 1, diff))
