@@ -16,6 +16,8 @@ set.seed(10)
 
 ########
 
+cutmat_list <- cutmat_list[which(sapply(cutmat_list, length) > 0)]
+
 # idx <- which(names(cutmat_list) == "CD44")
 
 len <- length(cutmat_list)
