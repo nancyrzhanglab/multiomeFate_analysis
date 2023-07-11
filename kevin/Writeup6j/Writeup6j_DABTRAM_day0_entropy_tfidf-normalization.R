@@ -132,6 +132,8 @@ save(date_of_run, session_info,
 
 #####################
 
+load("../../../../out/kevin/Writeup6j/Writeup6j_DABTRAM_day0_entropy_tfidf-normalization.RData")
+
 length(which(lrt_vec <= 0))
 quantile(lrt_vec, na.rm = T)
 mean(lrt_vec, na.rm = T)
@@ -318,6 +320,34 @@ gene_vec <- names(pval_adj_vec)[intersect(
 )]
 
 pdf(paste0("../../../../out/figures/Writeup6j/Writeup6j_DABTRAM-day0_entropy_tfidf-normalization_coverage.pdf"),
+    onefile = T, width = 9, height = 4.5)
+for(gene in gene_vec){
+  plot1 <- Signac::CoveragePlot(
+    object = all_data2,
+    region = gene,
+    features = gene,
+    extend.upstream = 5000,
+    extend.downstream = 5000
+  )
+  
+  print(plot1)
+}
+
+dev.off() 
+
+sapply(gene_vec, function(gene){
+  c(Win_count = sum(cutmat_list[[gene]]$cutmat_winning),
+    Die_count = sum(cutmat_list[[gene]]$cutmat_dying))
+})
+
+####
+
+gene_vec <- names(pval_adj_vec)[intersect(
+  which(pval_adj_vec <= .05),
+  which(entropy_vec < 0)
+)]
+
+pdf(paste0("../../../../out/figures/Writeup6j/Writeup6j_DABTRAM-day0_entropy_tfidf-normalization_coverage_less-entropy.pdf"),
     onefile = T, width = 9, height = 4.5)
 for(gene in gene_vec){
   plot1 <- Signac::CoveragePlot(
