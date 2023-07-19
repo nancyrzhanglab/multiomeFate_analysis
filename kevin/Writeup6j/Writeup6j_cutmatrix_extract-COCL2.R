@@ -62,7 +62,7 @@ names(cutmat_list) <- gene_vec_all
 for(zz in 1:length(gene_vec_all)){
   if(zz %% 100 == 0) {
     save(cutmat_list, date_of_run, session_info,
-         file = paste0("../../../../out/kevin/Writeup6i/day0_cutmatrix_extract-", treatment, "_tmp.RData"))
+         file = paste0("../../../../out/kevin/Writeup6j/day0_cutmatrix_extract-", treatment, "_tmp.RData"))
   }
   
   print(paste0(zz, " of ", length(gene_vec_all), " in ", treatment))
@@ -99,4 +99,4 @@ for(zz in 1:length(gene_vec_all)){
 }
 
 save(cutmat_list, date_of_run, session_info,
-     file = paste0("../../../../out/kevin/Writeup6i/day0_cutmatrix_extract-", treatment, "_tmp.RData"))
+     file = paste0("../../../../out/kevin/Writeup6j/day0_cutmatrix_extract-", treatment, "_tmp.RData"))
