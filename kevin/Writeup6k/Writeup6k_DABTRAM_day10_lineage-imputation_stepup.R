@@ -58,7 +58,7 @@ while(TRUE){
   var_try <- setdiff(colnames(cell_features_full), var_current)
   if(length(var_try) <= 1) break()
   
-  attempt_list <- sapply(var_try, function(variable){
+  attempt_list <- lapply(var_try, function(variable){
     print(variable)
     cell_features <- cell_features_full[,c(var_current, variable),drop=F]
     p <- ncol(cell_features)
@@ -79,6 +79,9 @@ while(TRUE){
     tmp_res$fit
   })
   names(attempt_list) <- var_try
+  
+  save(attempt_list, date_of_run, session_info,
+       file = "../../../../out/kevin/Writeup6k/tmp.RData")
   
   attempt_vec <- sapply(attempt_list, function(x){
     x$objective_val
