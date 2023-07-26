@@ -87,5 +87,5 @@ for(iteration in 1:len){
   loocv_mat[,iteration] <- tmp
   
   save(coefficient_list_list, loocv_mat, date_of_run, session_info,
-       file = "../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day0_lineage-imputation_stepup_step2.RData")
+       file = "../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day10_lineage-imputation_stepup_step2.RData")
 } 

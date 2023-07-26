@@ -99,9 +99,9 @@ while(TRUE){
   iteration <- iteration+1
   
   save(coefficient_list_list, date_of_run, session_info,
-       file = "../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day0_lineage-imputation_stepup.RData")
+       file = "../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day10_lineage-imputation_stepup.RData")
 }
 
 save(coefficient_list_list, date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day0_lineage-imputation_stepup.RData")
+     file = "../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day10_lineage-imputation_stepup.RData")
 
