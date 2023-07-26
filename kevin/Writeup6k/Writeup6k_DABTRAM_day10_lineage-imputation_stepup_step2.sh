@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -N DABTRAM_d10_stepdown_step2
+#$ -N DABTRAM_d10_stepup_step2
 #$ -j y
 #$ -o ../../../../out/kevin/Writeup6k/qsub/
 #$ -l m_mem_free=25G

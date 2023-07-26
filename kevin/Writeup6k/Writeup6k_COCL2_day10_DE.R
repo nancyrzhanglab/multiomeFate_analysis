@@ -84,14 +84,18 @@ pvalue_list <- lapply(all_data2[["Saver"]]@var.features, function(gene){
   x_vec <- all_data2[["Saver"]]@scale.data[gene, which(all_data2$level == "high")]
   y_vec <- all_data2[["Saver"]]@scale.data[gene, which(all_data2$level == "low")]
   
+  # x_vec <- x_vec[x_vec >= min(x_vec) + 1e-2]
+  # y_vec <- y_vec[y_vec >= min(y_vec) + 1e-2]
+  
   if(diff(range(x_vec)) <= 1e-6 || diff(range(y_vec)) <= 1e-6 ) return(NA)
   
-  ttest_res <- stats::t.test(x = x_vec, y = y_vec)
-  list(stat = mean(x_vec) - mean(y_vec), pvalue = ttest_res$p.value)
+  test_res <- stats::wilcox.test(x = x_vec, y = y_vec)
+  list(stat = mean(x_vec) - mean(y_vec), pvalue = test_res$p.value)
 })
 names(pvalue_list) <- all_data2[["Saver"]]@var.features
 pvalue_list <- pvalue_list[sapply(pvalue_list, function(x){!all(is.na(x))})]
 quantile(sapply(pvalue_list, function(x){x$stat}))
+quantile(sapply(pvalue_list, function(x){-log10(x$pvalue)}))
 
 # cor_vec <- sapply(all_data2[["Saver"]]@var.features, function(gene){
 #   x_vec <- all_data2[["Saver"]]@scale.data[gene,]
@@ -105,13 +109,14 @@ quantile(sapply(pvalue_list, function(x){x$stat}))
 
 source("../Writeup6b/gene_list.R")
 keygene_vec <- sort(unique(c(keygenes$jackpot, keygenes$COCL2)))
+keygene_vec <- sort(intersect(keygene_vec, names(pvalue_list)))
 
 diff_vec <- sapply(pvalue_list, function(x){x$stat})
 logpval_vec <- sapply(pvalue_list, function(x){-log10(x$pvalue)})
 
 labeling_vec <- rep("1", length(diff_vec))
 names(labeling_vec) <- names(diff_vec)
-labeling_vec[names(logpval_vec)[which(logpval_vec >= 200)]] <- "3"
+labeling_vec[names(logpval_vec)[which(logpval_vec >= 175)]] <- "3"
 labeling_vec[intersect(keygene_vec, names(labeling_vec))] <- "2"
 
 df <- data.frame(difference = diff_vec,
@@ -140,7 +145,7 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_C
 ###################
 
 # make a violin plot
-gene_vec <- sort(names(logpval_vec)[which(logpval_vec >= 200)])
+gene_vec <- sort(names(logpval_vec)[which(logpval_vec >= 175)])
 cell_idx <- which(all_data2$level %in% c("high", "low"))
 
 pdf("../../../../out/figures/Writeup6k/Writeup6k_COCL2-day10_stepdown_DE_violin_highest-DE.pdf", 
@@ -148,7 +153,7 @@ pdf("../../../../out/figures/Writeup6k/Writeup6k_COCL2-day10_stepdown_DE_violin_
 
 for(gene in gene_vec){
  
-  df <- data.frame(rna = all_data2[["RNA"]]@scale.data[gene,cell_idx],
+  df <- data.frame(rna = all_data2[["Saver"]]@scale.data[gene,cell_idx],
                    tier = all_data2$level[cell_idx])
   col_vec <- c("lightgray", "dodgerblue4")
   names(col_vec) <- c("low", "high")
@@ -159,7 +164,30 @@ for(gene in gene_vec){
     ggplot2::geom_jitter(shape=16, position=ggplot2::position_jitter(0.2), alpha = 0.3, size = 0.5) + 
     Seurat::NoLegend() + 
     ggplot2::geom_boxplot(width=0.05) +
-    ggplot2::ggtitle(paste0("Saver: ", gene))
+    ggplot2::ggtitle(paste0("Saver: ", gene, ": -Log10pvalue=", round(-log10(pvalue_list[[gene]]$pvalue), 2)))
+  print(p1)
+}
+
+dev.off()
+
+###############
+
+pdf("../../../../out/figures/Writeup6k/Writeup6k_COCL2-day10_stepdown_DE_violin_keygenes.pdf", 
+    onefile = T, width = 5, height = 5)
+
+for(gene in keygene_vec){
+  df <- data.frame(rna = all_data2[["Saver"]]@scale.data[gene,cell_idx],
+                   tier = all_data2$level[cell_idx])
+  col_vec <- c("lightgray", "dodgerblue4")
+  names(col_vec) <- c("low", "high")
+  
+  p1 <- ggplot2::ggplot(df, ggplot2::aes(x=tier, y=rna)) +
+    ggplot2::geom_violin(trim=FALSE, ggplot2::aes(fill=tier)) +
+    ggplot2::scale_fill_manual(values=col_vec) +
+    ggplot2::geom_jitter(shape=16, position=ggplot2::position_jitter(0.2), alpha = 0.3, size = 0.5) + 
+    Seurat::NoLegend() + 
+    ggplot2::geom_boxplot(width=0.05) +
+    ggplot2::ggtitle(paste0("Saver: ", gene, ": -Log10pvalue=", round(-log10(pvalue_list[[gene]]$pvalue), 2)))
   print(p1)
 }
 
