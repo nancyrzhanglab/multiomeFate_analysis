@@ -5,56 +5,11 @@ library(GenomicRanges)
 library(multiomeFate)
 library(IRanges)
 
-load("../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day10_lineage-imputation_stepdown_step2.RData")
-load("../../../../out/kevin/Writeup6i/Writeup6i_COCL2-day10_extracted.RData")
-all_data2$tier_vec <- all_data2$keep
 
-# extract the average test and train
-len_vec <- sapply(coefficient_list_list, function(lis){
-  length(lis$var_next_iteration)
-})
-len <- length(coefficient_list_list)
-train_vec <- sapply(coefficient_list_list, function(x){
-  x$fit$objective_val
-})
-test_vec <- colMeans(loocv_mat)
-
-idx <- which.min(test_vec)
-lineage_res <- coefficient_list_list[[idx]]$fit
-var_names <- names(lineage_res$coefficient_vec)
-
-fasttopic_mat <- all_data2[["fasttopic_COCL2"]]@cell.embeddings
-lsi_mat <- all_data2[["lsi"]]@cell.embeddings
-
-cell_features <- cbind(1, 
-                       scale(fasttopic_mat), 
-                       scale(lsi_mat))
-colnames(cell_features)[1] <- "Intercept"
-cell_features <- cell_features[,var_names]
-cell_lineage <- all_data2$assigned_lineage
-cell_lineage <- cell_lineage[!is.na(cell_lineage)]
-cell_features <- cell_features[names(cell_lineage),]
-uniq_lineage <- sort(unique(cell_lineage))
-tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
-lineage_current_count <- tab_mat[uniq_lineage,"day10_COCL2"]
-lineage_future_count <- tab_mat[uniq_lineage,"week5_COCL2"]
-
-cell_imputed_count <- as.numeric(exp(cell_features %*% lineage_res$coefficient_vec))
-names(cell_imputed_count) <- rownames(cell_features)
-lineage_imputed_count <- sapply(uniq_lineage, function(lineage){
-  sum(cell_imputed_count[which(cell_lineage == lineage)])
-})
-
-imputed_vec <- rep(NA, ncol(all_data))
-names(imputed_vec) <- colnames(all_data)
-imputed_vec[names(cell_imputed_count)] <- log10(cell_imputed_count)
-all_data$imputed_count <- imputed_vec
-
-all_data_cocl2 <- all_data
 load("../../../../out/kevin/Writeup6b/Writeup6b_chromVar.RData")
 
 # do the chromvar analysis 
-tab_mat <- table(all_data_cocl2$assigned_lineage, all_data_cocl2$dataset)
+tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 
 #################
 
@@ -63,35 +18,22 @@ tab_mat <- table(all_data_cocl2$assigned_lineage, all_data_cocl2$dataset)
 lineage_score <- sapply(1:nrow(tab_mat), function(i){
   if(i %% floor(nrow(tab_mat)/10) == 0) cat('*')
   lineage_name <- rownames(tab_mat)[i]
-  cell_names <- colnames(all_data_cocl2)[which(all_data_cocl2$assigned_lineage == lineage_name)]
-  if(length(cell_names) == 0) return(NA)
-  # quantile(all_data_cocl2$imputed_count[cell_names], probs = 0.75, na.rm = T)
-  length(which(all_data_cocl2$imputed_count[cell_names] >= 0))
+  cell_names <- colnames(all_data)[intersect(
+    which(all_data$assigned_lineage == lineage_name),
+    which(all_data$dataset == "day10_DABTRAM")
+  )]
+  length(cell_names)
 })
 names(lineage_score) <- rownames(tab_mat)
 quantile(lineage_score, na.rm = T, probs = seq(0,1,length.out=11))
 length(which(lineage_score > 0))
 
-lineage_score2 <- sapply(1:nrow(tab_mat), function(i){
-  if(i %% floor(nrow(tab_mat)/10) == 0) cat('*')
-  lineage_name <- rownames(tab_mat)[i]
-  cell_names <- colnames(all_data_cocl2)[which(all_data_cocl2$assigned_lineage == lineage_name)]
-  if(length(cell_names) == 0) return(NA)
-  mean(all_data_cocl2$imputed_count[cell_names], na.rm = T)
-})
-names(lineage_score2) <- rownames(tab_mat)
-quantile(lineage_score2, na.rm = T, probs = seq(0,1,length.out=11))
-
-cell_winning_idx <- intersect(which(all_data_cocl2$assigned_lineage %in% names(lineage_score)[which(lineage_score > 0)]),
-                              which(all_data_cocl2$dataset == "day0"))
-cell_winning_names <- colnames(all_data_cocl2)[cell_winning_idx]
-cell_losing_idx <- intersect(which(all_data_cocl2$assigned_lineage %in% names(lineage_score)[
-  intersect(which(lineage_score == 0),
-            which(lineage_score2 <= -3)
-  )
-]), 
-which(all_data_cocl2$dataset == "day0"))
-cell_losing_names <- colnames(all_data_cocl2)[cell_losing_idx]
+cell_winning_idx <- intersect(which(all_data$assigned_lineage %in% names(lineage_score)[which(lineage_score >= 10)]),
+                              which(all_data$dataset == "day0"))
+cell_winning_names <- colnames(all_data)[cell_winning_idx]
+cell_losing_idx <- intersect(which(all_data$assigned_lineage %in% names(lineage_score)[which(lineage_score == 0)]),
+                             which(all_data$dataset == "day0"))
+cell_losing_names <- colnames(all_data)[cell_losing_idx]
 length(cell_winning_names); length(cell_losing_names)
 keep_vec <- rep(NA, ncol(all_data))
 names(keep_vec) <- colnames(all_data)
@@ -139,9 +81,8 @@ plot1 <- ggseqlogo::ggseqlogo(data = data.use, ncol = 4)
 plot1 <- plot1 + ggplot2::theme_bw()
 width <- 15; height <- 10
 
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_COCL2_day0-win-vs-lose_day10-lineage-imputation_stepdown.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_DABTRAM_day0-win-vs-lose_day10-original.png"),
                 plot1, device = "png", width = width, height = height, units = "in")
-
 
 #######################
 
@@ -177,9 +118,9 @@ p1 <- p1 + ggrepel::geom_text_repel(data = subset(df, labeling %in% c("2", "3"))
                                     box.padding = ggplot2::unit(0.5, 'lines'),
                                     point.padding = ggplot2::unit(1.6, 'lines'),
                                     max.overlaps = 50)
-p1 <- p1 + ggplot2::ggtitle(paste0("COCL2 Day0 Motif, based on Day10 lineage growth potential\n(Winner-Loser)")) +
+p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM Day0 Motif, based on Day10 lineage growth potential\n(Winner-Loser)")) +
   ggplot2::xlab("Mean difference in chromVar score: (Winner-Loser)") + ggplot2::ylab("DE p-value (-Log10)")
 p1 <- p1 + Seurat::NoLegend()
 
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_COCL2_day0-win-vs-lose_day10_stepdown_DE_volcano.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_DABTRAM_day0-win-vs-lose_day10-lineage-imputation_stepup_DE_volcano.png"),
                 p1, device = "png", width = 10, height = 10, units = "in")

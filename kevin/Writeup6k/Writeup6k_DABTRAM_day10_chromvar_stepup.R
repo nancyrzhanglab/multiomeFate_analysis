@@ -40,10 +40,10 @@ quantile(lineage_score2, na.rm = T, probs = seq(0,1,length.out=11))
 length(which(lineage_score2 > 0))
 
 cell_winning_idx <- intersect(which(all_data_original$assigned_lineage %in% names(lineage_score2)[intersect(
-  which(lineage_score >= 0),
-  which(lineage_score2 >= -.5),
+  which(lineage_score > 0),
+  which(lineage_score2 >= -1)
 )]),
-                              which(all_data_original$dataset == "day0"))
+which(all_data_original$dataset == "day0"))
 cell_winning_names <- colnames(all_data_original)[cell_winning_idx]
 cell_losing_idx <- intersect(which(all_data_original$assigned_lineage %in% names(lineage_score2)[which(lineage_score2 <= -1)]),
                              which(all_data_original$dataset == "day0"))
@@ -81,11 +81,12 @@ names(data.use) <- Signac::GetMotifData(
   assay = "ATAC",
   slot = "motif.names"
 )[motifs]
+name_vec <- names(data.use) 
 tmp <- de_res; rownames(tmp) <- names(data.use); tmp[1:50,]
 
 names(data.use) <- sapply(1:length(data.use), function(i){
   paste0(names(data.use)[i], ", ", rownames(de_res)[i], 
-         "\n-Log10AdjPval=", round(-log10(de_res[i,"p_val_adj"]), 2),
+         "\n-Log10Pval=", round(-log10(de_res[i,"p_val"]), 2),
          ", value=", round(de_res[i,"avg_diff"], 2))
 })
 data.use <- data.use[1:28]
@@ -94,5 +95,43 @@ plot1 <- ggseqlogo::ggseqlogo(data = data.use, ncol = 4)
 plot1 <- plot1 + ggplot2::theme_bw()
 width <- 15; height <- 10
 
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_COCL2_day0-win-vs-lose_day10-lineage-imputation_stepup.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_DABTRAM_day0-win-vs-lose_day10-lineage-imputation_stepup.png"),
                 plot1, device = "png", width = width, height = height, units = "in")
+
+#######################
+
+diff_vec <- de_res$avg_diff
+names(diff_vec) <- name_vec
+logpval_vec <- -log10(de_res$p_val)
+names(logpval_vec) <- name_vec
+
+labeling_vec <- rep("1", length(diff_vec))
+names(labeling_vec) <- names(diff_vec)
+labeling_vec[names(logpval_vec)[which(logpval_vec >= 2)]] <- "3"
+labeling_vec[grep("JUN", name_vec)] <- "2"
+labeling_vec[grep("FOS", name_vec)] <- "2"
+labeling_vec[grep("NFE2", name_vec)] <- "2"
+table(labeling_vec)
+
+df <- data.frame(difference = diff_vec,
+                 log10pval = logpval_vec,
+                 name = name_vec,
+                 labeling = labeling_vec)
+# put all the labeling == TRUE on bottom
+df <- df[c(which(df[,"labeling"] == "1"), which(df[,"labeling"] %in% c("2", "3"))),]
+
+p1 <- ggplot2::ggplot(df, ggplot2::aes(x = difference, 
+                                       y = log10pval))
+p1 <- p1 + ggplot2::geom_point(ggplot2::aes(color = labeling))
+p1 <- p1 + ggplot2::scale_colour_manual(values=c("black", "red", "blue"))
+p1 <- p1 + ggrepel::geom_text_repel(data = subset(df, labeling %in% c("2", "3")),
+                                    ggplot2::aes(label = name, color = labeling),
+                                    box.padding = ggplot2::unit(0.5, 'lines'),
+                                    point.padding = ggplot2::unit(1.6, 'lines'),
+                                    max.overlaps = 50)
+p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM Day0 Motif, based on Day10 lineage growth potential\n(Winner-Loser)")) +
+  ggplot2::xlab("Mean difference in chromVar score: (Winner-Loser)") + ggplot2::ylab("DE p-value (-Log10)")
+p1 <- p1 + Seurat::NoLegend()
+
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_DABTRAM_day0-win-vs-lose_day10-lineage-imputation_stepup_DE_volcano.png"),
+                p1, device = "png", width = 10, height = 10, units = "in")
