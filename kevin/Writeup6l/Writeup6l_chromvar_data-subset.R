@@ -8,7 +8,7 @@ date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 set.seed(10)
 
-load("../../out/Writeup6b/Writeup6b_chromVar.RData")
+load("../../../../out/Writeup6b/Writeup6b_chromVar.RData")
 Seurat::DefaultAssay(all_data) <- "Saver"
 all_data[["ATAC"]] <- NULL
 all_data[["geneActivity"]] <- NULL
