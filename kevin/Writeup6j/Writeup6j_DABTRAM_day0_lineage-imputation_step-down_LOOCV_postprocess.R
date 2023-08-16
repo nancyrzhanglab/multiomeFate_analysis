@@ -1,4 +1,3 @@
-# try data fission
 rm(list=ls())
 library(Seurat)
 library(Signac)
@@ -149,4 +148,12 @@ p1 <- p1 + Seurat::NoLegend()
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6j/Writeup6j_DABTRAM-day0_imputation_stepdown-LOOCV_lineage-level_counts_labeled.png"),
                 p1, device = "png", width = 10, height = 10, units = "in")
 
+#########################
 
+idx <- which.min(test_vec)
+fit <- coefficient_list_list[[idx]]$fit
+cell_imputed_count <- imputed_vec
+
+save(fit, lineage_imputed_count, cell_imputed_count,
+     date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup6j/Writeup6j_DABTRAM_day0_lineage-imputation_stepdown-LOOCV_concise-postprocessed.RData")

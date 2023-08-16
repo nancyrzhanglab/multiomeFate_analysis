@@ -5,7 +5,7 @@ library(GenomicRanges)
 library(multiomeFate)
 library(IRanges)
 
-load("../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day10_lineage-imputation_stepdown_postprocessed.RData")
+load("../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day0_lineage-imputation_stepdown-LOOCV_postprocessed.RData")
 all_data_original <- all_data
 load("../../../../out/kevin/Writeup6b/Writeup6b_chromVar.RData")
 
@@ -14,51 +14,13 @@ tab_mat <- table(all_data_original$assigned_lineage, all_data_original$dataset)
 
 #################
 
-# let's define winners and losers
-# score each lineage by its mean day10 score
-lineage_score <- sapply(1:nrow(tab_mat), function(i){
-  if(i %% floor(nrow(tab_mat)/10) == 0) cat('*')
-  lineage_name <- rownames(tab_mat)[i]
-  cell_names <- colnames(all_data_original)[which(all_data_original$assigned_lineage == lineage_name)]
-  if(length(cell_names) == 0) return(NA)
-  length(which(all_data_original$imputed_count[cell_names] >= 0))
-})
-names(lineage_score) <- rownames(tab_mat)
-quantile(lineage_score, na.rm = T, probs = seq(0,1,length.out=11))
-length(which(lineage_score > 0))
-
-lineage_score2 <- sapply(1:nrow(tab_mat), function(i){
-  if(i %% floor(nrow(tab_mat)/10) == 0) cat('*')
-  lineage_name <- rownames(tab_mat)[i]
-  cell_names <- colnames(all_data_original)[which(all_data_original$assigned_lineage == lineage_name)]
-  if(length(cell_names) == 0) return(NA)
-  mean(all_data_original$imputed_count[cell_names], na.rm = T)
-})
-names(lineage_score2) <- rownames(tab_mat)
-quantile(lineage_score2, na.rm = T, probs = seq(0,1,length.out=11))
-
-# cell_winning_idx <- intersect(which(all_data_original$assigned_lineage %in% names(lineage_score)[which(lineage_score > 0)]),
-#                               which(all_data_original$dataset == "day0"))
-# cell_winning_names <- colnames(all_data_original)[cell_winning_idx]
-# cell_losing_idx <- intersect(which(all_data_original$assigned_lineage %in% names(lineage_score)[
-#   intersect(which(lineage_score == 0),
-#             which(lineage_score2 <= -3)
-#   )
-# ]), 
-# which(all_data_original$dataset == "day0"))
-# cell_losing_names <- colnames(all_data_original)[cell_losing_idx]
-# length(cell_winning_names); length(cell_losing_names)
-cell_winning_idx <- intersect(which(all_data_original$assigned_lineage %in% names(lineage_score2)[intersect(
-  which(lineage_score > 0),
-  which(lineage_score2 >= -3)
-)]),
-which(all_data_original$dataset == "day0"))
+cell_winning_idx <- intersect(which(all_data_original$imputed_count > quantile(all_data_original$imputed_count, probs = 0.75, na.rm = T)),
+                              which(all_data_original$dataset == "day0"))
 cell_winning_names <- colnames(all_data_original)[cell_winning_idx]
-cell_losing_idx <- intersect(which(all_data_original$assigned_lineage %in% names(lineage_score2)[which(lineage_score2 <= -3)]),
+cell_losing_idx <- intersect(which(all_data_original$imputed_count < quantile(all_data_original$imputed_count, probs = 0.25, na.rm = T)),
                              which(all_data_original$dataset == "day0"))
 cell_losing_names <- colnames(all_data_original)[cell_losing_idx]
 length(cell_winning_names); length(cell_losing_names)
-
 keep_vec <- rep(NA, ncol(all_data))
 names(keep_vec) <- colnames(all_data)
 keep_vec[cell_winning_names] <- "winning_day0"
@@ -91,12 +53,12 @@ names(data.use) <- Signac::GetMotifData(
   assay = "ATAC",
   slot = "motif.names"
 )[motifs]
-name_vec <- names(data.use) 
+name_vec <- names(data.use)
 tmp <- de_res; rownames(tmp) <- names(data.use); tmp[1:50,]
 
 names(data.use) <- sapply(1:length(data.use), function(i){
   paste0(names(data.use)[i], ", ", rownames(de_res)[i], 
-         "\n-Log10Pval=", round(-log10(de_res[i,"p_val"]), 2),
+         "\n-Log10AdjPval=", round(-log10(de_res[i,"p_val_adj"]), 2),
          ", value=", round(de_res[i,"avg_diff"], 2))
 })
 data.use <- data.use[1:28]
@@ -105,23 +67,23 @@ plot1 <- ggseqlogo::ggseqlogo(data = data.use, ncol = 4)
 plot1 <- plot1 + ggplot2::theme_bw()
 width <- 15; height <- 10
 
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_COCL2_day0-win-vs-lose_day10_stepdown.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_DABTRAM_day0_chromvar_stepdown-LOOCV.png"),
                 plot1, device = "png", width = width, height = height, units = "in")
 
-
-#######################
+############################
 
 diff_vec <- de_res$avg_diff
 names(diff_vec) <- name_vec
 pvalue_vec <- de_res$p_val
 names(pvalue_vec) <- name_vec
 pvalue_vec <- stats::p.adjust(pvalue_vec, method = "BH")
+
 logpval_vec <- -log10(de_res$p_val)
 names(logpval_vec) <- name_vec
 
 labeling_vec <- rep("1", length(diff_vec))
 names(labeling_vec) <- names(diff_vec)
-labeling_vec[names(pvalue_vec)[which(pvalue_vec <= 0.05)]] <- "3"
+labeling_vec[names(logpval_vec)[which(logpval_vec >= 10)]] <- "3"
 labeling_vec[grep("JUN", name_vec)] <- "2"
 labeling_vec[grep("FOS", name_vec)] <- "2"
 labeling_vec[grep("NFE2", name_vec)] <- "2"
@@ -143,13 +105,16 @@ p1 <- p1 + ggrepel::geom_text_repel(data = subset(df, labeling %in% c("2", "3"))
                                     box.padding = ggplot2::unit(0.5, 'lines'),
                                     point.padding = ggplot2::unit(1.6, 'lines'),
                                     max.overlaps = 50)
-if(any(pvalue_vec <= 0.05)){
+if(any(pvalue_vec <= 0.05)) {
   p1 <- p1 + ggplot2::geom_hline(yintercept=min(logpval_vec[which(pvalue_vec <= 0.05)]), linetype="dashed", 
                                  color = "red", linewidth=2)
 }
-p1 <- p1 + ggplot2::ggtitle(paste0("COCL2 Day0 Motif, based on Day10 lineage growth potential\n(Winner-Loser)")) +
+p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM Day0 Motif, based on Day10 lineage growth potential\n(Winner-Loser)")) +
   ggplot2::xlab("Mean difference in chromVar score: (Winner-Loser)") + ggplot2::ylab("DE p-value (-Log10)")
 p1 <- p1 + Seurat::NoLegend()
 
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_COCL2_day0-win-vs-lose_day10_stepdown_DE_volcano.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_DABTRAM_day0_chromvar_stepdown-LOOCV_DE_volcano.png"),
                 p1, device = "png", width = 10, height = 10, units = "in")
+
+
+

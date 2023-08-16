@@ -70,18 +70,14 @@ lineage_future_count <- tab_mat[uniq_lineage,"week5_COCL2"]
 
 cell_imputed_count <- as.numeric(exp(cell_features %*% lineage_res$coefficient_vec))
 names(cell_imputed_count) <- rownames(cell_features)
-quantile(round(cell_imputed_count), probs = seq(0.9,1,length.out=11))
-round(lineage_res$coefficient_vec, 3)
 
 lineage_imputed_count <- sapply(uniq_lineage, function(lineage){
   sum(cell_imputed_count[which(cell_lineage == lineage)])
 })
-stats::cor(lineage_imputed_count, lineage_future_count)
-stats::cor(log1p(lineage_imputed_count), log1p(lineage_future_count))
 
 imputed_vec <- rep(NA, ncol(all_data))
 names(imputed_vec) <- colnames(all_data)
-imputed_vec[names(cell_imputed_count)] <- log(cell_imputed_count)
+imputed_vec[names(cell_imputed_count)] <- log10(cell_imputed_count)
 all_data$imputed_count <- imputed_vec
 
 # grDevices::colorRampPalette("lightgray", "blue")
@@ -91,7 +87,7 @@ p1 <- scCustomize::FeaturePlot_scCustom(all_data,
                                         na_color = "bisque",
                                         reduction = "umap", 
                                         features = "imputed_count")
-p1 <- p1 + ggplot2::ggtitle("COCL2 Day10 imputed counts\n(Stepup from RNA fasttopics, ATAC LSI), (Log-scale)")
+p1 <- p1 + ggplot2::ggtitle("COCL2 Day10 imputed counts\n(Stepdown from RNA fasttopics, ATAC LSI), (Log-scale)")
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6j/Writeup6j_COCL2-day10_imputation_stepdown_umap.png"),
                 p1, device = "png", width = 7, height = 5, units = "in")
 
@@ -133,5 +129,17 @@ p1 <- p1 + Seurat::NoLegend()
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6j/Writeup6j_COCL2-day10_imputation_stepdown_lineage-level_counts_labeled.png"),
                 p1, device = "png", width = 10, height = 10, units = "in")
 
+####################
+
+fit <- coefficient_list_list[[idx]]$fit
+# save(all_data, all_data2, fit, lineage_imputed_count,
+#      date_of_run, session_info, 
+#      file = "../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day10_lineage-imputation_stepdown_postprocessed.RData")
+
+cell_imputed_count <- imputed_vec
+
+save(fit, lineage_imputed_count, cell_imputed_count,
+     date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day10_lineage-imputation_stepdown_concise-postprocessed.RData")
 
 

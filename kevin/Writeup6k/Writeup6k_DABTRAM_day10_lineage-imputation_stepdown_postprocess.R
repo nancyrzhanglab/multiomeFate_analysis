@@ -155,6 +155,12 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_D
 
 ####################
 
-save(all_data, all_data2, fit, lineage_future_count,
-     date_of_run, session_info, 
-     file = "../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day10_lineage-imputation_stepdown_postprocessed.RData")
+# save(all_data, all_data2, fit, lineage_imputed_count,
+#      date_of_run, session_info, 
+#      file = "../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day10_lineage-imputation_stepdown_postprocessed.RData")
+
+cell_imputed_count <- cor_list[[which.max(cor_vec)]]$imputed_vec
+
+save(fit, lineage_imputed_count, cell_imputed_count,
+     date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day10_lineage-imputation_stepdown_concise-postprocessed.RData")

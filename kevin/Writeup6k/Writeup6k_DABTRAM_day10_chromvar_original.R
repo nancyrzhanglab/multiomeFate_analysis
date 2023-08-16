@@ -15,15 +15,7 @@ tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 
 # let's define winners and losers
 # score each lineage by its mean day10 score
-lineage_score <- sapply(1:nrow(tab_mat), function(i){
-  if(i %% floor(nrow(tab_mat)/10) == 0) cat('*')
-  lineage_name <- rownames(tab_mat)[i]
-  cell_names <- colnames(all_data)[intersect(
-    which(all_data$assigned_lineage == lineage_name),
-    which(all_data$dataset == "day10_DABTRAM")
-  )]
-  length(cell_names)
-})
+lineage_score <- tab_mat[,"day10_DABTRAM"]
 names(lineage_score) <- rownames(tab_mat)
 quantile(lineage_score, na.rm = T, probs = seq(0,1,length.out=11))
 length(which(lineage_score > 0))
@@ -118,9 +110,13 @@ p1 <- p1 + ggrepel::geom_text_repel(data = subset(df, labeling %in% c("2", "3"))
                                     box.padding = ggplot2::unit(0.5, 'lines'),
                                     point.padding = ggplot2::unit(1.6, 'lines'),
                                     max.overlaps = 50)
+if(any(pvalue_vec <= 0.05)) {
+  p1 <- p1 + ggplot2::geom_hline(yintercept=min(logpval_vec[which(pvalue_vec <= 0.05)]), linetype="dashed", 
+                                 color = "red", linewidth=2)
+}
 p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM Day0 Motif, based on Day10 lineage growth potential\n(Winner-Loser)")) +
   ggplot2::xlab("Mean difference in chromVar score: (Winner-Loser)") + ggplot2::ylab("DE p-value (-Log10)")
 p1 <- p1 + Seurat::NoLegend()
 
-ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_DABTRAM_day0-win-vs-lose_day10-lineage-imputation_stepup_DE_volcano.png"),
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_chromVar_DABTRAM_day0-win-vs-lose_day10_original_DE_volcano.png"),
                 p1, device = "png", width = 10, height = 10, units = "in")

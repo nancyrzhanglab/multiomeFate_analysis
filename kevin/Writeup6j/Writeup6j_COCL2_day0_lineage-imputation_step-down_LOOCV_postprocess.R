@@ -97,7 +97,7 @@ stats::cor(log1p(lineage_imputed_count), log1p(lineage_future_count))
 
 imputed_vec <- rep(NA, ncol(all_data))
 names(imputed_vec) <- colnames(all_data)
-imputed_vec[names(cell_imputed_count)] <- log(cell_imputed_count)
+imputed_vec[names(cell_imputed_count)] <- log10(cell_imputed_count)
 all_data$imputed_count <- imputed_vec
 
 # grDevices::colorRampPalette("lightgray", "blue")
@@ -148,5 +148,16 @@ p1 <- p1 + Seurat::NoLegend()
 
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6j/Writeup6j_COCL2-day0_imputation_stepdown-LOOCV_lineage-level_counts_labeled.png"),
                 p1, device = "png", width = 10, height = 10, units = "in")
+
+#########################
+
+idx <- which.min(test_vec)
+fit <- coefficient_list_list[[idx]]$fit
+cell_imputed_count <- imputed_vec
+
+save(fit, lineage_imputed_count, cell_imputed_count,
+     date_of_run, session_info,
+     file = "../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day0_lineage-imputation_stepdown-LOOCV_concise-postprocessed.RData")
+
 
 

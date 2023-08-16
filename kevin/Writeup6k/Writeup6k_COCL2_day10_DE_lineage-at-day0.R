@@ -1,3 +1,5 @@
+# THIS VERSION IS OUTDATED. PLEASE USE Writeup6k_COCL2_day10_DE_stepdown_at-day0.R
+
 rm(list=ls())
 library(Seurat)
 library(Signac)

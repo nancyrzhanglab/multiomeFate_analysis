@@ -1,3 +1,4 @@
+# OUTDATED: Do not use, use Writeup6k_COCL2_day0_DE_stepdown-LOOCV.R instead
 rm(list=ls())
 library(Seurat)
 library(Signac)
