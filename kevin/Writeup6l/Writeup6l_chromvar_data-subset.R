@@ -14,12 +14,11 @@ print("Extracting motifs")
 data.use <- Signac::GetMotifData(object = all_data,
                                  assay = "ATAC",
                                  slot = "pwm")
-data.use <- data.use[motifs]
 names(data.use) <- Signac::GetMotifData(
   object = all_data,
   assay = "ATAC",
   slot = "motif.names"
-)[motifs]
+)
 
 print("Simplifying dataset")
 Seurat::DefaultAssay(all_data) <- "Saver"
