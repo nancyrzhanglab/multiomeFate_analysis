@@ -22,5 +22,11 @@ all_data[["common_tcca"]] <- NULL
 all_data[["distinct1_tcca"]] <- NULL
 all_data[["distinct2_tcca"]] <- NULL
 
+keep_vec <- rep(FALSE, ncol(all_data))
+keep_vec[intersect(which(!is.na(all_data$assigned_lineage)),
+                   which(all_data$assigned_posterior >= 0.5))] <- TRUE
+all_data$keep <- keep_vec
+all_data <- subset(all_data, keep == TRUE)
+
 save(date_of_run, session_info, all_data,
      file = "../../../../out/kevin/Writeup6l/Writeup6l_chromVar_rna-chromvar_lightweight.RData")
