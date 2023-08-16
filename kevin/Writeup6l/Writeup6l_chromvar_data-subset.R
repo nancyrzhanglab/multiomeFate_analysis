@@ -23,4 +23,4 @@ all_data[["distinct1_tcca"]] <- NULL
 all_data[["distinct2_tcca"]] <- NULL
 
 save(date_of_run, session_info, all_data,
-     file = "../../out/Writeup6l/Writeup6l_chromVar_rna-chromvar_lightweight.RData")
+     file = "../../../../out/kevin/Writeup6l/Writeup6l_chromVar_rna-chromvar_lightweight.RData")
