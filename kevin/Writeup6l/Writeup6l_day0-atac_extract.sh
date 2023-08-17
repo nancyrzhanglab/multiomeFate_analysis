@@ -1,7 +1,7 @@
 #!/bin/bash
-#$ -N chromvar_subset
+#$ -N day0-atac-subset
 #$ -j y
 #$ -o ../../../../out/kevin/Writeup6l/qsub/
 #$ -l m_mem_free=50G
 
-Rscript --no-save Writeup6l_chromvar_data-subset.R
+Rscript --no-save Writeup6l_day0-atac_extract.R
