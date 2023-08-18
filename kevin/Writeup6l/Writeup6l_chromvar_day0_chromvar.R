@@ -29,6 +29,7 @@ keep.peaks <- which(as.character(GenomeInfoDb::seqnames(GenomicRanges::granges(a
 all_data[["ATAC"]] <- subset(all_data[["ATAC"]], features = rownames(all_data[["ATAC"]])[keep.peaks])
 
 ## see https://github.com/stuart-lab/signac/blob/master/R/motifs.R
+## see https://github.com/stuart-lab/signac/issues/429
 print("Apply Signac::CreateMotifMatrix")
 motif.matrix <- Signac::CreateMotifMatrix(
   features = GenomicRanges::granges(all_data[["ATAC"]]),
@@ -86,13 +87,3 @@ all_data <- Signac::RunChromVAR(
 save(date_of_run, session_info, 
      all_data, motif.matrix, motif.positions, motif,
      file = "../../../../out/kevin/Writeup6l/Writeup6l_chromvar_day0.RData")
-
-###################################
-
-Seurat::DefaultAssay(all_data) <- "Saver"
-all_data[["ATAC"]] <- NULL
-
-save(date_of_run, session_info, 
-     all_data, 
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_day0_chromvar_lightweight_noATAC.RData")
-
