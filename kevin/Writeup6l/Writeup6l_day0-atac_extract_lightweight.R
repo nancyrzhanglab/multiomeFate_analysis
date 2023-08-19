@@ -10,7 +10,7 @@ set.seed(10)
 
 load("../../../../out/kevin/Writeup6l/Writeup6l_day0-atac_extract.RData")
 
-keep_vec <- rep(FALSE, ncol(data))
+keep_vec <- rep(FALSE, ncol(all_data))
 keep_vec[sample(1:length(keep_vec), 100)] <- TRUE
 all_data$keep <- keep_vec
 all_data <- subset(all_data, keep == TRUE)
