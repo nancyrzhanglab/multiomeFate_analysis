@@ -13,6 +13,8 @@ date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 set.seed(10)
 Seurat::DefaultAssay(all_data) <- "ATAC"
+all_data[["chromvar"]] <- NULL
+all_data[["ATAC"]]@motifs <- NULL
 
 ## see https://stuartlab.org/signac/articles/motif_vignette.html
 ## https://stuartlab.org/signac/articles/data_structures.html#the-motif-class
@@ -22,11 +24,20 @@ pfm <- TFBSTools::getMatrixSet(
   opts = list(species = 9606) # 9606 is the species code for human
 )
 
-# https://github.com/stuart-lab/signac/issues/486
-print("Apply subset")
-main.chroms <- GenomeInfoDb::standardChromosomes(BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38)
-keep.peaks <- which(as.character(GenomeInfoDb::seqnames(GenomicRanges::granges(all_data[["ATAC"]]))) %in% main.chroms)
-all_data[["ATAC"]] <- subset(all_data[["ATAC"]], features = rownames(all_data[["ATAC"]])[keep.peaks])
+# # https://github.com/stuart-lab/signac/issues/486
+# print("Apply subset")
+# main.chroms <- GenomeInfoDb::standardChromosomes(BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38)
+# keep.peaks <- which(as.character(GenomeInfoDb::seqnames(GenomicRanges::granges(all_data[["ATAC"]]))) %in% main.chroms)
+# all_data[["ATAC"]] <- subset(all_data[["ATAC"]], features = rownames(all_data[["ATAC"]])[keep.peaks])
+
+# fix the paths
+all_data[["ATAC"]]@fragments[[1]]@path <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/2022_05_19_arc_time0/outs/atac_fragments.tsv.gz"
+all_data[["ATAC"]]@fragments[[2]]@path <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/2022_05_19_arc_time10_CIS/outs/atac_fragments.tsv.gz"
+all_data[["ATAC"]]@fragments[[3]]@path <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/2022_05_19_arc_time10_COCL2/outs/atac_fragments.tsv.gz"
+all_data[["ATAC"]]@fragments[[4]]@path <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/2022_05_19_arc_time10_DABTRAM/outs/atac_fragments.tsv.gz"
+all_data[["ATAC"]]@fragments[[5]]@path <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/2022_05_19_arc_week5_CIS/outs/atac_fragments.tsv.gz"
+all_data[["ATAC"]]@fragments[[6]]@path <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/2022_05_19_arc_week5_COCL2/outs/atac_fragments.tsv.gz"
+all_data[["ATAC"]]@fragments[[7]]@path <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/2022_05_19_arc_week5_DABTRAM/outs/atac_fragments.tsv.gz"
 
 ## see https://github.com/stuart-lab/signac/blob/master/R/motifs.R
 ## see https://github.com/stuart-lab/signac/issues/429
