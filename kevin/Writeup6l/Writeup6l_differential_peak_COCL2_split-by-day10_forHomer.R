@@ -58,7 +58,7 @@ de_res <- Seurat::FindMarkers(
   ident.1 = paste0("day0_win_", treatment),
   ident.2 = paste0("day0_lose_", treatment),
   test.use = 'LR',
-  latent.vars = 'nCount_peaks',
+  latent.vars = 'nCount_ATAC',
   verbose = T
 )
 
