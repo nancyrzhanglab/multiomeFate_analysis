@@ -16,9 +16,9 @@ treatment <- "COCL2"
 Seurat::DefaultAssay(all_data) <- "ATAC"
 
 tab_vec <- table(all_data$assigned_lineage)
-lineage_names_win <- names(tab_vec)[which(tab_vec[paste0("day0_", treatment)] >= 4)]
+lineage_names_win <- names(tab_vec)[which(tab_vec >= 4)]
 cell_names_win <- colnames(all_data)[which(all_data$assigned_lineage %in% lineage_names_win)]
-lineage_names_lose <- names(tab_vec)[which(tab_vec[paste0("day0_", treatment)] == 1)]
+lineage_names_lose <- names(tab_vec)[which(tab_vec == 1)]
 cell_names_lose <- colnames(all_data)[which(all_data$assigned_lineage %in% lineage_names_lose)]
 ident_vec <- rep(NA, ncol(all_data))
 names(ident_vec) <- colnames(all_data)
