@@ -15,10 +15,10 @@ load("../../../../out/kevin/Writeup6l/Writeup6l_day0-atac_extract.RData")
 treatment <- "COCL2"
 Seurat::DefaultAssay(all_data) <- "ATAC"
 
-tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
-lineage_names_win <- rownames(tab_mat)[which(tab_mat[,paste0("day0_", treatment)] >= 4)]
+tab_vec <- table(all_data$assigned_lineage)
+lineage_names_win <- rownames(tab_vec)[which(tab_vec[paste0("day0_", treatment)] >= 4)]
 cell_names_win <- colnames(all_data)[which(all_data$assigned_lineage %in% lineage_names_win)]
-lineage_names_lose <- rownames(tab_mat)[which(tab_mat[,paste0("day0_", treatment)] == 1)]
+lineage_names_lose <- rownames(tab_vec)[which(tab_vec[paste0("day0_", treatment)] == 1)]
 cell_names_lose <- colnames(all_data)[which(all_data$assigned_lineage %in% lineage_names_lose)]
 ident_vec <- rep(NA, ncol(all_data))
 names(ident_vec) <- colnames(all_data)
