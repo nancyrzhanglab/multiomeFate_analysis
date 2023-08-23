@@ -69,14 +69,14 @@ save(date_of_run, session_info, de_res,
 
 idx <- intersect(which(de_res[,"p_val"] <= 1e-2), 
                  which(de_res[,"avg_log2FC"] > 0))
-print(paste0("Number of positive enriched peaks: ", idx))
+print(paste0("Number of positive enriched peaks: ", length(idx)))
 peak_names <- sort(rownames(de_res)[idx])
 peak_idx <- which(rownames(all_data[["ATAC"]]) %in% peak_names)
 pos_ranges <- all_data[["ATAC"]]@ranges[peak_idx]
 
 idx <- intersect(which(de_res[,"p_val"] <= 1e-2), 
                  which(de_res[,"avg_log2FC"] < 0))
-print(paste0("Number of negatively enriched peaks: ", idx))
+print(paste0("Number of negatively enriched peaks: ", length(idx)))
 peak_names <- sort(rownames(de_res)[idx])
 peak_idx <- which(rownames(all_data[["ATAC"]]) %in% peak_names)
 neg_ranges <- all_data[["ATAC"]]@ranges[peak_idx]
