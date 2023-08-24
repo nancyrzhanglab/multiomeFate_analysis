@@ -12,7 +12,6 @@ load("../../../../out/kevin/Writeup6l/Writeup6l_day0-atac_extract.RData")
 
 ################
 
-treatment <- "COCL2"
 Seurat::DefaultAssay(all_data) <- "ATAC"
 
 tab_vec <- table(all_data$assigned_lineage)
@@ -22,8 +21,8 @@ lineage_names_lose <- names(tab_vec)[which(tab_vec == 1)]
 cell_names_lose <- colnames(all_data)[which(all_data$assigned_lineage %in% lineage_names_lose)]
 ident_vec <- rep(NA, ncol(all_data))
 names(ident_vec) <- colnames(all_data)
-ident_vec[cell_names_win] <- paste0("day0_win_", treatment)
-ident_vec[cell_names_lose] <- paste0("day0_lose_", treatment)
+ident_vec[cell_names_win] <- paste0("day0_win")
+ident_vec[cell_names_lose] <- paste0("day0_lose")
 all_data$ident <- ident_vec
 Seurat::Idents(all_data) <- "ident"
 table(Seurat::Idents(all_data))
@@ -32,15 +31,15 @@ table(Seurat::Idents(all_data))
 set.seed(10)
 de_res <- Seurat::FindMarkers(
   object = all_data,
-  ident.1 = paste0("day0_win_", treatment),
-  ident.2 = paste0("day0_lose_", treatment),
+  ident.1 = paste0("day0_win"),
+  ident.2 = paste0("day0_lose"),
   test.use = 'LR',
   latent.vars = 'nCount_ATAC',
   verbose = T
 )
 
 save(date_of_run, session_info, de_res,
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_COCL2-split-by-day0_differential-peak.RData")
+     file = "../../../../out/kevin/Writeup6l/Writeup6l_split-by-day0_differential-peak.RData")
 
 #################
 
@@ -75,7 +74,7 @@ neg_ranges <- all_data[["ATAC"]]@ranges[peak_idx]
   }
 }
 
-cell_idx <- which(all_data$ident %in% c(paste0("day0_win_", treatment), paste0("day0_lose_", treatment)))
+cell_idx <- which(all_data$ident %in% c(paste0("day0_win"), paste0("day0_lose")))
 tmp_mat <- all_data[["ATAC"]]@counts[,cell_idx]
 tmp_mat <- Matrix::t(tmp_mat)
 num_cells_per_peak <- sapply(1:ncol(tmp_mat), function(j){
@@ -109,11 +108,11 @@ write_peakfile <- function(range_obj, file){
 }
 
 write_peakfile(pos_ranges, 
-               file = "../../../../out/kevin/Writeup6l/Writeup6l_COCL2-split-by-day0_differential_pospeaks.txt")
+               file = "../../../../out/kevin/Writeup6l/Writeup6l_split-by-day0_differential_pospeaks.txt")
 
 write_peakfile(neg_ranges, 
-               file = "../../../../out/kevin/Writeup6l/Writeup6l_COCL2-split-by-day0_differential_negpeaks.txt")
+               file = "../../../../out/kevin/Writeup6l/Writeup6l_split-by-day0_differential_negpeaks.txt")
 
 write_peakfile(bg_ranges, 
-               file = "../../../../out/kevin/Writeup6l/Writeup6l_COCL2-split-by-day0_differential_bgpeaks.txt")
+               file = "../../../../out/kevin/Writeup6l/Writeup6l_split-by-day0_differential_bgpeaks.txt")
 
