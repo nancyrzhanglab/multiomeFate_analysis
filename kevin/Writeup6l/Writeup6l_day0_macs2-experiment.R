@@ -27,3 +27,6 @@ set.seed(10)
 peaks <- Signac::CallPeaks(
   object = all_data[["ATAC"]]
 )
+
+###########################
+

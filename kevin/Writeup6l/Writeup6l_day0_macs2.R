@@ -33,3 +33,10 @@ time_end <- Sys.time()
 save(peaks, 
      date_of_run, session_info, time_start, time_end,
      file = "../../../../out/kevin/Writeup6l/Writeup6l_day0-macs2.RData")
+
+########
+
+length(peaks)
+head(peaks)
+levels(peaks@seqnames)
+table(peaks@seqnames)
