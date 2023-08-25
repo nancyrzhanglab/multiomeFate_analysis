@@ -13,6 +13,10 @@ library(GenomeInfoDb)
 
 load("../../../../out/kevin/Writeup6l/Writeup6l_day0-macs2_part4.RData")
 
+date_of_run <- Sys.time()
+session_info <- devtools::session_info()
+set.seed(10)
+
 # https://github.com/stuart-lab/signac/issues/486
 main.chroms <- GenomeInfoDb::standardChromosomes(BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38)
 keep.peaks <- which(as.character(GenomeInfoDb::seqnames(GenomicRanges::granges(all_data[["ATAC"]]))) %in% main.chroms)
