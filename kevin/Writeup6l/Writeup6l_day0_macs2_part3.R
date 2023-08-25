@@ -52,8 +52,9 @@ fragments <- Signac::CreateFragmentObject("~/project/Multiome_fate/BarcodeOutput
 print("Setting up annotations")
 annotation <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86::EnsDb.Hsapiens.v86)
 GenomeInfoDb::seqlevels(annotation) <- paste0('chr', seqlevels(annotation))
-GenomeInfoDb::genome(annotations) <- "hg38"
-class(annotations)
+class(annotation)
+GenomeInfoDb::genome(annotation) <- "hg38"
+class(annotation)
 
 print("Setting up ATAC")
 all_data[["ATAC"]] <- Signac::CreateChromatinAssay(
