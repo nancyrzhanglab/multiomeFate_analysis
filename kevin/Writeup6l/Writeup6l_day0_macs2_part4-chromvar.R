@@ -11,7 +11,7 @@ library(motifmatchr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(GenomeInfoDb)
 
-load("../../../../out/kevin/Writeup6l/Writeup6l_day0-macs2_part4.RData")
+load("../../../../out/kevin/Writeup6l/Writeup6l_day0-macs2_part3.RData")
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
