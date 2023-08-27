@@ -19,4 +19,4 @@ all_data[["ATAC"]] <- NULL
 
 save(date_of_run, session_info, 
      all_data, rann_result,
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_atac_NN.RData")
+     file = "../../../../out/kevin/Writeup6l/Writeup6l_day0_atac_NN.RData")
