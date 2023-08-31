@@ -68,14 +68,14 @@ pfm <- getMatrixSet(
 # add motif information
 all_data <- Signac::AddMotifs(
   object = all_data,
-  genome = "hg38", 
+  genome = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
   pfm = pfm
 )
 
 print("Computing peak statistics")
 all_data <- Signac::RegionStats(
   object = all_data, 
-  genome = "hg38", 
+  genome = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
   assay = "ATAC")
 head(all_data[["ATAC"]]@meta.features)
 
