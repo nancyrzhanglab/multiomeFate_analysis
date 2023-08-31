@@ -132,6 +132,14 @@ meta_feature <- Seurat::GetAssayData(
   assay = "ATAC", 
   slot = "meta.features")
 
+# remove non-standard chromatin annotations
+na_idx <- which(apply(meta_feature, 1, function(x){any(is.na(x))}))
+if(length(na_idx) > 0){
+  meta_feature <- meta_feature[-na_idx,,drop = F]
+}
+open_peaks <- open_peaks[open_peaks %in% rownames(meta_feature)]
+pos_names <- pos_names[pos_names %in% rownames(meta_feature)]
+neg_names <- neg_names[neg_names %in% rownames(meta_feature)]
 
 save(date_of_run, session_info,
      pos_names, neg_names, de_res, 
