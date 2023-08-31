@@ -112,8 +112,9 @@ idx <- intersect(which(de_res[,"p_val_adj"] <= 0.05),
 print(paste0("Number of negatively enriched peaks: ", length(idx)))
 neg_names <- sort(rownames(de_res)[idx])
 
+
 save(date_of_run, session_info,
-     pos_names, neg_names, de_res,
+     pos_names, neg_names, de_res, 
      file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_COCL2_split-by-day10_part2.RData")
 
 ###############################
@@ -126,12 +127,19 @@ open_peaks <- Signac::AccessiblePeaks(
   idents = c("day0_win", "day0_lose")
 )
 
-print("Finding pos matching peaks")
-# match the overall GC content in the peak set
 meta_feature <- Seurat::GetAssayData(
   all_data, 
   assay = "ATAC", 
   slot = "meta.features")
+
+
+save(date_of_run, session_info,
+     pos_names, neg_names, de_res, 
+     open_peaks, meta_feature,
+     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_COCL2_split-by-day10_part2.RData")
+
+print("Finding pos matching peaks")
+# match the overall GC content in the peak set
 peaks_matched <- Signac::MatchRegionStats(
   meta.feature = meta_feature[open_peaks, ],
   query.feature = meta_feature[pos_names, ],
@@ -168,5 +176,6 @@ print("Saving")
 save(date_of_run, session_info,
      pos_names, neg_names, de_res,
      pos_motif_de, neg_motif_de,
+     open_peaks, meta_feature,
      file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_COCL2_split-by-day10_part2.RData")
 
