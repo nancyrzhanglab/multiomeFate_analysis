@@ -41,7 +41,7 @@ all_data <- subset(all_data, keep == TRUE)
 ################
 
 print("Creating partitions")
-treatment <- "COCL2"
+treatment <- "CIS"
 Seurat::DefaultAssay(all_data) <- "ATAC"
 
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
@@ -97,7 +97,7 @@ de_res <- Seurat::FindMarkers(
 
 save(date_of_run, session_info,
      de_res,
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_COCL2_split-by-day10_part2.RData")
+     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_CIS_split-by-day10_part2.RData")
 
 #################
 
@@ -115,7 +115,7 @@ neg_names <- sort(rownames(de_res)[idx])
 
 save(date_of_run, session_info,
      pos_names, neg_names, de_res, 
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_COCL2_split-by-day10_part2.RData")
+     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_CIS_split-by-day10_part2.RData")
 
 ###############################
 
@@ -144,7 +144,7 @@ neg_names <- neg_names[neg_names %in% rownames(meta_feature)]
 save(date_of_run, session_info,
      pos_names, neg_names, de_res, 
      open_peaks, meta_feature,
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_COCL2_split-by-day10_part2.RData")
+     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_CIS_split-by-day10_part2.RData")
 
 print("Finding pos matching peaks")
 # match the overall GC content in the peak set
@@ -185,7 +185,7 @@ save(date_of_run, session_info,
      pos_names, neg_names, de_res,
      pos_motif_de, neg_motif_de,
      open_peaks, meta_feature,
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_COCL2_split-by-day10_part2.RData")
+     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_CIS_split-by-day10_part2.RData")
 
 ##################
 
