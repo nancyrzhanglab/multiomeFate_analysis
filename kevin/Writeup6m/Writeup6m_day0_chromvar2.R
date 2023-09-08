@@ -12,13 +12,6 @@ set.seed(10)
 
 # construct the meta.features for the peaks, which be used for matching
 Seurat::DefaultAssay(all_data) <- "ATAC"
-all_data <- Signac::RegionStats(
-  object = all_data, 
-  genome = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
-  assay = "ATAC"
-)
-head(all_data[["ATAC"]]@meta.features)
-
 mf <- all_data[["ATAC"]]@meta.features[,c("GC.percent", "sequence.length")]
 fragment.count <- Matrix::rowSums(all_data[["ATAC"]]@counts)
 mf <- cbind(mf, fragment.count)
