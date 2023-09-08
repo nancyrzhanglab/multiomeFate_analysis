@@ -106,17 +106,19 @@ save(date_of_run, session_info,
 
 #################
 
+
 print("Partitioning pos/neg peaks")
-idx <- intersect(which(de_res[,"p_val_adj"] <= 0.05), 
+idx <- intersect(which(de_res[,"p_val"] <= 1e-2), 
                  which(de_res[,"avg_log2FC"] > 0))
 print(paste0("Number of positive enriched peaks: ", length(idx)))
 pos_names <- sort(rownames(de_res)[idx])
+length(pos_names)
 
-idx <- intersect(which(de_res[,"p_val_adj"] <= 0.05), 
+idx <- intersect(which(de_res[,"p_val"] <= 1e-2), 
                  which(de_res[,"avg_log2FC"] < 0))
 print(paste0("Number of negatively enriched peaks: ", length(idx)))
 neg_names <- sort(rownames(de_res)[idx])
-
+length(neg_names)
 
 save(date_of_run, session_info,
      pos_names, neg_names, de_res, 
