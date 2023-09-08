@@ -60,8 +60,8 @@ table(Seurat::Idents(all_data))
 set.seed(10)
 de_res <- Seurat::FindMarkers(
   object = all_data,
-  ident.1 = paste0("day0_win_", treatment),
-  ident.2 = paste0("day0_lose_", treatment),
+  ident.1 = "day0_win",
+  ident.2 = "day0_lose",
   test.use = 'LR',
   latent.vars = 'nCount_ATAC',
   verbose = T
