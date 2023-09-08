@@ -106,7 +106,6 @@ save(date_of_run, session_info,
 
 #################
 
-
 print("Partitioning pos/neg peaks")
 idx <- intersect(which(de_res[,"p_val"] <= 1e-2), 
                  which(de_res[,"avg_log2FC"] > 0))
