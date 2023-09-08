@@ -37,27 +37,27 @@ keep_vec[intersect(which(!is.na(all_data$assigned_lineage)),
                    which(all_data$assigned_posterior >= 0.5))] <- TRUE
 all_data$keep <- keep_vec
 all_data <- subset(all_data, keep == TRUE)
-
-tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 keep_vec <- rep(FALSE, ncol(all_data))
-keep_vec[which(all_data$dataset == "day0")] <- TRUE
-all_data$keep <- keep_vec
-all_data <- subset(all_data, keep == TRUE)
 
 ################
 
 print("Creating partitions")
-treatment <- "CIS"
+treatment <- "COCL2"
 Seurat::DefaultAssay(all_data) <- "ATAC"
 
-lineage_names_win <- rownames(tab_mat)[which(tab_mat[,paste0("day10_", treatment)] >= 10)]
+keep_vec[which(all_data$dataset == paste0("week5_", treatment))] <- TRUE
+all_data$keep <- keep_vec
+all_data <- subset(all_data, keep == TRUE)
+tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
+
+lineage_names_win <- rownames(tab_mat)[which(tab_mat[,paste0("week5_", treatment)] >= 500)]
 cell_names_win <- colnames(all_data)[which(all_data$assigned_lineage %in% lineage_names_win)]
-lineage_names_lose <- rownames(tab_mat)[which(tab_mat[,paste0("day10_", treatment)] == 0)]
+lineage_names_lose <- rownames(tab_mat)[which(tab_mat[,paste0("week5_", treatment)] <= 20)]
 cell_names_lose <- colnames(all_data)[which(all_data$assigned_lineage %in% lineage_names_lose)]
 ident_vec <- rep(NA, ncol(all_data))
 names(ident_vec) <- colnames(all_data)
-ident_vec[cell_names_win] <- "day0_win"
-ident_vec[cell_names_lose] <- "day0_lose"
+ident_vec[cell_names_win] <- "win"
+ident_vec[cell_names_lose] <- "lose"
 all_data$ident <- ident_vec
 Seurat::Idents(all_data) <- "ident"
 table(Seurat::Idents(all_data))
@@ -91,8 +91,8 @@ print("Finding differentially-accessible peaks")
 set.seed(10)
 de_res <- Seurat::FindMarkers(
   object = all_data,
-  ident.1 = "day0_win",
-  ident.2 = "day0_lose",
+  ident.1 = "win",
+  ident.2 = "lose",
   test.use = 'LR',
   only.pos = FALSE,
   latent.vars = 'nCount_ATAC',
@@ -102,18 +102,18 @@ de_res <- Seurat::FindMarkers(
 
 save(date_of_run, session_info,
      de_res,
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_CIS_split-by-day10_part2.RData")
+     file = "../../../../out/kevin/Writeup6m/Writeup6m_differential_peak_COCL2_week5-analysis.RData")
 
 #################
 
 print("Partitioning pos/neg peaks")
-idx <- intersect(which(de_res[,"p_val"] <= 1e-2), 
+idx <- intersect(which(de_res[,"p_val_adj"] <= 0.05), 
                  which(de_res[,"avg_log2FC"] > 0))
 print(paste0("Number of positive enriched peaks: ", length(idx)))
 pos_names <- sort(rownames(de_res)[idx])
 length(pos_names)
 
-idx <- intersect(which(de_res[,"p_val"] <= 1e-2), 
+idx <- intersect(which(de_res[,"p_val_adj"] <= 0.05), 
                  which(de_res[,"avg_log2FC"] < 0))
 print(paste0("Number of negatively enriched peaks: ", length(idx)))
 neg_names <- sort(rownames(de_res)[idx])
@@ -121,7 +121,7 @@ length(neg_names)
 
 save(date_of_run, session_info,
      pos_names, neg_names, de_res, 
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_CIS_split-by-day10_part2.RData")
+     file = "../../../../out/kevin/Writeup6m/Writeup6m_differential_peak_COCL2_week5-analysis.RData")
 
 ###############################
 
@@ -130,7 +130,7 @@ save(date_of_run, session_info,
 print("Grabbing open peaks")
 open_peaks <- Signac::AccessiblePeaks(
   all_data, 
-  idents = c("day0_win", "day0_lose")
+  idents = c("win", "lose")
 )
 
 meta_feature <- Seurat::GetAssayData(
@@ -150,7 +150,7 @@ neg_names <- neg_names[neg_names %in% rownames(meta_feature)]
 save(date_of_run, session_info,
      pos_names, neg_names, de_res, 
      open_peaks, meta_feature,
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_CIS_split-by-day10_part2.RData")
+     file = "../../../../out/kevin/Writeup6m/Writeup6m_differential_peak_COCL2_week5-analysis.RData")
 
 print("Finding pos matching peaks")
 # match the overall GC content in the peak set
@@ -191,15 +191,12 @@ save(date_of_run, session_info,
      pos_names, neg_names, de_res,
      pos_motif_de, neg_motif_de,
      open_peaks, meta_feature,
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_differential_peak_CIS_split-by-day10_part2.RData")
+     file = "../../../../out/kevin/Writeup6m/Writeup6m_differential_peak_COCL2_week5-analysis.RData")
 
 ##################
 
 pos_motif_de[intersect(which(pos_motif_de$p.adjust <= 0.05), 1:100),]
 neg_motif_de[intersect(which(neg_motif_de$p.adjust <= 0.05), 1:100),]
-
-pos_motif_de[grep("TEAD", pos_motif_de$motif.name),]
-neg_motif_de[grep("TEAD", neg_motif_de$motif.name),]
 
 pos_motif <- sort(pos_motif_de[which(pos_motif_de$p.adjust <= 0.05),"motif.name"])
 neg_motif <- sort(neg_motif_de[which(neg_motif_de$p.adjust <= 0.05),"motif.name"])

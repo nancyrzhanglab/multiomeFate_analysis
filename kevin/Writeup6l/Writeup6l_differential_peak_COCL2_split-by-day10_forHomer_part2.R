@@ -198,6 +198,9 @@ save(date_of_run, session_info,
 pos_motif_de[intersect(which(pos_motif_de$p.adjust <= 0.05), 1:100),]
 neg_motif_de[intersect(which(neg_motif_de$p.adjust <= 0.05), 1:100),]
 
+pos_motif_de[grep("TEAD", pos_motif_de$motif.name),]
+neg_motif_de[grep("TEAD", neg_motif_de$motif.name),]
+
 pos_motif <- sort(pos_motif_de[which(pos_motif_de$p.adjust <= 0.05),"motif.name"])
 neg_motif <- sort(neg_motif_de[which(neg_motif_de$p.adjust <= 0.05),"motif.name"])
 common_motif <- sort(intersect(pos_motif, neg_motif))
