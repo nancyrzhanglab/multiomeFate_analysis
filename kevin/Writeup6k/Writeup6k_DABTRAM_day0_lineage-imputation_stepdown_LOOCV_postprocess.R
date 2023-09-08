@@ -97,6 +97,7 @@ ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6k/Writeup6k_D
 
 ####################
 fit <- coefficient_list_list[[idx]]$fit
+
 save(all_data, fit, lineage_future_count,
      date_of_run, session_info, 
      file = "../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day0_lineage-imputation_stepdown-LOOCV_postprocessed.RData")
