@@ -3,6 +3,11 @@ library(Seurat)
 library(Signac)
 library(GenomicRanges)
 library(IRanges)
+library(JASPAR2020)
+library(TFBSTools)
+library(motifmatchr)
+library(BSgenome.Hsapiens.UCSC.hg38)
+library(GenomeInfoDb)
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
@@ -51,10 +56,6 @@ motif.matrix <- Signac::CreateMotifMatrix(
   use.counts = FALSE
 )
 
-save(date_of_run, session_info, 
-     all_data, motif.matrix,
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_day0-atac_extract.RData")
-
 ###################################
 
 print("Apply motifmatchr::matchMotifs")
@@ -64,10 +65,6 @@ motif.positions <- motifmatchr::matchMotifs(
   out = "positions",
   genome = "hg38"
 )
-
-save(date_of_run, session_info, 
-     all_data, motif.matrix, motif.positions,
-     file = "../../../../out/kevin/Writeup6l/Writeup6l_day0-atac_extract.RData")
 
 ###################################
 
