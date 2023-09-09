@@ -25,6 +25,7 @@ stopifnot(length(rownames(mf)) > 0)
 
 motif_matrix <- Signac::GetMotifData(object = all_data, slot = "data")
 motif_name_vec <- unlist(all_data[["ATAC"]]@motifs@motif.names)
+colnames(motif_matrix) <- motif_name_vec
 peak_matrix <- Seurat::GetAssayData(object = all_data, slot = "counts")
 niterations <- 100
 
@@ -83,6 +84,11 @@ for(motif_idx in 1:ncol(motif_matrix)){
     (observed[i] - sampled_mean[i])/sampled_sd[i]
   })
   
+  print("Finished, about to store")
+  print(head(names(z_score)))
+  print(motif_name)
+  print(head(rownames(chromvar_mat)))
+  print(head(colnames(chromvar_mat)))
   chromvar_mat[names(z_score),motif_name] <- z_score
   
   save(chromvar_mat, 
