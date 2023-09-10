@@ -98,7 +98,7 @@ for(motif_idx in 1:ncol(motif_matrix)){
   
   print("Finished, about to store")
   print(motif_name)
-  save(chromvar_mat, motif_focus,
+  save(chromvar_mat, motif_desired_vec,
        date_of_run, session_info,
        file = paste0("../../../../out/kevin/Writeup6m/Writeup6m_day0_chromvar2_others.RData"))
 }
