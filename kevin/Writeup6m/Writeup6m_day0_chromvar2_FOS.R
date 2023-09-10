@@ -89,6 +89,8 @@ for(motif_idx in 1:ncol(motif_matrix)){
     (observed[i] - sampled_mean[i])/sampled_sd[i]
   })
   
+  chromvar_mat[names(z_score),motif_name] <- z_score
+  
   print("Finished, about to store")
   print(motif_name)
   save(chromvar_mat, motif_focus,

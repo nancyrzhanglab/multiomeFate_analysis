@@ -1,0 +1,11 @@
+rm(list=ls())
+library(Seurat)
+library(Signac)
+library(GenomicRanges)
+library(IRanges)
+library(GGally)
+library(ggplot2)
+
+load("../../../../out/kevin/Writeup6l/Writeup6l_chromVar_rna-chromvar_lightweight.RData")
+tab_mat_full <- table(all_data$assigned_lineage, all_data$dataset)
+load("../../../../out/kevin/Writeup6m/Writeup6m_day0_chromvar2_TEAD.RData")
