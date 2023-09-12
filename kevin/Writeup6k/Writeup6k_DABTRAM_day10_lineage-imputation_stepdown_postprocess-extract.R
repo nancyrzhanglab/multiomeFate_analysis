@@ -2,7 +2,6 @@ rm(list=ls())
 library(Seurat)
 library(Signac)
 library(GenomicRanges)
-library(multiomeFate)
 library(IRanges)
 
 load("../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day10_lineage-imputation_stepdown_postprocessed.RData")
