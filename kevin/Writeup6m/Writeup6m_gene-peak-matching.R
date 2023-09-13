@@ -65,12 +65,17 @@ for(i in 1:len){
       overlap_idx <- overlap_idx[-which(ranges_obj@width <= 50)]
       region_gene_peaks <- region_gene_peaks[-which(ranges_obj@width <= 50)]
     }
-    if(length(overlap_idx) == 0) next()
-    
-    matching_list[[i]] <- list(gene_tss = tss_positions[i],
-                               overlap_idx = overlap_idx,
-                               peak_names = rownames(all_data[["ATAC"]]@counts)[overlap_idx],
-                               peak_regions = region_gene_peaks)
+    if(length(overlap_idx) == 0) {
+      matching_list[[i]] <- list(gene_tss = tss_positions[i],
+                                 overlap_idx = NULL,
+                                 peak_names = NULL,
+                                 peak_regions = NULL)
+    } else {
+      matching_list[[i]] <- list(gene_tss = tss_positions[i],
+                                 overlap_idx = overlap_idx,
+                                 peak_names = rownames(all_data[["ATAC"]]@counts)[overlap_idx],
+                                 peak_regions = region_gene_peaks)
+    }
   } 
   
   if(i %% 100 == 0) {
@@ -86,3 +91,20 @@ notes <- paste0("Unlike Writeup6h_gene-peak-matching.R, this version: 1) Uses ",
 
 save(matching_list, notes, date_of_run, session_info,
      file = "../../../../out/kevin/Writeup6m/peak-gene-matching.RData")
+
+print("Done! :)")
+
+########################
+
+zz <- sapply(matching_list, function(x){
+  if(length(x) == 0) return(0)
+  length(x$peak_regions)
+})
+quantile(zz)
+
+matching_list2 <- matching_list
+load("../../../../out/kevin/Writeup6h/peak-gene-matching.RData")
+
+matching_list2[[2]]
+matching_list[[2]]
+
