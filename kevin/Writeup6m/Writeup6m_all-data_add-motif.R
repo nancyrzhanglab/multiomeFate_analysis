@@ -30,10 +30,15 @@ pfm <- TFBSTools::getMatrixSet(
 )
 
 # # https://github.com/stuart-lab/signac/issues/486
-# print("Apply subset")
-# main.chroms <- GenomeInfoDb::standardChromosomes(BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38)
-# keep.peaks <- which(as.character(GenomeInfoDb::seqnames(GenomicRanges::granges(all_data[["ATAC"]]))) %in% main.chroms)
-# all_data[["ATAC"]] <- subset(all_data[["ATAC"]], features = rownames(all_data[["ATAC"]])[keep.peaks])
+# to resolve the error:
+# ````
+# Error in .getOneSeqFromBSgenomeMultipleSequences(x, name, start, NA, width,  :
+#                                                    sequence GL000194.1 not found
+# ````                                                 
+print("Apply subset")
+main.chroms <- GenomeInfoDb::standardChromosomes(BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38)
+keep.peaks <- which(as.character(GenomeInfoDb::seqnames(GenomicRanges::granges(all_data[["ATAC"]]))) %in% main.chroms)
+all_data[["ATAC"]] <- subset(all_data[["ATAC"]], features = rownames(all_data[["ATAC"]])[keep.peaks])
 
 # fix the paths
 all_data[["ATAC"]]@fragments[[1]]@path <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/2022_05_19_arc_time0/outs/atac_fragments.tsv.gz"
