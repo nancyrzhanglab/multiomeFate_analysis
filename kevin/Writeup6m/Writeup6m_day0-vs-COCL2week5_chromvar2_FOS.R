@@ -4,11 +4,7 @@ library(GenomicRanges); library(GenomeInfoDb); library(IRanges)
 library(JASPAR2020); library(TFBSTools); library(motifmatchr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 
-load("../../../../out/kevin/Writeup6l/Writeup6l_day0-atac_extract.RData")
-Seurat::DefaultAssay(all_data) <- "ATAC"
-mf <- all_data[["ATAC"]]@meta.features[,c("GC.percent", "sequence.length")]
-
-load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
+load("../../../../out/kevin/Writeup6m/Writeup6m_all-data.RData")
 
 treatment <- "COCL2"
 Seurat::DefaultAssay(all_data) <- "ATAC"
@@ -33,13 +29,6 @@ all_data[["common_tcca"]] <- NULL
 all_data[["distinct1_tcca"]] <- NULL
 all_data[["distinct2_tcca"]] <- NULL
 
-print("Removing cells without a barcode")
-keep_vec <- rep(FALSE, ncol(all_data))
-keep_vec[intersect(which(!is.na(all_data$assigned_lineage)),
-                   which(all_data$assigned_posterior >= 0.5))] <- TRUE
-all_data$keep <- keep_vec
-all_data <- subset(all_data, keep == TRUE)
-
 keep_vec <- rep(FALSE, ncol(all_data))
 keep_vec[which(all_data$dataset %in% c("day0", paste0("week5_", treatment)))] <- TRUE
 all_data$keep <- keep_vec
@@ -48,6 +37,8 @@ all_data <- subset(all_data, keep == TRUE)
 motif_focus <- "FOS"
 
 # construct the meta.features for the peaks, which be used for matching
+Seurat::DefaultAssay(all_data) <- "ATAC"
+mf <- all_data[["ATAC"]]@meta.features[,c("GC.percent", "sequence.length")]
 fragment.count <- Matrix::rowSums(all_data[["ATAC"]]@counts)
 mf <- cbind(mf, fragment.count)
 mf <- scale(mf)
