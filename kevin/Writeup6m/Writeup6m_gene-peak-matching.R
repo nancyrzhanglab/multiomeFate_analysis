@@ -12,9 +12,6 @@ date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 
 gene_vec_all <- sort(intersect(gene_vec_all, rownames(all_data[["RNA"]])))
-matching_list <- vector("list", length = len)
-names(matching_list) <- gene_vec_all
-
 assay <- "ATAC"
 extend.downstream <- 5000
 extend.upstream <- 5000
@@ -27,6 +24,8 @@ tss_positions <- tss_positions[order(tss_positions$gene_name)]
 
 gene_vec_all <- tss_positions$gene_name
 len <- length(gene_vec_all)
+matching_list <- vector("list", length = len)
+names(matching_list) <- gene_vec_all
 
 for(i in 1:len){
   gene <- gene_vec_all[i]
@@ -68,7 +67,7 @@ for(i in 1:len){
     }
     if(length(overlap_idx) == 0) next()
     
-    matching_list[[i]] <- list(gene_region = region,
+    matching_list[[i]] <- list(gene_tss = tss_positions[i],
                                overlap_idx = overlap_idx,
                                peak_names = rownames(all_data[["ATAC"]]@counts)[overlap_idx],
                                peak_regions = region_gene_peaks)
