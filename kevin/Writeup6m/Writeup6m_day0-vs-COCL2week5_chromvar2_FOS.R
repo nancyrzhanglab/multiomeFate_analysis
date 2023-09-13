@@ -4,6 +4,10 @@ library(GenomicRanges); library(GenomeInfoDb); library(IRanges)
 library(JASPAR2020); library(TFBSTools); library(motifmatchr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 
+load("../../../../out/kevin/Writeup6l/Writeup6l_day0-atac_extract.RData")
+Seurat::DefaultAssay(all_data) <- "ATAC"
+mf <- all_data[["ATAC"]]@meta.features[,c("GC.percent", "sequence.length")]
+
 load("../../../../out/kevin/Writeup6b/Writeup6b_all-data.RData")
 
 treatment <- "COCL2"
@@ -43,17 +47,7 @@ all_data <- subset(all_data, keep == TRUE)
 
 motif_focus <- "FOS"
 
-print("Apply Signac::RegionStats")
-Seurat::DefaultAssay(all_data) <- "ATAC"
-all_data <- Signac::RegionStats(
-  object = all_data, 
-  genome = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
-  assay = "ATAC"
-)
-
 # construct the meta.features for the peaks, which be used for matching
-Seurat::DefaultAssay(all_data) <- "ATAC"
-mf <- all_data[["ATAC"]]@meta.features[,c("GC.percent", "sequence.length")]
 fragment.count <- Matrix::rowSums(all_data[["ATAC"]]@counts)
 mf <- cbind(mf, fragment.count)
 mf <- scale(mf)
@@ -81,16 +75,16 @@ for(motif_idx in 1:ncol(motif_matrix)){
   motif_name <- colnames(motif_matrix)[motif_idx]
   peak_set <- which(motif_matrix[,motif_name])
   tf_count <- length(peak_set)
-  
+
   # find the background set of peaks
   background_idx <- matrix(NA, nrow = length(peak_set), ncol = niterations)
   colnames(background_idx) <- paste0("Draw:", seq_len(niterations))
   # NOTE: The rows of background_idx are NOT matched to peak_set (i.e., the first row of background_idx
   # are NOT necessarily the matches to peak_set[1])
-  
+
   for(j in 1:niterations){
     if(j %% floor(niterations/10) == 0) cat('*')
-    
+
     set.seed(10*(motif_idx*j))
     tmp <- Signac::MatchRegionStats(
       meta.feature = mf[-peak_set,,drop=F],
@@ -100,20 +94,20 @@ for(motif_idx in 1:ncol(motif_matrix)){
       verbose = F
     )
     if(length(tmp) < tf_count) {
-      warning(paste0("Number of requested features in motif number ", motif_idx, 
+      warning(paste0("Number of requested features in motif number ", motif_idx,
                      " was too large."))
       tmp <- sample(tmp, size = tf_count, replace = T)
     }
     background_idx[,j] <- as.numeric(tmp)
   }
-  
+
   tf_vec <- Matrix::sparseMatrix(j = peak_set,
                                  i = rep(1, tf_count),
                                  x = 1,
                                  dims = c(1,
                                           nrow(peak_matrix)))
   observed <- as.vector(tf_vec %*% peak_matrix)
-  
+
   niterations <- ncol(background_idx)
   sample_mat <- Matrix::sparseMatrix(j = as.vector(background_idx),
                                      i = rep(seq_len(niterations), each = tf_count),
@@ -122,13 +116,13 @@ for(motif_idx in 1:ncol(motif_matrix)){
   sampled <- as.matrix(sample_mat %*% peak_matrix)
   sampled_mean <- Matrix::colMeans(sampled)
   sampled_sd <- apply(sampled, 2, stats::sd)
-  
+
   z_score <- sapply(1:length(observed), function(i){
     (observed[i] - sampled_mean[i])/sampled_sd[i]
   })
-  
+
   chromvar_mat[names(z_score),motif_name] <- z_score
-  
+
   print("Finished, about to store")
   print(motif_name)
   save(chromvar_mat, motif_focus,
