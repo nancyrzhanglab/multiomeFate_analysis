@@ -91,7 +91,7 @@ print("Plotting")
 pdf(paste0("../../../../out/figures/Writeup6m/Writeup6m_day0_motif-peak_split-by-day10COCL2_scatterplot_", motif_focus, ".png"),
     onefile = T, width = 8, height = 5)
 
-for(kk in motif_idx){
+for(kk in motif_idx[1:2]){
   # grab the relevant peaks
   motif <- motif_name_vec[kk]
   peak_idx <- .nonzero_col(motif_matrix, 
@@ -148,10 +148,20 @@ for(kk in motif_idx){
   p1 <- p1 + ggplot2::ggtitle(paste0(motif, ": Percentage among winner or loser cells, defined by Day10 COCL2\n",
                                      length(winner_idx), " winner cells, ", length(loser_idx), " loser cells\n",
                                      length(positive_peaks), " positive peaks, ", length(negative_peaks), " negative peaks, ",  length(peak_idx), " total peaks")) 
-  print(p1)
+  
+  withr::with_tempfile({
+    png_file <- paste0("temp_plot_", kk, ".png")
+    ggplot2::ggsave(png_file, plot = p1, type = "cairo-png", dpi = 300)
+    
+    # Insert the rasterized PNG into the PDF
+    grDevices::grid.raster(png_file)
+  })
+  
 }
 
 dev.off()
+
+print("Done! :)")
 
 
 
