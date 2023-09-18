@@ -136,9 +136,8 @@ for(kk in motif_idx[1:2]){
                                                 alpha = ifelse(status == "none", 0.5, 1)))  # Set color and size based on 'status'
   p1 <- p1 + ggplot2::scale_color_manual(values = c("none" = "black", "positive" = "dodgerblue3", "negative" = "red"))  # Customize point colors
   p1 <- p1 + ggplot2::scale_size_manual(values = c("none" = 2, "positive" = 4, "negative" = 4))  # Customize point sizes
-  p1 <- p1 + ggplot2::guides(color = ggplot2::guide_legend(title = "Status"))   # Add a legend title
-  p1 <- p1 + ggplot2::labs(size = "Status")   # Label for size aesthetic
   p1 <- p1 + ggplot2::xlim(0, xmax) + ggplot2::ylim(0, xmax)
+  p1 <- p1 + Seurat::NoLegend()
   p1 <- p1 + ggplot2::geom_abline(intercept = 0, 
                                   slope = 1, 
                                   linewidth = 2,
