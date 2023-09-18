@@ -154,7 +154,7 @@ for(kk in motif_idx[1:2]){
     ggplot2::ggsave(png_file, plot = p1, type = "cairo-png", dpi = 300)
     
     # Insert the rasterized PNG into the PDF
-    grDevices::grid.raster(png_file)
+    grid::grid.raster(png_file)
   })
   
 }
