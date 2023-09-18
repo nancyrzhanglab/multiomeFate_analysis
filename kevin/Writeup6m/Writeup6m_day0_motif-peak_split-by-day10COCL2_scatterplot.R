@@ -148,14 +148,15 @@ for(kk in motif_idx[1:2]){
                                      length(winner_idx), " winner cells, ", length(loser_idx), " loser cells\n",
                                      length(positive_peaks), " positive peaks, ", length(negative_peaks), " negative peaks, ",  length(peak_idx), " total peaks")) 
   
-  withr::with_tempfile({
-    png_file <- paste0("temp_plot_", kk, ".png")
-    ggplot2::ggsave(png_file, plot = p1, type = "cairo-png", dpi = 300)
-    
-    # Insert the rasterized PNG into the PDF
-    grid::grid.raster(png_file)
-  })
+  # withr::with_tempfile({
+  #   png_file <- paste0("temp_plot_", kk, ".png")
+  #   ggplot2::ggsave(png_file, plot = p1, type = "cairo-png", dpi = 300)
+  #   
+  #   # Insert the rasterized PNG into the PDF
+  #   grid::grid.raster(png_file)
+  # })
   
+  print(p1)
 }
 
 dev.off()
