@@ -88,7 +88,7 @@ loser_idx <- which(ident_vec == "loser")
 #################################
 
 print("Plotting")
-pdf(paste0("../../../../out/figures/Writeup6m/Writeup6m_day0_motif-peak_split-by-day10COCL2_scatterplot_", motif_focus, ".png"),
+pdf(paste0("../../../../out/figures/Writeup6m/Writeup6m_day0_motif-peak_split-by-day10COCL2_scatterplot_", motif_focus, ".pdf"),
     onefile = T, width = 8, height = 5)
 
 for(kk in motif_idx[1:2]){
@@ -131,13 +131,14 @@ for(kk in motif_idx[1:2]){
   
   p1 <- ggplot2::ggplot(df, ggplot2::aes(x = winner, 
                                          y = loser))
-  p1 <- p1 +  ggplot2::geom_point( ggplot2::aes(color = status, 
-                                                size = status, 
-                                                alpha = ifelse(status == "none", 0.5, 1)))  # Set color and size based on 'status'
+  p1 <- p1 +  ggplot2::geom_point(ggplot2::aes(color = status, 
+                                               size = status, 
+                                               alpha = ifelse(status == "none", 0.5, 1)))  # Set color and size based on 'status'
   p1 <- p1 + ggplot2::scale_color_manual(values = c("none" = "black", "positive" = "dodgerblue3", "negative" = "red"))  # Customize point colors
   p1 <- p1 + ggplot2::scale_size_manual(values = c("none" = 2, "positive" = 4, "negative" = 4))  # Customize point sizes
   p1 <- p1 + ggplot2::xlim(0, xmax) + ggplot2::ylim(0, xmax)
   p1 <- p1 + Seurat::NoLegend()
+  p1 <- p1 + ggplot2::coord_fixed(ratio = 1)
   p1 <- p1 + ggplot2::geom_abline(intercept = 0, 
                                   slope = 1, 
                                   linewidth = 2,
@@ -148,15 +149,13 @@ for(kk in motif_idx[1:2]){
                                      length(winner_idx), " winner cells, ", length(loser_idx), " loser cells\n",
                                      length(positive_peaks), " positive peaks, ", length(negative_peaks), " negative peaks, ",  length(peak_idx), " total peaks")) 
   
-  # withr::with_tempfile({
-  #   png_file <- paste0("temp_plot_", kk, ".png")
-  #   ggplot2::ggsave(png_file, plot = p1, type = "cairo-png", dpi = 300)
-  #   
-  #   # Insert the rasterized PNG into the PDF
-  #   grid::grid.raster(png_file)
-  # })
-  
-  print(p1)
+  withr::with_tempfile({
+    png_file <- "temp_plot.png"
+    ggplot2::ggsave(png_file, plot = p1, dpi = 300)
+
+    # Insert the rasterized PNG into the PDF
+    grid::grid.raster(png_file)
+  })
 }
 
 dev.off()
