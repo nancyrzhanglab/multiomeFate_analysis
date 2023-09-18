@@ -68,7 +68,7 @@ positive_peaks <- rownames(de_res)[idx]
 
 idx <- intersect(which(de_res[,"p_val"] <= 1e-2), 
                  which(de_res[,"avg_log2FC"] < 0))
-negtive_peaks <- rownames(de_res)[idx]
+negative_peaks <- rownames(de_res)[idx]
 
 # grab the relevant cells
 print("Partitioning cells")
@@ -112,7 +112,7 @@ for(kk in motif_idx){
   colnames(percentage_mat) <- colnames(peak_mat_t)[peak_idx]
   
   positive_idx <- which(colnames(percentage_mat) %in% positive_peaks)
-  negative_idx <- which(colnames(percentage_mat) %in% negtive_peaks)
+  negative_idx <- which(colnames(percentage_mat) %in% negative_peaks)
   status_vec <- rep("none", ncol(percentage_mat))
   status_vec[positive_idx] <- "positive"
   status_vec[negative_idx] <- "negative"
@@ -141,7 +141,7 @@ for(kk in motif_idx){
   p1 <- p1 + ggplot2::xlim(0, xmax) + ggplot2::ylim(0, xmax)
   p1 <- p1 + ggplot2::geom_abline(intercept = 0, 
                                   slope = 1, 
-                                  size = 2,
+                                  linewidth = 2,
                                   linetype = "dashed", 
                                   color = "green")  # Add a dashed green x=y line
   p1 <- p1 + ggplot2::labs(y= "Loser peak percentage", x = "Winner peak percentage") 
