@@ -148,17 +148,9 @@ for(kk in motif_idx){
   p1 <- p1 + ggplot2::labs(y= "Loser peak percentage", x = "Winner peak percentage") 
   p1 <- p1 + ggplot2::ggtitle(paste0(motif, ": Percentage among winner or loser cells, defined by Day10 COCL2\n",
                                      length(winner_idx), " winner cells, ", length(loser_idx), " loser cells\n",
-                                     length(positive_peaks), " positive peaks, ", length(negative_peaks), " negative peaks, ",  length(peak_idx), " total peaks")) 
+                                     length(positive_idx), " positive peaks, ", length(negative_idx), " negative peaks, ",  length(peak_idx), " total peaks")) 
   
   print(ggrastr::rasterize(p1, dpi=300))
-  
-  # withr::with_tempfile({
-  #   png_file <- "temp_plot.png"
-  #   ggplot2::ggsave(png_file, plot = p1, dpi = 300)
-  # 
-  #   # Insert the rasterized PNG into the PDF
-  #   grid::grid.raster(png_file)
-  # })
 }
 
 dev.off()
