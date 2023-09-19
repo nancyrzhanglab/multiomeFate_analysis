@@ -91,7 +91,7 @@ print("Plotting")
 pdf(paste0("../../../../out/figures/Writeup6m/Writeup6m_day0_motif-peak_split-by-day10COCL2_scatterplot_", motif_focus, ".pdf"),
     onefile = T, width = 8, height = 5)
 
-for(kk in motif_idx[1:2]){
+for(kk in motif_idx){
   # grab the relevant peaks
   motif <- motif_name_vec[kk]
   peak_idx <- .nonzero_col(motif_matrix, 
@@ -137,7 +137,8 @@ for(kk in motif_idx[1:2]){
   p1 <- p1 + ggplot2::scale_color_manual(values = c("none" = "black", "positive" = "dodgerblue3", "negative" = "red"))  # Customize point colors
   p1 <- p1 + ggplot2::scale_size_manual(values = c("none" = 2, "positive" = 4, "negative" = 4))  # Customize point sizes
   p1 <- p1 + ggplot2::xlim(0, xmax) + ggplot2::ylim(0, xmax)
-  p1 <- p1 + Seurat::NoLegend()
+  p1 <- p1 + ggplot2::guides(color = ggplot2::guide_legend(title = "Status"))   # Add a legend title
+  p1 <- p1 + ggplot2::labs(size = "Status")   # Label for size aesthetic
   p1 <- p1 + ggplot2::coord_fixed(ratio = 1)
   p1 <- p1 + ggplot2::geom_abline(intercept = 0, 
                                   slope = 1, 
