@@ -32,7 +32,7 @@ for(treatment in treatmet_vec){
   ident_vec[cell_names_win] <- "winner"
   ident_vec[cell_names_lose] <- "loser"
   all_data$ident <- ident_vec
-  Seurat::Idents(all_data) <- ident
+  Seurat::Idents(all_data) <- "ident"
   
   set.seed(10)
   de_res <- Seurat::FindMarkers(
@@ -67,7 +67,7 @@ for(treatment in treatmet_vec){
   ident_vec[cell_names_win] <- "winner"
   ident_vec[cell_names_lose] <- "loser"
   all_data$ident <- ident_vec
-  Seurat::Idents(all_data) <- ident
+  Seurat::Idents(all_data) <- "ident"
   
   set.seed(10)
   de_res <- Seurat::FindMarkers(
