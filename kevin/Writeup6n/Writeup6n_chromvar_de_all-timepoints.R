@@ -87,7 +87,11 @@ for(treatment in treatmet_vec){
   week5_pvalue_list[[treatment]] <- de_res$p_val
 }
 
+print("Final touchups")
+motif_name_vec <- unlist(all_data[["ATAC"]]@motifs@motif.names)
+
 save(date_of_run, session_info, 
+     motif_name_vec,
      day10_lfc_list, day10_pvalue_list,
      week5_lfc_list, week5_pvalue_list,
      file = "../../../../out/kevin/Writeup6n/Writeup6n_chromvar_de_all-timepoints.RData")
