@@ -88,7 +88,6 @@ for(treatment in treatmet_vec){
 }
 
 save(date_of_run, session_info, 
-     all_data, 
      day10_lfc_list, day10_pvalue_list,
      week5_lfc_list, week5_pvalue_list,
      file = "../../../../out/kevin/Writeup6n/Writeup6n_chromvar_de_all-timepoints.RData")
