@@ -1,7 +1,7 @@
 rm(list=ls())
 library(Seurat); library(Signac)
 
-load("../../../../out/kevin/Writeup6m/Writeup6m_all-data.RData")
+load("../../../../out/kevin/Writeup6b/Writeup6b_chromVar.RData")
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
