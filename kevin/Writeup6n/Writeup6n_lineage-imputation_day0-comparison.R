@@ -29,4 +29,10 @@ p1 <- GGally::ggpairs(df,
 ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison.png",
                 p1, device = "png", width = 6, height = 6, units = "in")
 
+#####################
+
+load("../../../../out/kevin/Writeup4e/Writeup4e_timeAll_fasttopics_DABTRAM.RData")
+topic_dabtram <- topic_res
+load("../../../../out/kevin/Writeup4e/Writeup4e_timeAll_fasttopics_COCL2.RData")
+topic_cocl2 <- topic_res
 
