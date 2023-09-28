@@ -2,6 +2,7 @@ rm(list=ls())
 library(Seurat)
 library(Signac)
 library(GenomicRanges)
+library(multiomeFate)
 library(IRanges)
 
 treatment <- "CIS"

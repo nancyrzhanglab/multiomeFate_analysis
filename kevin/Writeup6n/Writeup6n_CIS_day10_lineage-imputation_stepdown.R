@@ -2,6 +2,7 @@ rm(list=ls())
 library(Seurat)
 library(Signac)
 library(GenomicRanges)
+library(multiomeFate)
 library(IRanges)
 
 load("../../../../out/kevin/Writeup6m/Writeup6m_all-data.RData")
