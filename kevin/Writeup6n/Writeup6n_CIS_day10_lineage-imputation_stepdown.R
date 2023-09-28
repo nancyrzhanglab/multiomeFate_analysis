@@ -63,7 +63,7 @@ names(log10pval_vec) <- colnames(atac_mat)
 
 # let's try using all the topics #Clueless
 cell_features_full <- cbind(1, scale(topic_mat), 
-                            scale(atac_mat[,which(log10pval_vec>=5)]))
+                            scale(atac_mat[,which(log10pval_vec >= 2)]))
 p <- ncol(cell_features_full)
 colnames(cell_features_full)[1] <- "Intercept"
 
@@ -129,9 +129,16 @@ while(TRUE){
   iteration <- iteration+1
   
   save(coefficient_list_list, date_of_run, session_info,
-       file = paste0("../../../../out/kevin/Writeup6n/Writeup6n_", treatment, "_day10_lineage-imputation_stepdown.RData"))
+       file = paste0("../../../../out/kevin/Writeup6n/Writeup6n_", treatment, "_day10_lineage-imputation_stepdown-tmp.RData"))
 }
 
-save(coefficient_list_list, date_of_run, session_info,
+save(date_of_run, session_info,
+     cell_features_full,
+     cell_lineage,
+     coefficient_list_list, 
+     lineage_current_count,
+     lineage_future_count,
+     tab_mat,
      file = paste0("../../../../out/kevin/Writeup6n/Writeup6n_", treatment, "_day10_lineage-imputation_stepdown.RData"))
 
+print("Done! :)")
