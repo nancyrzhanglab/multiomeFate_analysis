@@ -5,42 +5,24 @@ library(GenomicRanges)
 library(multiomeFate)
 library(IRanges)
 
-load("../../../../out/kevin/Writeup6j/Writeup6j_DABTRAM_day0_lineage-imputation_stepdown-LOOCV_concise-postprocessed.RData")
-dabtram_imputed <- cell_imputed_count
+load("../../../../out/kevin/Writeup6k/Writeup6k_DABTRAM_day10_lineage-imputation_stepdown_concise-postprocessed.RData")
+dabtram_imputed <- cell_imputed_count[!is.na(cell_imputed_count)]
 dabtram_fit <- fit
-load("../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day0_lineage-imputation_stepdown-LOOCV_concise-postprocessed.RData")
-cocl2_imputed <- cell_imputed_count
+load("../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day10_lineage-imputation_stepdown_concise-postprocessed.RData")
+cocl2_imputed <- cell_imputed_count[!is.na(cell_imputed_count)]
 cocl2_fit <- fit
 
-cell_names <- intersect(names(dabtram_imputed), names(cocl2_imputed))
-dabtram_imputed <- dabtram_imputed[cell_names]
-cocl2_imputed <- cocl2_imputed[cell_names]
-any(is.na(dabtram_imputed)); any(is.na(cocl2_imputed))
-
-# dabtram_imputed isn't log10
-dabtram_imputed <- log10(exp(dabtram_imputed))
-
-stats::cor(dabtram_imputed, cocl2_imputed)
-stats::cor(10^dabtram_imputed, 10^cocl2_imputed)
-
-df <- data.frame(cocl2_day0 = cocl2_imputed,
-                 dabtram_day0 = dabtram_imputed)
-p1 <- GGally::ggpairs(df, 
-                     lower = list(continuous = GGally::wrap("points", alpha = 0.2, shape = 16)),
-                     progress = FALSE) + ggplot2::theme_bw()
-ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison.png",
-                p1, device = "png", width = 6, height = 6, units = "in")
-
-#####################
+length(intersect(names(dabtram_imputed)[!is.na(dabtram_imputed)],
+                 names(cocl2_imputed)[!is.na(cocl2_imputed)]))
 
 load("../../../../out/kevin/Writeup6n/Writeup6n_topics.RData")
 
 cocl2_loading <- cocl2_fasttopics@feature.loadings
 dabtram_loading <- dabtram_fasttopics@feature.loadings
 
-dabtram_coef <- dabtram_fit$fit$coefficient_vec
+dabtram_coef <- dabtram_fit$coefficient_vec
 dabtram_coef <- abs(dabtram_coef[grep("fastTopic", names(dabtram_coef))])
-cocl2_coef <- cocl2_fit$fit$coefficient_vec
+cocl2_coef <- cocl2_fit$coefficient_vec
 cocl2_coef <- abs(cocl2_coef[grep("fastTopic", names(cocl2_coef))])
 
 dabtram_weights <- (dabtram_loading[,names(dabtram_coef)] %*% dabtram_coef)[,1]
@@ -50,14 +32,13 @@ dabtram_weights <- dabtram_weights[common_genes]
 cocl2_weights <- cocl2_weights[common_genes]
 
 stats::cor(dabtram_weights, cocl2_weights)
-stats::cor(rank(dabtram_weights), rank(cocl2_weights))
 
 df <- data.frame(cocl2_geneweight = cocl2_weights,
                  dabtram_geneweight = dabtram_weights)
 p1 <- GGally::ggpairs(df, 
                       lower = list(continuous = GGally::wrap("points", alpha = 0.2, shape = 16)),
                       progress = FALSE) + ggplot2::theme_bw()
-ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison_geneweights.png",
+ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day10-comparison_geneweights.png",
                 p1, device = "png", width = 6, height = 6, units = "in")
 
 ###########
@@ -83,14 +64,14 @@ p1 <- p1 + ggrepel::geom_text_repel(data = subset(df, labeling == "1"),
                                     box.padding = ggplot2::unit(0.5, 'lines'),
                                     point.padding = ggplot2::unit(1.6, 'lines'),
                                     max.overlaps = 50)
-p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM vs COCL2 (Day0, Gene weights, RNA)")) 
+p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM vs COCL2 (Day10, Gene weights, RNA)")) 
 p1 <- p1 + Seurat::NoLegend()
 p1 <- p1 + ggplot2::labs(y = "DABTRAM", x = "COCL2")
 
-ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison_geneweights_ggrepel_COCL2-DABTRAM.png",
+ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day10-comparison_geneweights_ggrepel_COCL2-DABTRAM.png",
                 p1, device = "png", width = 6, height = 6, units = "in")
 
-########################
+###########################
 
 load("../../../../out/kevin/Writeup6l/Writeup6l_chromVar_rna-chromvar_lightweight.RData")
 
@@ -111,8 +92,10 @@ cocl2_cor_vec[is.na(cocl2_cor_vec)] <- 0
 stats::cor(cocl2_cor_vec, dabtram_cor_vec)
 
 labeling <- rep(0, length(cocl2_cor_vec))
-labeling[order(abs(cocl2_cor_vec), decreasing = T)[1:20]] <- 1
-labeling[order(abs(dabtram_cor_vec), decreasing = T)[1:20]] <- 1
+labeling[order(cocl2_cor_vec, decreasing = T)[1:15]] <- 1
+labeling[order(dabtram_cor_vec, decreasing = T)[1:15]] <- 1
+labeling[order(-cocl2_cor_vec, decreasing = T)[1:15]] <- 1
+labeling[order(-dabtram_cor_vec, decreasing = T)[1:15]] <- 1
 
 df <- data.frame(cocl2_cor = cocl2_cor_vec,
                  dabtram_cor = dabtram_cor_vec,
@@ -131,13 +114,11 @@ p1 <- p1 + ggrepel::geom_text_repel(data = subset(df, labeling == "1"),
                                     box.padding = ggplot2::unit(0.5, 'lines'),
                                     point.padding = ggplot2::unit(1.6, 'lines'),
                                     max.overlaps = 50)
-p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM vs COCL2\n(RNA corr w/ Day10 growth potential computed at Day0 cells)\nCorrelation: ", 
+p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM vs COCL2\n(RNA corr w/ Week5 growth potential computed at Day10 cells)\nCorrelation: ", 
                                    round(stats::cor(cocl2_cor_vec, dabtram_cor_vec), 2))) 
 p1 <- p1 + Seurat::NoLegend()
 p1 <- p1 + ggplot2::labs(y = "DABTRAM", x = "COCL2")
 
-ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison_gene-corr_ggrepel_COCL2-DABTRAM.png",
+ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day10-comparison_gene-corr_ggrepel_COCL2-DABTRAM.png",
                 p1, device = "png", width = 6, height = 6, units = "in")
-
-
 
