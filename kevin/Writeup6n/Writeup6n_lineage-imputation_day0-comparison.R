@@ -5,25 +5,31 @@ library(GenomicRanges)
 library(multiomeFate)
 library(IRanges)
 
-load("../../../../out/kevin/Writeup6j/Writeup6j_DABTRAM_day0_lineage-imputation_stepdown-LOOCV_concise-postprocessed.RData")
-dabtram_imputed <- cell_imputed_count
-dabtram_fit <- fit
-load("../../../../out/kevin/Writeup6j/Writeup6j_COCL2_day0_lineage-imputation_stepdown-LOOCV_concise-postprocessed.RData")
+tp_early <- "day0"
+treatment <- "CIS"
+load(paste0("../../../../out/kevin/Writeup6n/Writeup6n_", treatment, "_", tp_early, "_lineage-imputation_stepdown_concise-postprocessed.RData"))
+cis_imputed <- cell_imputed_count
+cis_fit <- fit
+treatment <- "COCL2"
+load(paste0("../../../../out/kevin/Writeup6n/Writeup6n_", treatment, "_", tp_early, "_lineage-imputation_stepdown_concise-postprocessed.RData"))
 cocl2_imputed <- cell_imputed_count
 cocl2_fit <- fit
+treatment <- "DABTRAM"
+load(paste0("../../../../out/kevin/Writeup6n/Writeup6n_", treatment, "_", tp_early, "_lineage-imputation_stepdown_concise-postprocessed.RData"))
+dabtram_imputed <- cell_imputed_count
+dabtram_fit <- fit
 
-cell_names <- intersect(names(dabtram_imputed), names(cocl2_imputed))
-dabtram_imputed <- dabtram_imputed[cell_names]
+cell_names <- intersect(intersect(names(dabtram_imputed), names(cocl2_imputed)),
+                        names(cis_imputed))
+cis_imputed <- cis_imputed[cell_names]
 cocl2_imputed <- cocl2_imputed[cell_names]
-any(is.na(dabtram_imputed)); any(is.na(cocl2_imputed))
+dabtram_imputed <- dabtram_imputed[cell_names]
+any(is.na(cis_imputed)); any(is.na(cocl2_imputed)); any(is.na(dabtram_imputed))
 
-# dabtram_imputed isn't log10
-dabtram_imputed <- log10(exp(dabtram_imputed))
+stats::cor(cbind(cis_imputed, cocl2_imputed, dabtram_imputed))
 
-stats::cor(dabtram_imputed, cocl2_imputed)
-stats::cor(10^dabtram_imputed, 10^cocl2_imputed)
-
-df <- data.frame(cocl2_day0 = cocl2_imputed,
+df <- data.frame(cis_day0 = cis_imputed,
+                 cocl2_day0 = cocl2_imputed,
                  dabtram_day0 = dabtram_imputed)
 p1 <- GGally::ggpairs(df, 
                      lower = list(continuous = GGally::wrap("points", alpha = 0.2, shape = 16)),
@@ -33,73 +39,73 @@ ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-
 
 #####################
 
-load("../../../../out/kevin/Writeup6n/Writeup6n_topics.RData")
-
-cocl2_loading <- cocl2_fasttopics@feature.loadings
-dabtram_loading <- dabtram_fasttopics@feature.loadings
-
-dabtram_coef <- dabtram_fit$fit$coefficient_vec
-dabtram_coef <- abs(dabtram_coef[grep("fastTopic", names(dabtram_coef))])
-cocl2_coef <- cocl2_fit$fit$coefficient_vec
-cocl2_coef <- abs(cocl2_coef[grep("fastTopic", names(cocl2_coef))])
-
-dabtram_weights <- (dabtram_loading[,names(dabtram_coef)] %*% dabtram_coef)[,1]
-cocl2_weights <- (cocl2_loading[,names(cocl2_coef)] %*% cocl2_coef)[,1]
-common_genes <- intersect(names(dabtram_weights), names(cocl2_weights))
-dabtram_weights <- dabtram_weights[common_genes]
-cocl2_weights <- cocl2_weights[common_genes]
-
-stats::cor(dabtram_weights, cocl2_weights)
-stats::cor(rank(dabtram_weights), rank(cocl2_weights))
-
-df <- data.frame(cocl2_geneweight = cocl2_weights,
-                 dabtram_geneweight = dabtram_weights)
-p1 <- GGally::ggpairs(df, 
-                      lower = list(continuous = GGally::wrap("points", alpha = 0.2, shape = 16)),
-                      progress = FALSE) + ggplot2::theme_bw()
-ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison_geneweights.png",
-                p1, device = "png", width = 6, height = 6, units = "in")
+# load("../../../../out/kevin/Writeup6n/Writeup6n_topics.RData")
+# 
+# cocl2_loading <- cocl2_fasttopics@feature.loadings
+# dabtram_loading <- dabtram_fasttopics@feature.loadings
+# 
+# dabtram_coef <- dabtram_fit$fit$coefficient_vec
+# dabtram_coef <- abs(dabtram_coef[grep("fastTopic", names(dabtram_coef))])
+# cocl2_coef <- cocl2_fit$fit$coefficient_vec
+# cocl2_coef <- abs(cocl2_coef[grep("fastTopic", names(cocl2_coef))])
+# 
+# dabtram_weights <- (dabtram_loading[,names(dabtram_coef)] %*% dabtram_coef)[,1]
+# cocl2_weights <- (cocl2_loading[,names(cocl2_coef)] %*% cocl2_coef)[,1]
+# common_genes <- intersect(names(dabtram_weights), names(cocl2_weights))
+# dabtram_weights <- dabtram_weights[common_genes]
+# cocl2_weights <- cocl2_weights[common_genes]
+# 
+# stats::cor(dabtram_weights, cocl2_weights)
+# stats::cor(rank(dabtram_weights), rank(cocl2_weights))
+# 
+# df <- data.frame(cocl2_geneweight = cocl2_weights,
+#                  dabtram_geneweight = dabtram_weights)
+# p1 <- GGally::ggpairs(df, 
+#                       lower = list(continuous = GGally::wrap("points", alpha = 0.2, shape = 16)),
+#                       progress = FALSE) + ggplot2::theme_bw()
+# ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison_geneweights.png",
+#                 p1, device = "png", width = 6, height = 6, units = "in")
 
 ###########
 
-labeling <- rep(0, length(cocl2_weights))
-labeling[order(cocl2_weights, decreasing = T)[1:20]] <- 1
-labeling[order(dabtram_weights, decreasing = T)[1:20]] <- 1
-
-df <- data.frame(cocl2_geneweight = cocl2_weights,
-                 dabtram_geneweight = dabtram_weights,
-                 name = names(cocl2_weights),
-                 labeling = labeling)
-df[,"labeling"] <- as.factor(df[,"labeling"])
-# put all the labeling == TRUE on bottom
-df <- df[c(which(df[,"labeling"] == 0),  which(df[,"labeling"] == 1)),]
-
-p1 <- ggplot2::ggplot(df, ggplot2::aes(x = cocl2_geneweight, 
-                                       y = dabtram_geneweight))
-p1 <- p1 + ggplot2::geom_point(ggplot2::aes(color = labeling))
-p1 <- p1 + ggplot2::scale_colour_manual(values=c("black", "red"))
-p1 <- p1 + ggrepel::geom_text_repel(data = subset(df, labeling == "1"),
-                                    ggplot2::aes(label = name, color = labeling),
-                                    box.padding = ggplot2::unit(0.5, 'lines'),
-                                    point.padding = ggplot2::unit(1.6, 'lines'),
-                                    max.overlaps = 50)
-p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM vs COCL2 (Day0, Gene weights, RNA)")) 
-p1 <- p1 + Seurat::NoLegend()
-p1 <- p1 + ggplot2::labs(y = "DABTRAM", x = "COCL2")
-
-ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison_geneweights_ggrepel_COCL2-DABTRAM.png",
-                p1, device = "png", width = 6, height = 6, units = "in")
+# labeling <- rep(0, length(cocl2_weights))
+# labeling[order(cocl2_weights, decreasing = T)[1:20]] <- 1
+# labeling[order(dabtram_weights, decreasing = T)[1:20]] <- 1
+# 
+# df <- data.frame(cocl2_geneweight = cocl2_weights,
+#                  dabtram_geneweight = dabtram_weights,
+#                  name = names(cocl2_weights),
+#                  labeling = labeling)
+# df[,"labeling"] <- as.factor(df[,"labeling"])
+# # put all the labeling == TRUE on bottom
+# df <- df[c(which(df[,"labeling"] == 0),  which(df[,"labeling"] == 1)),]
+# 
+# p1 <- ggplot2::ggplot(df, ggplot2::aes(x = cocl2_geneweight, 
+#                                        y = dabtram_geneweight))
+# p1 <- p1 + ggplot2::geom_point(ggplot2::aes(color = labeling))
+# p1 <- p1 + ggplot2::scale_colour_manual(values=c("black", "red"))
+# p1 <- p1 + ggrepel::geom_text_repel(data = subset(df, labeling == "1"),
+#                                     ggplot2::aes(label = name, color = labeling),
+#                                     box.padding = ggplot2::unit(0.5, 'lines'),
+#                                     point.padding = ggplot2::unit(1.6, 'lines'),
+#                                     max.overlaps = 50)
+# p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM vs COCL2 (Day0, Gene weights, RNA)")) 
+# p1 <- p1 + Seurat::NoLegend()
+# p1 <- p1 + ggplot2::labs(y = "DABTRAM", x = "COCL2")
+# 
+# ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison_geneweights_ggrepel_COCL2-DABTRAM.png",
+#                 p1, device = "png", width = 6, height = 6, units = "in")
 
 ########################
 
 load("../../../../out/kevin/Writeup6l/Writeup6l_chromVar_rna-chromvar_lightweight.RData")
 
-rna_mat <- t(all_data[["Saver"]]@data[,names(dabtram_imputed)])
-dabtram_cor_vec <- sapply(1:ncol(rna_mat), function(j){
-  stats::cor(dabtram_imputed, rna_mat[,j])
+rna_mat <- t(all_data[["Saver"]]@data[,names(cis_imputed)])
+cis_cor_vec <- sapply(1:ncol(rna_mat), function(j){
+  stats::cor(cis_imputed, rna_mat[,j])
 })
-names(dabtram_cor_vec) <- colnames(rna_mat)
-dabtram_cor_vec[is.na(dabtram_cor_vec)] <- 0
+names(cis_cor_vec) <- colnames(rna_mat)
+cis_cor_vec[is.na(cis_cor_vec)] <- 0
 
 rna_mat <- t(all_data[["Saver"]]@data[,names(cocl2_imputed)])
 cocl2_cor_vec <- sapply(1:ncol(rna_mat), function(j){
@@ -108,7 +114,28 @@ cocl2_cor_vec <- sapply(1:ncol(rna_mat), function(j){
 names(cocl2_cor_vec) <- colnames(rna_mat)
 cocl2_cor_vec[is.na(cocl2_cor_vec)] <- 0
 
-stats::cor(cocl2_cor_vec, dabtram_cor_vec)
+rna_mat <- t(all_data[["Saver"]]@data[,names(dabtram_imputed)])
+dabtram_cor_vec <- sapply(1:ncol(rna_mat), function(j){
+  stats::cor(dabtram_imputed, rna_mat[,j])
+})
+names(dabtram_cor_vec) <- colnames(rna_mat)
+dabtram_cor_vec[is.na(dabtram_cor_vec)] <- 0
+
+stats::cor(cbind(cis_cor_vec, cocl2_cor_vec, dabtram_cor_vec))
+
+df <- data.frame(cis_cor = cis_cor_vec,
+                 cocl2_cor = cocl2_cor_vec,
+                 dabtram_cor = dabtram_cor_vec,
+                 color = factor(rep("Corr", length(dabtram_cor_vec))))
+p1 <- GGally::ggpairs(df, 
+                      columns = 1:3,
+                      mapping = ggplot2::aes(color = color),
+                      lower = list(continuous = GGally::wrap("points", alpha = 0.2, shape = 16)),
+                      progress = FALSE) 
+ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison_gene-corr.png",
+                p1, device = "png", width = 6, height = 6, units = "in")
+
+###
 
 labeling <- rep(0, length(cocl2_cor_vec))
 labeling[order(abs(cocl2_cor_vec), decreasing = T)[1:20]] <- 1
