@@ -4,7 +4,7 @@ keygenes <- list(
                    "SERPINE2", "NDRG1", "FEZF1", "EGR3", "VGF",
                    "WNT5A", "POSTN", "PDGFRB", "NRG1", "VEGFC", "FOSL1",
                    "RUNX2", "LOXL2", "JUN", "PDGFRC", "CD44", "ID3")),
-  DABTRAM = sort(c("AXL", "EGFP", "NGFR", "IGFBP5", "ANXA1",
+  DABTRAM = sort(c("AXL", "EGFR", "NGFR", "IGFBP5", "ANXA1",
               "IGFBP7", "JUNB", "BASP1", "IER2", "JUN",
               "CXCL12", "ANXA2", "FOS", "MMP2", "GLRX",
               "IL6ST", "PRNP", "FOSB", "CTSL", "SLC12A8",

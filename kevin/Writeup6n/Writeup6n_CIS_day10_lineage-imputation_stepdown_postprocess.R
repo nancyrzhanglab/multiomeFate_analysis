@@ -131,12 +131,12 @@ p1 <- scCustomize::FeaturePlot_scCustom(all_data,
                                         reduction = "umap", 
                                         features = "imputed_count")
 p1 <- p1 + ggplot2::ggtitle(paste0(
-  treatment, " ", tp_later, " growth potential of ", tp_early, 
-  " cells\n(Stepdown from RNA fasttopics, ATAC LSI), (Log-scale)")
+  treatment, "\n", tp_later, " growth potential of ", tp_early, 
+  " cells\n(Stepdown from RNA fasttopics, ATAC LSI)\n(Log-scale)")
 )
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6n/Writeup6n_",
                                   treatment, "-", tp_early, "_imputation_stepdown_umap.png"),
-                p1, device = "png", width = 7, height = 5, units = "in")
+                p1, device = "png", width = 5, height = 5, units = "in")
 
 ###
 

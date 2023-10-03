@@ -72,6 +72,13 @@ all_data <- Seurat::RunUMAP(all_data,
                             reduction = paste0("fasttopic_", treatment),
                             dims = 1:30)
 
+plot1 <- Seurat::DimPlot(all_data, reduction = "umap",
+                         group.by = "dataset", pt.size = .3, label = T)
+plot1 <- plot1 + Seurat::NoLegend()
+ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6n/Writeup6n_", treatment, "_umap.png"),
+                plot1, device = "png", width = 5, height = 4, units = "in")
+
+
 idx <- which.min(test_vec)
 test_sd_val <- mean(matrixStats::rowSds(loocv_mat[,pmax(1, idx-2):pmin(ncol(loocv_mat), idx+2)]))
 test_idx_vec <- which(test_vec <= test_vec[idx] + test_sd_val)
@@ -131,12 +138,13 @@ p1 <- scCustomize::FeaturePlot_scCustom(all_data,
                                         reduction = "umap", 
                                         features = "imputed_count")
 p1 <- p1 + ggplot2::ggtitle(paste0(
-  treatment, " ", tp_later, " growth potential of ", tp_early, 
-  " cells\n(Stepdown from RNA fasttopics, ATAC LSI), (Log-scale)")
+  treatment, "\n", tp_later, " growth potential of ", tp_early, 
+  " cells\n(Stepdown from RNA fasttopics, ATAC LSI)\n(Log-scale)")
 )
 ggplot2::ggsave(filename = paste0("../../../../out/figures/Writeup6n/Writeup6n_",
                                   treatment, "-", tp_early, "_imputation_stepdown_umap.png"),
-                p1, device = "png", width = 7, height = 5, units = "in")
+                p1, device = "png", width = 5, height = 5, units = "in")
+
 
 ###
 
