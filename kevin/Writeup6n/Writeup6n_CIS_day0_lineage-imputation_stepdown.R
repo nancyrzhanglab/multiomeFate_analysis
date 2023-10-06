@@ -12,6 +12,7 @@ session_info <- devtools::session_info()
 set.seed(10)
 treatment <- "CIS"
 
+# adding a test comment here
 # keep only the relevant cells
 keep_vec <- rep(FALSE, ncol(all_data))
 idx <- which(all_data$dataset %in% c("day0", paste0("day10_", treatment), paste0("week5_", treatment)))
