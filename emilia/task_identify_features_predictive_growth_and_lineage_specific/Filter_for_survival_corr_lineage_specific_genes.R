@@ -26,5 +26,23 @@ exp_corr_growth_anova_sig <- as.data.frame(exp_corr_growth_anova_sig)
 colnames(exp_corr_growth_anova_sig) <- c('gene')
 exp_corr_growth_anova_sig <- merge(exp_corr_growth_anova_sig, exp_correlation_with_growth_top25[, c('gene', 'correlation', 'p.value')], by='gene')
 
-write.csv(exp_corr_growth_anova_sig, paste0("/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/", sample, "_adaptation_genes.csv"), row.names = FALSE)
+# write.csv(exp_corr_growth_anova_sig, paste0("/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/", sample, "_adaptation_genes.csv"), row.names = FALSE)
 
+target_genes <- merge(exp_corr_growth_anova_sig, 
+                      anova_out_sig[, c('feature', 'p_val')], by.x = 'gene', by.y = 'feature')
+colnames(target_genes) <- c('gene', 'correlation', 'corr_p_value', 'anova_p_value')
+target_genes$neg_log10_corr_p_value <- (-1) * log10(target_genes$corr_p_value)
+target_genes$neg_log10_anova_p_value <- (-1) * log10(target_genes$anova_p_value)
+target_genes$abs_corr <- abs(target_genes$correlation)
+
+genes_of_interest <- c('BACE2', 'ACTB', 'FN1', 'BAAT', 'MYO1D', 'PSD3', 'ANXA2')
+ggplot(target_genes,aes(x = correlation, y = neg_log10_anova_p_value)) +
+  geom_point() +
+  ggrepel::geom_text_repel(data = subset(target_genes, gene %in% genes_of_interest),
+                           ggplot2::aes(label = gene),
+                           box.padding = ggplot2::unit(2, 'lines'),
+                           point.padding = ggplot2::unit(0.2, 'lines'),
+                           color = 'red',
+                           max.overlaps = 80) +
+  xlim(c(-0.7, 0.7)) +
+  ylim(c(0, 400))

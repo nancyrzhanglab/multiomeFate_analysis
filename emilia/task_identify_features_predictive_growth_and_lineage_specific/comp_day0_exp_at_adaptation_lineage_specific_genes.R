@@ -2,13 +2,28 @@ library(tidyverse)
 library(data.table)
 
 dir <- '~/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/'
-future_treatment <- 'day10_CIS'
+future_treatment <- 'day10_DABTRAM'
+keygenes <- list(
+  jackpot = sort(c("SOX10", "MITF", "FN1", "AXL", "EGFR", "NT5E",
+                   "C1S", "FRZB", "SERPINB2", "SERPINE1", "NGFR",
+                   "SERPINE2", "NDRG1", "FEZF1", "EGR3", "VGF",
+                   "WNT5A", "POSTN", "PDGFRB", "NRG1", "VEGFC", "FOSL1",
+                   "RUNX2", "LOXL2", "JUN", "PDGFRC", "CD44", "ID3")),
+  DABTRAM = sort(c("AXL", "EGFP", "NGFR", "IGFBP5", "ANXA1",
+                   "IGFBP7", "JUNB", "BASP1", "IER2", "JUN",
+                   "CXCL12", "ANXA2", "FOS", "MMP2", "GLRX",
+                   "IL6ST", "PRNP", "FOSB", "CTSL", "SLC12A8",
+                   "TFPI2", "MYL6", "IFITM3", "CAV1", "CD44")),
+  COCL2 = sort(c("CD44", "FN1", "HPCAL1", "SLC16A3", "IGFBP5",
+                 "COL6A2", "MPC2", "PLIN2", "HLA-A", "IGFBP7", "CAV1"))
+)
+
 # ==============================================================================
 # Read data
 # ==============================================================================
 
 # growth potential
-load(paste0(dir, future_treatment, '/Writeup6n_CIS_day10_lineage-imputation_stepdown_concise-postprocessed.RData'))
+load(paste0(dir, future_treatment, '/Writeup6n_DABTRAM_day10_lineage-imputation_stepdown_concise-postprocessed.RData'))
 growth_potential_use <- cell_imputed_count
 growth_potential_use <- growth_potential_use[!is.na(growth_potential_use)]
 
@@ -54,7 +69,14 @@ day10_others <- day10_lineage_status[day10_lineage_status$winning_lineage == 'ot
 # pick out cells at day0 in winner vs other lineages 
 # =====================================
 metadata_day0 <- metadata_day0[metadata_day0$assigned_lineage %in% day10_lineage_status$assigned_lineage, ]
-metadata_day0$day10_lineage_status <- ifelse(metadata_day0$assigned_lineage %in% day10_winners$assigned_lineage, 'day10_winning_lineage', 'day10_other_lineage')
+
+metadata_day0$day10_lineage_status <- ifelse(metadata_day0$assigned_lineage %in% day10_winners$assigned_lineage, 'day10_winning_lineage', 'NA')
+metadata_day0$day10_lineage_status <- ifelse(metadata_day0$assigned_lineage %in% day10_others$assigned_lineage, 'day10_other_lineage', metadata_day0$day10_lineage_status)
+
+# metadata_day0_day10_lineage_status_summary <- metadata_day0 %>%
+#   group_by(day10_lineage_status) %>%
+#   summarise(size = n_distinct(cell_id))
+
 
 winners_df <- metadata_day0[metadata_day0$day10_lineage_status == 'day10_winning_lineage', ]
 others_df <- metadata_day0[metadata_day0$day10_lineage_status == 'day10_other_lineage', ]
@@ -90,24 +112,24 @@ data_others_all$category <- 'others'
 data_all <- as.data.frame(rbind(data_winners_all, data_others_all))
 
 adaptation_genes <- adaptation_genes[adaptation_genes$gene %in% colnames(data_all), ]
-adaptation_genes$abs_correlation <- abs(adaptation_genes$correlation)
-adaptation_genes$corr_dir <- ifelse(adaptation_genes$correlation > 0, 'Pos', 'None')
-adaptation_genes$corr_dir <- ifelse(adaptation_genes$correlation < 0, 'Neg', adaptation_genes$corr_dir)
-adaptation_genes <- adaptation_genes %>%
-  arrange(desc(abs_correlation))
-top_adaptation_genes <- head(adaptation_genes, 20)
-bottom_adaptation_genes <- tail(adaptation_genes, 5)
-other_genes <- adaptation_genes %>% 
-  filter(! gene %in% top_adaptation_genes$gene) %>% 
-  filter(! gene %in% bottom_adaptation_genes$gene) %>% 
-  sample_n(10)
-
-top_adaptation_genes$gene_category <- 'Top'
-bottom_adaptation_genes$gene_category <- 'Bottom'
+# adaptation_genes$abs_correlation <- abs(adaptation_genes$correlation)
+# adaptation_genes$corr_dir <- ifelse(adaptation_genes$correlation > 0, 'Pos', 'None')
+# adaptation_genes$corr_dir <- ifelse(adaptation_genes$correlation < 0, 'Neg', adaptation_genes$corr_dir)
+# adaptation_genes <- adaptation_genes %>%
+#   arrange(desc(abs_correlation))
+# top_adaptation_genes <- head(adaptation_genes, 20)
+# bottom_adaptation_genes <- tail(adaptation_genes, 5)
+# other_genes <- adaptation_genes %>% 
+#   filter(! gene %in% top_adaptation_genes$gene) %>% 
+#   filter(! gene %in% bottom_adaptation_genes$gene) %>% 
+#   sample_n(10)
+# 
+# top_adaptation_genes$gene_category <- 'Top'
+# bottom_adaptation_genes$gene_category <- 'Bottom'
 # other_genes$gene_category <- 'Others'
 
 # genes_to_check <- rbind(top_adaptation_genes, bottom_adaptation_genes, other_genes)
-genes_to_check <- top_adaptation_genes
+genes_to_check <- adaptation_genes
 
 data_to_check <- data_all[, c(genes_to_check$gene, 'category')]
 data_to_check$cell_id <- row.names(data_to_check)
@@ -129,6 +151,55 @@ results$corr_dir <- ifelse(results$correlation < 0, 'Neg', results$corr_dir)
 results[is.na(results)] <- 1
 results$corr_dir <- ifelse(results$corr_dir == 1, 'Others', results$corr_dir)
 results <- results[results$winner_minus_others != 1, ]
+results <- results[results$correlation != 1, ]
+
+genes_of_interest <- c('BACE2', 'ACTB', 'FN1', 'BAAT', 'MYO1D', 'PSD3', 'ANXA2')
+ggplot(results,aes(x = correlation, y = winner_minus_others)) +
+  geom_point() +
+  ggrepel::geom_text_repel(data = subset(results, gene %in% genes_of_interest),
+                           ggplot2::aes(label = gene),
+                           box.padding = ggplot2::unit(2, 'lines'),
+                           point.padding = ggplot2::unit(0.2, 'lines'),
+                           color = 'red',
+                           max.overlaps = 80) +
+  xlim(c(-0.6, 0.6)) +
+  ylim(c(-0.3, 0.3))
+
+# =====================================
+# Performing t-test
+# =====================================
+columns <- c('gene', 'mean_winner', 'mean_other', 't_statistic', 'p_val')
+t_test_results <- data.frame(matrix(ncol = 5, nrow = 0))
+colnames(t_test_results) <- columns
+
+for (g in genes_to_check$gene) {
+  g_winner <- data_to_check[data_to_check$gene == g & data_to_check$cell_lineage_category == 'winners', ]
+  g_other <- data_to_check[data_to_check$gene == g & data_to_check$cell_lineage_category == 'others', ]
+  g_t_test <- t.test(g_winner$RNA_SAVER, g_other$RNA_SAVER, alternative = 'two.sided')
+  t_statistics <- g_t_test[["statistic"]][["t"]]
+  t_test_p_val <- g_t_test[["p.value"]] 
+  one_gene <- data.frame(matrix(ncol = 5, nrow = 1))
+  colnames(one_gene) <- columns
+  one_gene$t_statistic <- t_statistics
+  one_gene$p_val <- t_test_p_val
+  one_gene$mean_winner <- mean(g_winner$RNA_SAVER)
+  one_gene$mean_other <- mean(g_other$RNA_SAVER)
+  one_gene$gene <- g
+  
+  t_test_results <- rbind(t_test_results, one_gene)
+}
+
+t_test_results$p_val_adjust <- p.adjust(t_test_results$p_val, 'BH')
+t_test_results$neg_log10_pval <- (-1) * log10(t_test_results$p_val)
+# =====================================
+# annotate genes
+# =====================================
+t_test_results$gene_set <- 'Others'
+t_test_results$gene_set <- ifelse(t_test_results$gene %in% keygenes['jackpot'][[1]], 'jackpot', t_test_results$gene_set)
+t_test_results$gene_set <- ifelse(t_test_results$gene %in% keygenes['DABTRAM'][[1]], 'DABTRAM', t_test_results$gene_set)
+t_test_results$gene_set <- ifelse(t_test_results$gene %in% keygenes['COCL2'][[1]], 'COCL2', t_test_results$gene_set)
+t_test_results$winner_minus_others <- t_test_results$mean_winner - t_test_results$mean_other
+
 # ==============================================================================
 #  Plotting
 # ==============================================================================
@@ -147,3 +218,18 @@ ggplot(data_to_check, aes(x = reorder(gene, -abs_correlation), y = RNA_SAVER, fi
   scale_color_manual(values=c("#A9A9A9", "#50C878")) +
   theme_bw() + theme(axis.text.x = element_text(angle = 60, vjust = 0.2, hjust=0.2)) +
   coord_cartesian(ylim = c(-1, 1))
+
+# =====================================
+# plot volcano plots
+# =====================================
+t_test_results_keygenes <- t_test_results[t_test_results$gene_set != 'Others', ]
+ggplot() +
+  geom_point(data=t_test_results, aes(x=winner_minus_others, y=neg_log10_pval), color='gray', size=1) +
+  geom_point(data=t_test_results_keygenes, aes(x=winner_minus_others, y=neg_log10_pval), color='red', size=1) +
+  geom_hline(yintercept = 2.6, linetype='dashed') +
+  xlim(c(-0.5, 0.5)) +
+  theme_minimal()
+
+hist(t_test_results$p_val, breaks=100)
+
+# write.csv(t_test_results, paste0("/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/", future_treatment, "_adaptation_genes_diff_t_tests_on_day0_cells.csv"), row.names = FALSE)
