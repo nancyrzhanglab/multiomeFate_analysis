@@ -11,6 +11,8 @@ set.seed(10)
 cis_fasttopics <- all_data[["fasttopic_CIS"]]
 cocl2_fasttopics <- all_data[["fasttopic_COCL2"]]
 dabtram_fasttopics <- all_data[["fasttopic_DABTRAM"]]
+lineage_assignments <- all_data$assigned_lineage
+tab_mat <- table(all_data$dataset, all_data$assigned_lineage)
 
 note <- paste0("From Writeup4e_timeAll_peakmerging_combining_part2.R")
 
@@ -18,4 +20,6 @@ save(date_of_run, session_info,
      cis_fasttopics,
      cocl2_fasttopics,
      dabtram_fasttopics,
+     lineage_assignments,
+     tab_mat,
      file = "../../../../out/kevin/Writeup6n/Writeup6n_topics.RData")
