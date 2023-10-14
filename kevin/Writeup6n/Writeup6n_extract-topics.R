@@ -12,7 +12,7 @@ cis_fasttopics <- all_data[["fasttopic_CIS"]]
 cocl2_fasttopics <- all_data[["fasttopic_COCL2"]]
 dabtram_fasttopics <- all_data[["fasttopic_DABTRAM"]]
 lineage_assignments <- all_data$assigned_lineage
-tab_mat <- table(all_data$dataset, all_data$assigned_lineage)
+tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 
 note <- paste0("From Writeup4e_timeAll_peakmerging_combining_part2.R")
 
