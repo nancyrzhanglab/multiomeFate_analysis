@@ -4,6 +4,7 @@ library(Signac)
 
 load("../../../../out/kevin/Writeup6n/Writeup6n_topics.RData")
 tab_mat <- t(tab_mat)
+load("../../../../out/kevin/Writeup6n/Writeup6n_COCL2_day10_lineage-imputation_stepdown_concise-postprocessed.RData")
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
@@ -12,6 +13,7 @@ set.seed(10)
 cocl2_d10 <- cocl2_fasttopics@cell.embeddings
 cell_idx <- grep("day10_COCL2", names(lineage_assignments))
 cocl2_d10 <- cocl2_d10[cell_idx,]
+growth_potential <- cell_imputed_count[rownames(cocl2_d10)]
 
 # pick the top 3 topics
 sum_vec <- colSums(cocl2_d10)
