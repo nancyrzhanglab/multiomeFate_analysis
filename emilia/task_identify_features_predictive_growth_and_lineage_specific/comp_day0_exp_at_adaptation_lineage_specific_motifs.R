@@ -20,6 +20,7 @@ adaptation_motifs <- read.csv(paste0("/Users/emiliac/Dropbox/Thesis/Lineage_trac
 file_name <- 'chromVar_day0_data'
 load(paste0(dir, file_name, '.RData'))
 data <- chromvar_results_day0
+data <- as.data.frame(data)
 
 metadata_day0 <- read.csv(paste0(dir, 'day0/day0_meta.csv'), row.names = 1)
 metadata_day0$cell_id <- rownames(metadata_day0)
@@ -29,6 +30,11 @@ metadata_day10 <- read.csv(paste0(dir, future_treatment, '/', future_treatment, 
 metadata_day10$cell_id <- rownames(metadata_day10)
 
 motifs <- read.csv('/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/motif_info.csv')
+
+data$motif_code <- rownames(as.data.frame(data))
+data <- merge(data, motifs, by='motif_code')
+rownames(data) <- data$motif_names
+data <- select(data, -c('motif_code', 'motif_names'))
 # ==============================================================================
 # Wrangle data
 # ==============================================================================
@@ -85,13 +91,56 @@ data_winners <- data_winners[, c('feature', 'winners_mean')]
 data_others <- data_others[, c('feature','others_mean')]
 
 # =====================================
+# looking at raw data
+# =====================================
+data_winners_all <- as.data.frame(data[, winners_df$cell_id])
+data_others_all <- as.data.frame(data[, others_df$cell_id])
+
+data_winners_all <- as.data.frame(t(data_winners_all))
+data_others_all <- as.data.frame(t(data_others_all))
+
+data_winners_all$category <- 'winners'
+data_others_all$category <- 'others'
+
+data_all <- as.data.frame(rbind(data_winners_all, data_others_all))
+
+adaptation_motifs <- adaptation_motifs[adaptation_motifs$motif_names %in% colnames(data_all), ]
+adaptation_motifs$abs_correlation <- abs(adaptation_motifs$correlation)
+adaptation_motifs$corr_dir <- ifelse(adaptation_motifs$correlation > 0, 'Pos', 'None')
+adaptation_motifs$corr_dir <- ifelse(adaptation_motifs$correlation < 0, 'Neg', adaptation_motifs$corr_dir)
+adaptation_motifs <- adaptation_motifs %>%
+  arrange(desc(abs_correlation))
+top_adaptation_motifs <- head(adaptation_motifs, 20)
+bottom_adaptation_motifs <- tail(adaptation_motifs, 5)
+other_motif_names <- adaptation_motifs %>%
+  filter(! motif_names %in% top_adaptation_motifs$motif_names) %>%
+  filter(! motif_names %in% bottom_adaptation_motifs$motif_names) %>%
+  sample_n(10)
+
+top_adaptation_motifs$motif_names_category <- 'Top'
+bottom_adaptation_motifs$motif_names_category <- 'Bottom'
+other_motif_names$motif_names_category <- 'Others'
+
+# motif_names_to_check <- rbind(top_adaptation_motifs, bottom_adaptation_motifs, other_motif_names)
+# motif_names_to_check <- top_adaptation_motifs
+motif_names_to_check <- adaptation_motifs
+
+data_to_check <- data_all[, c(motif_names_to_check$motif_names, 'category')]
+data_to_check$cell_id <- row.names(data_to_check)
+data_to_check <- melt(data_to_check, id_vars=c('cell_id', 'category'))
+colnames(data_to_check) <- c('cell_lineage_category', 'cell_id', 'motif_names', 'chromVAR')
+
+data_to_check <- merge(data_to_check, motif_names_to_check, by='motif_names')
+
+
+# =====================================
 # calculate the difference in expression level between winner and other cells
 # =====================================
 data_mean <- merge(data_winners, data_others, by='feature')
 data_mean$winner_minus_others <- data_mean$winners_mean - data_mean$others_mean
-data_mean <- merge(data_mean, motifs, by.x = 'feature', by.y = 'motif_code')
+data_mean <- merge(data_mean, motifs, by.x = 'feature', by.y = 'motif_names')
 
-results <- merge(adaptation_motifs, data_mean, by = 'motif_names', all=TRUE)
+results <- merge(adaptation_motifs, data_mean, by.x = 'motif_names', by.y = 'feature', all=TRUE)
 results$corr_dir <- ifelse(results$correlation > 0, 'Pos', 'None')
 results$corr_dir <- ifelse(results$correlation < 0, 'Neg', results$corr_dir)
 
@@ -99,6 +148,38 @@ results[is.na(results)] <- 1
 results$corr_dir <- ifelse(results$corr_dir == 1, 'Others', results$corr_dir)
 results <- results[results$winner_minus_others != 1, ]
 # results <- results[results$correlation != 1, ]
+
+# =====================================
+# Performing t-test
+# =====================================
+columns <- c('motif_names', 'mean_winner', 'mean_other', 't_statistic', 'p_val')
+t_test_results <- data.frame(matrix(ncol = 5, nrow = 0))
+colnames(t_test_results) <- columns
+
+for (m in motif_names_to_check$motif_names) {
+  m_winner <- data_to_check[data_to_check$motif_names == m & data_to_check$cell_lineage_category == 'winners', ]
+  m_other <- data_to_check[data_to_check$motif_names == m & data_to_check$cell_lineage_category == 'others', ]
+  m_t_test <- t.test(m_winner$chromVAR, m_other$chromVAR, alternative = 'two.sided')
+  t_statistics <- m_t_test[["statistic"]][["t"]]
+  t_test_p_val <- m_t_test[["p.value"]] 
+  one_motif <- data.frame(matrix(ncol = 5, nrow = 1))
+  colnames(one_motif) <- columns
+  one_motif$t_statistic <- t_statistics
+  one_motif$p_val <- t_test_p_val
+  one_motif$mean_winner <- mean(m_winner$chromVAR)
+  one_motif$mean_other <- mean(m_other$chromVAR)
+  one_motif$motif_names <- m
+  
+  t_test_results <- rbind(t_test_results, one_motif)
+}
+
+t_test_results$p_val_adjust <- p.adjust(t_test_results$p_val, 'BH')
+t_test_results$neg_log10_pval <- (-1) * log10(t_test_results$p_val)
+
+# =====================================
+# annotate 
+# =====================================
+t_test_results$winner_minus_others <- t_test_results$mean_winner - t_test_results$mean_other
 
 # ==============================================================================
 #  Plotting
@@ -111,3 +192,32 @@ ggplot(results, aes(x = factor(corr_dir, levels = c('Pos', 'Neg', 'Others')), y=
   ylim(c(-0.7, 0.7)) +
   theme_bw()
 
+ggplot(data_to_check, aes(x = reorder(motif_names, -abs_correlation), y = chromVAR, fill=cell_lineage_category, color=corr_dir)) +
+  geom_boxplot(lwd=0.8) +
+  scale_fill_manual(values=c("#A7C7E7", "#ff0000")) +
+  scale_color_manual(values=c("#A9A9A9", "#50C878")) +
+  theme_bw() + theme(axis.text.x = element_text(angle = 60, vjust = 0.2, hjust=0.2)) +
+  coord_cartesian(ylim = c(-5, 5))
+
+# =====================================
+# plot volcano plots
+# =====================================
+t_test_results <- merge(t_test_results, adaptation_motifs[, c("motif_names", "correlation")], by='motif_names')
+t_test_results <- t_test_results %>%
+  arrange(desc(correlation))
+features_to_label <- head(t_test_results, 10)$motif_names
+features_to_label <- c(features_to_label, tail(t_test_results, 10)$motif_names)
+
+ggplot(data=t_test_results, aes(x=winner_minus_others, y=neg_log10_pval)) +
+  geom_point(color='gray', size=1) +
+  ggrepel::geom_text_repel(data = subset(t_test_results, motif_names %in% features_to_label),
+                           ggplot2::aes(label = motif_names),
+                           box.padding = ggplot2::unit(1, 'lines'),
+                           point.padding = ggplot2::unit(0.1, 'lines'),
+                           color = 'blue',
+                           max.overlaps = 80) +
+  geom_hline(yintercept = 3.2, linetype='dashed') +
+  xlim(c(-0.7, 0.7)) +
+  theme_minimal()
+
+hist(t_test_results$p_val, breaks=100)
