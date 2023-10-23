@@ -37,7 +37,7 @@ all_data <- subset(all_data, keep == TRUE)
 
 print("Saving")
 # https://mojaveazure.github.io/seurat-disk/articles/convert-anndata.html
-SeuratDisk::SaveH5Seurat(pbmc3k.final, filename = "../../../../out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS.h5Seurat")
+SeuratDisk::SaveH5Seurat(all_data, filename = "../../../../out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS.h5Seurat")
 SeuratDisk::Convert("../../../../out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS.h5Seurat", dest = "h5ad")
 
 print("Done! :)")
