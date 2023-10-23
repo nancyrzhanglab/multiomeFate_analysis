@@ -9,6 +9,8 @@ all_data
 
 print("Removing unnecessary modalities")
 Seurat::DefaultAssay(all_data) <- "ATAC"
+all_data[["activityPCA"]] <- NULL
+all_data[["saverumap"]] <- NULL
 all_data[["pca"]] <- NULL
 all_data[["umap"]] <- NULL
 all_data[["lsi"]] <- NULL
@@ -20,9 +22,10 @@ all_data[["fasttopic_DABTRAM"]] <- NULL
 all_data[["common_tcca"]] <- NULL
 all_data[["distinct1_tcca"]] <- NULL
 all_data[["distinct2_tcca"]] <- NULL
-all_data[["chromvar"]] <- NULL
 all_data[["RNA"]] <- NULL
 all_data[["Saver"]] <- NULL
+all_data[["Lineage"]] <- NULL
+all_data[["geneActivity"]] <- NULL
 
 print("Subsetting")
 all_data <- subset(all_data, dataset == "CIS")
