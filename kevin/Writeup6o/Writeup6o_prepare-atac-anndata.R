@@ -27,8 +27,13 @@ all_data[["Saver"]] <- NULL
 all_data[["Lineage"]] <- NULL
 all_data[["geneActivity"]] <- NULL
 
+all_data
+
 print("Subsetting")
-all_data <- subset(all_data, dataset == "CIS")
+keep_vec <- rep(FALSE, ncol(all_data))
+keep_vec[which(all_data$dataset %in% c("day0", "day10_CIS", "week5_CIS"))] <- TRUE
+all_data$keep <- keep_vec
+all_data <- subset(all_data, keep == TRUE)
 
 print("Saving")
 # https://mojaveazure.github.io/seurat-disk/articles/convert-anndata.html
