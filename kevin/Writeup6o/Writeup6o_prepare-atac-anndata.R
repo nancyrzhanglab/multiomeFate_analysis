@@ -36,7 +36,6 @@ keep_vec[which(all_data$dataset %in% c("day0", "day10_CIS", "week5_CIS"))] <- TR
 all_data$keep <- keep_vec
 all_data <- subset(all_data, keep == TRUE)
 all_data[["ATAC"]]@motifs <- NULL # see https://github.com/mojaveazure/seurat-disk/issues/15#issuecomment-1544286445
-all_data[["ATAC"]]@positionEnrichment <- NULL
 all_data[["ATAC"]]@data <- NULL
 all_data[["ATAC"]]@scale.data <- NULL
 
