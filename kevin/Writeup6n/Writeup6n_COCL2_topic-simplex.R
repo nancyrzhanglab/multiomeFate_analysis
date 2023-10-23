@@ -16,24 +16,24 @@ cocl2_d10 <- cocl2_d10[cell_idx,]
 growth_potential <- cell_imputed_count[rownames(cocl2_d10)]
 
 # pick the top 3 topics
-sum_vec <- colSums(cocl2_d10)
-col_idx <- order(sum_vec, decreasing = T)[1:3]
-sd_vec <- apply(cocl2_d10, 2, sd)
-round(sort(sd_vec*100, decreasing = T))
-
-cocl2_d10 <- cocl2_d10[,col_idx]
-sum_vec <- rowSums(cocl2_d10)
-min_val <- 0.1
-cocl2_d10 <- cocl2_d10[sum_vec >= min_val,]
-for(i in 1:nrow(cocl2_d10)){
-  cocl2_d10[i,] <- cocl2_d10[i,]/sum(cocl2_d10[i,])
-}
+# cor_vec <- sapply(1:ncol(cocl2_d10), function(j){
+#   abs(stats::cor(cocl2_d10[,j], growth_potential))
+# })
+# col_idx <- order(cor_vec, decreasing = T)[1:3]
+# 
+# cocl2_d10 <- cocl2_d10[,col_idx]
+# sum_vec <- rowSums(cocl2_d10)
+# min_val <- 0.1
+# cocl2_d10 <- cocl2_d10[sum_vec >= min_val,]
+# for(i in 1:nrow(cocl2_d10)){
+#   cocl2_d10[i,] <- cocl2_d10[i,]/sum(cocl2_d10[i,])
+# }
 
 lineage_vec <- lineage_assignments[rownames(cocl2_d10)]
 tab_vec <- table(lineage_vec)
 lineage_names <- names(tab_vec)[which(tab_vec >= 20)]
 
-save(cocl2_d10, lineage_names, lineage_vec, tab_mat,
+save(cocl2_d10, lineage_names, lineage_vec, tab_mat, growth_potential,
      file = "../../../../out/kevin/Writeup6n/Writeup6n_COCL2_topic-simplex.RData")
 
 
