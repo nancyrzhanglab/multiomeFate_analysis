@@ -38,8 +38,9 @@ all_data$keep <- keep_vec
 all_data <- subset(all_data, keep == TRUE)
 all_data[["ATAC"]]@motifs <- NULL # see https://github.com/mojaveazure/seurat-disk/issues/15#issuecomment-1544286445
 all_data[["ATAC"]]@positionEnrichment <- list()
-all_data[["ATAC"]]@data <- Matrix::Matrix(0, nrow = 2, ncol = ncol(all_data), sparse = T)
-all_data[["ATAC"]]@scale.data <- matrix(0, nrow = 2, ncol = ncol(all_data))
+all_data <- Seurat::DietSeurat(all_data, counts = TRUE, 
+                               data = FALSE,
+                               scale.data = FALSE)
 
 print("Saving")
 # https://mojaveazure.github.io/seurat-disk/articles/convert-anndata.html
