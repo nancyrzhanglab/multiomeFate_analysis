@@ -38,8 +38,9 @@ all_data$keep <- keep_vec
 all_data <- subset(all_data, keep == TRUE)
 all_data[["ATAC"]]@motifs <- NULL # see https://github.com/mojaveazure/seurat-disk/issues/15#issuecomment-1544286445
 all_data[["ATAC"]]@positionEnrichment <- list()
-all_data <- Seurat::DietSeurat(all_data, counts = TRUE, 
-                               data = FALSE,
+all_data <- Seurat::DietSeurat(all_data, 
+                               counts = TRUE, 
+                               data = TRUE,
                                scale.data = FALSE)
 
 print("Saving")
