@@ -10,6 +10,7 @@ all_data
 print("Removing unnecessary modalities")
 Seurat::DefaultAssay(all_data) <- "ATAC"
 all_data[["activityPCA"]] <- NULL
+all_data[["activity.umap"]] <- NULL
 all_data[["saverumap"]] <- NULL
 all_data[["pca"]] <- NULL
 all_data[["umap"]] <- NULL
@@ -43,6 +44,6 @@ all_data[["ATAC"]]@scale.data <- matrix(0, nrow = 2, ncol = ncol(all_data))
 print("Saving")
 # https://mojaveazure.github.io/seurat-disk/articles/convert-anndata.html
 SeuratDisk::SaveH5Seurat(all_data, filename = "../../../../out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS.h5Seurat")
-SeuratDisk::Convert("../../../../out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS.h5Seurat", dest = "h5ad")
+SeuratDisk::Convert("../../../../out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS.h5Seurat", dest = "h5ad", misc = F)
 
 print("Done! :)")
