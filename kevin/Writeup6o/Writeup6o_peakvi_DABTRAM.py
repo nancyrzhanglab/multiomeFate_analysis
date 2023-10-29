@@ -12,7 +12,7 @@ import torch
 # see https://docs.scvi-tools.org/en/stable/tutorials/notebooks/atac/PeakVI.html
 
 sc.set_figure_params(figsize=(4, 4), frameon=False)
-torch.set_float32_matmul_preDABTRAMion("high")
+torch.set_float32_matmul_precision("high")
 
 adata = scvi.data.read_h5ad("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup6o/Writeup6o_all-data-atac_DABTRAM.h5ad")
 adata
