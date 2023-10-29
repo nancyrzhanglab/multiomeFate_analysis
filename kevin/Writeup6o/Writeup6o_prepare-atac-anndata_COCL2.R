@@ -5,7 +5,7 @@ library(SeuratDisk)
 
 load("../../../../out/kevin/Writeup6m/Writeup6m_all-data.RData")
 
-all_data
+treatment <- "COCL2"
 
 print("Removing unnecessary modalities")
 Seurat::DefaultAssay(all_data) <- "ATAC"
@@ -33,7 +33,7 @@ all_data[["ATAC"]]
 
 print("Subsetting")
 keep_vec <- rep(FALSE, ncol(all_data))
-keep_vec[which(all_data$dataset %in% c("day0", "day10_CIS", "week5_CIS"))] <- TRUE
+keep_vec[which(all_data$dataset %in% c("day0", paste0("day10_", treatment), paste0("week5_", treatment)))] <- TRUE
 all_data$keep <- keep_vec
 all_data <- subset(all_data, keep == TRUE)
 all_data[["ATAC"]]@motifs <- NULL # see https://github.com/mojaveazure/seurat-disk/issues/15#issuecomment-1544286445
@@ -45,7 +45,9 @@ all_data <- Seurat::DietSeurat(all_data,
 
 print("Saving")
 # https://mojaveazure.github.io/seurat-disk/articles/convert-anndata.html
-SeuratDisk::SaveH5Seurat(all_data, filename = "../../../../out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS.h5Seurat")
-SeuratDisk::Convert("../../../../out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS.h5Seurat", dest = "h5ad", misc = F)
+SeuratDisk::SaveH5Seurat(all_data, 
+                         filename = paste0("../../../../out/kevin/Writeup6o/Writeup6o_all-data-atac_", treatment, ".h5Seurat"))
+SeuratDisk::Convert(paste0("../../../../out/kevin/Writeup6o/Writeup6o_all-data-atac_", treatment, ".h5Seurat"), 
+                           dest = "h5ad", misc = F)
 
 print("Done! :)")

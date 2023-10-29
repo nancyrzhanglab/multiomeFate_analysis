@@ -57,3 +57,5 @@ sc.tl.leiden(adata, key_added=PEAKVI_CLUSTERS_KEY, resolution=0.2)
 
 sc.pl.umap(adata, color=PEAKVI_CLUSTERS_KEY)
 plt.savefig("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/figures/kevin/Writeup6o/Writeup6o_peakVI_umap_plot.png", dpi=300)
+
+print("Done! :)")
