@@ -166,5 +166,9 @@ p1 <- p1 + ggplot2::labs(y = "DABTRAM", x = "COCL2")
 ggplot2::ggsave(filename = "../../../../out/figures/Writeup6n/Writeup6n_lineage-imputation_day0-comparison_gene-corr_ggrepel_COCL2-DABTRAM.png",
                 p1, device = "png", width = 6, height = 6, units = "in")
 
+###########################
 
+save(cis_cor_vec, cocl2_cor_vec, dabtram_cor_vec,
+     session_info, date_of_run,
+     file = paste0("../../../../out/kevin/Writeup6n/Writeup6n_correlation-with-growthpotential_", tp_early, ".RData"))
 
