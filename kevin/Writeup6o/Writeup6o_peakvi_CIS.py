@@ -33,11 +33,11 @@ model = scvi.model.PEAKVI(adata)
 model.train()
 
 model.save("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS_peakVI", overwrite=True)
+# model = scvi.model.PEAKVI.load("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS_peakVI", adata=adata)
 
 PEAKVI_LATENT_KEY = "X_peakvi"
 
 latent = model.get_latent_representation()
-pd.DataFrame(latent).to_csv('', index=False)
 adata.obsm[PEAKVI_LATENT_KEY] = latent
 
 print("Saving peakVI as CSV")
@@ -52,10 +52,12 @@ PEAKVI_CLUSTERS_KEY = "dataset"
 sc.pp.neighbors(adata, use_rep=PEAKVI_LATENT_KEY)
 # compute the umap
 sc.tl.umap(adata, min_dist=0.2)
-# cluster the space (we use a lower resolution to get fewer clusters than the default)
-sc.tl.leiden(adata, key_added=PEAKVI_CLUSTERS_KEY, resolution=0.2)
 
-sc.pl.umap(adata, color=PEAKVI_CLUSTERS_KEY)
+sc.pl.umap(adata, 
+           color=PEAKVI_CLUSTERS_KEY,
+           legend_loc='on data',
+           legend_fontsize=12, 
+           legend_fontoutline=2)
 plt.savefig("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/figures/kevin/Writeup6o/Writeup6o_peakVI_umap-CIS_plot.png", dpi=300)
 
 print("Done! :)")
