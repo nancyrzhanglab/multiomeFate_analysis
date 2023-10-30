@@ -1,21 +1,47 @@
-import os
-import tempfile
+import datetime
+import io
+import random
+import sys
 
-import leidenalg
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scanpy as sc
 import scvi
+import session_info
 import torch
 
-# see https://docs.scvi-tools.org/en/stable/tutorials/notebooks/atac/PeakVI.html
 
-sc.set_figure_params(figsize=(4, 4), frameon=False)
+def capture_output(func):
+    """
+    Capture the output of a function that prints to consule
+
+    Parameters:
+    - func: Function that is run without parameters
+
+    Returns:
+    - The output of func()
+    """
+    original_stdout = sys.stdout
+    new_stdout = io.StringIO()
+    sys.stdout = new_stdout
+    func()
+    sys.stdout = original_stdout
+    captured_output = new_stdout.getvalue()
+    new_stdout.close()
+    return captured_output
+
+
+date_of_run = datetime.datetime.now()
+sessionInfo = capture_output(session_info.show)
 torch.set_float32_matmul_precision("high")
+torch.manual_seed(0)
+random.seed(0)
+np.random.seed(0)
+scvi.settings.seed = 0
 
+# see https://docs.scvi-tools.org/en/stable/tutorials/notebooks/atac/PeakVI.html
 adata = scvi.data.read_h5ad("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS.h5ad")
-adata
 
 print("# regions before filtering:", adata.shape[-1])
 
@@ -59,5 +85,14 @@ sc.pl.umap(adata,
            legend_fontsize=12, 
            legend_fontoutline=2)
 plt.savefig("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/figures/kevin/Writeup6o/Writeup6o_peakVI_umap-CIS_plot.png", dpi=300)
+
+
+data_dict = {
+    'date_of_run': date_of_run,
+    'session_info': sessionInfo
+}
+
+# Save the dictionaries
+torch.save(data_dict, '/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS_peakVI_metadata.pt')
 
 print("Done! :)")

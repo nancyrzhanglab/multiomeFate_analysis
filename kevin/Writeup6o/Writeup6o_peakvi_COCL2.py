@@ -53,8 +53,11 @@ sc.pp.neighbors(adata, use_rep=PEAKVI_LATENT_KEY)
 # compute the umap
 sc.tl.umap(adata, min_dist=0.2)
 
-sc.pl.umap(adata, color=PEAKVI_CLUSTERS_KEY,
-           legend_loc='on data')
+sc.pl.umap(adata, 
+           color=PEAKVI_CLUSTERS_KEY,
+           legend_loc='on data',
+           legend_fontsize=12, 
+           legend_fontoutline=2)
 plt.savefig("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/figures/kevin/Writeup6o/Writeup6o_peakVI_umap-COCL2_plot.png", dpi=300)
 
 print("Done! :)")
