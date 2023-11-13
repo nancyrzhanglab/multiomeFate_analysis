@@ -28,7 +28,7 @@ cell_features_full <- cbind(1, scale(topic_mat), scale(atac_mat))
 p <- ncol(cell_features_full)
 colnames(cell_features_full)[1] <- "Intercept"
 
-cell_lineage <- all_data2$assigned_lineage
+cell_lineage <- all_data$assigned_lineage
 uniq_lineage <- sort(unique(cell_lineage))
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 lineage_current_count <- tab_mat[uniq_lineage, paste0("day10_", treatment)]
