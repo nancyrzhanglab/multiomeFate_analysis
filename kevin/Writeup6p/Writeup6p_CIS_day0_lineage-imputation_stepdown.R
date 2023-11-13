@@ -21,19 +21,10 @@ all_data <- subset(all_data, keep == TRUE)
 
 # construct cell_features matrix
 topic_mat <- all_data[[paste0("fasttopic_", treatment)]]@cell.embeddings
-atac_mat <- all_data[[paste0("peakVI", treatment)]]@cell.embeddings
+atac_mat <- all_data[[paste0("peakVI_", treatment)]]@cell.embeddings
 
-log10pval_vec <- sapply(1:ncol(atac_mat), function(j){
-  x <- atac_mat[,j]
-  y <- as.factor(all_data2$tier)
-  res <- stats::oneway.test(x ~ y)
-  -log10(res$p.value)
-})
-names(log10pval_vec) <- colnames(atac_mat)
-
-# let's try using all the topics #Clueless
-cell_features_full <- cbind(1, scale(topic_mat), 
-                            scale(atac_mat[,which(log10pval_vec >= 2)]))
+# let's try using all the topics
+cell_features_full <- cbind(1, scale(topic_mat), scale(atac_mat))
 p <- ncol(cell_features_full)
 colnames(cell_features_full)[1] <- "Intercept"
 
@@ -99,7 +90,7 @@ while(TRUE){
   iteration <- iteration+1
   
   save(coefficient_list_list, date_of_run, session_info,
-       file = paste0("../../../../out/kevin/Writeup6n/Writeup6n_", treatment, "_day0_lineage-imputation_stepdown-tmp.RData"))
+       file = paste0("../../../../out/kevin/Writeup6p/Writeup6p_", treatment, "_day0_lineage-imputation_stepdown-tmp.RData"))
 }
 
 save(date_of_run, session_info,
@@ -109,6 +100,6 @@ save(date_of_run, session_info,
      lineage_current_count,
      lineage_future_count,
      tab_mat,
-     file = paste0("../../../../out/kevin/Writeup6n/Writeup6n_", treatment, "_day0_lineage-imputation_stepdown.RData"))
+     file = paste0("../../../../out/kevin/Writeup6p/Writeup6p_", treatment, "_day0_lineage-imputation_stepdown.RData"))
 
 print("Done! :)")
