@@ -39,7 +39,8 @@ for(treatment in treatment_vec){
   # put in the embedding
   dimred_mat[rownames(peakvi_mat),] <- peakvi_mat
   
-  all_data[[paste0("peakVI", treatment)]] <- Seurat::CreateDimReducObject(dimred_mat,
+  print(colnames(dimred_mat))
+  all_data[[paste0("peakVI_", treatment)]] <- Seurat::CreateDimReducObject(dimred_mat,
                                                                           assay = "ATAC")
 }
 
@@ -47,5 +48,17 @@ print("Saving")
 save(date_of_run, session_info,
      all_data,
      file = "../../../../out/kevin/Writeup6o/Writeup6o_all-data_peakvi.RData")
+
+# make a lightweight version
+set.seed(10)
+keep_vec <- rep(FALSE, ncol(all_data))
+keep_vec[sample(1:length(keep_vec), 100)] <- TRUE
+all_data$keep <- keep_vec
+all_data <- subset(all_data, keep == TRUE)
+
+print("Saving lightweight")
+save(date_of_run, session_info,
+     all_data,
+     file = "../../../../out/kevin/Writeup6o/Writeup6o_all-data_peakvi_lightweight.RData")
 
 print("Done! :)")
