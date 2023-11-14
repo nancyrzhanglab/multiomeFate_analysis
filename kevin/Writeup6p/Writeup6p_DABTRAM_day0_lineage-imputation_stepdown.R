@@ -19,6 +19,14 @@ keep_vec[idx] <- TRUE
 all_data$keep <- keep_vec
 all_data <- subset(all_data, keep == TRUE)
 
+tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
+
+# keep only the relevant cells for this analysis
+keep_vec <- rep(FALSE, ncol(all_data))
+keep_vec[which(all_data$dataset == "day0")] <- TRUE
+all_data$keep <- keep_vec
+all_data <- subset(all_data, keep == TRUE)
+
 # construct cell_features matrix
 topic_mat <- all_data[[paste0("fasttopic_", treatment)]]@cell.embeddings
 atac_mat <- all_data[[paste0("peakVI_", treatment)]]@cell.embeddings
@@ -30,7 +38,6 @@ colnames(cell_features_full)[1] <- "Intercept"
 
 cell_lineage <- all_data$assigned_lineage
 uniq_lineage <- sort(unique(cell_lineage))
-tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
 lineage_current_count <- tab_mat[uniq_lineage, "day0"]
 lineage_future_count <- tab_mat[uniq_lineage, paste0("day10_", treatment)]
 
