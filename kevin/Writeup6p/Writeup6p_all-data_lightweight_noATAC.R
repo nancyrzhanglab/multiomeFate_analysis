@@ -4,7 +4,7 @@ library(Signac)
 library(GenomicRanges)
 library(IRanges)
 
-load("../../../../out/kevin/Writeup6m/Writeup6m_all-data.RData")
+load("../../../../out/kevin/Writeup6o/Writeup6o_all-data_peakvi.RData")
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
