@@ -5,7 +5,7 @@ library(GenomicRanges)
 library(multiomeFate)
 library(IRanges)
 
-treatment <- "CIS"
+treatment <- "DABTRAM"
 tp_early <- "day0" #timepoint
 tp_later <- "day10"
 load(paste0("../../../../out/kevin/Writeup6p/Writeup6p_", treatment, "_", tp_early, "_lineage-imputation_stepdown_step2.RData"))
