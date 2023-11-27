@@ -41,9 +41,9 @@ lineage_current_count <- tab_mat[uniq_lineage, paste0("day10_", treatment)]
 lineage_future_count <- tab_mat[uniq_lineage, paste0("week5_", treatment)]
 
 # do some initializations
-tmp <- .lineage_cleanup(cell_features = cell_features,
-                        cell_lineage = cell_lineage,
-                        lineage_future_count = lineage_future_count)
+tmp <- multiomeFate:::.lineage_cleanup(cell_features = cell_features,
+                                       cell_lineage = cell_lineage,
+                                       lineage_future_count = lineage_future_count)
 cell_features <- tmp$cell_features
 cell_lineage <- tmp$cell_lineage
 lineage_future_count <- tmp$lineage_future_count
