@@ -32,14 +32,21 @@ topic_mat <- all_data[[paste0("fasttopic_", treatment)]]@cell.embeddings
 atac_mat <- all_data[[paste0("peakVI_", treatment)]]@cell.embeddings
 
 # let's try using all the topics
-cell_features_full <- cbind(1, scale(topic_mat), scale(atac_mat))
-p <- ncol(cell_features_full)
-colnames(cell_features_full)[1] <- "Intercept"
+cell_features <- cbind(scale(topic_mat), scale(atac_mat))
+p <- ncol(cell_features)
 
 cell_lineage <- all_data$assigned_lineage
 uniq_lineage <- sort(unique(cell_lineage))
 lineage_current_count <- tab_mat[uniq_lineage, paste0("day10_", treatment)]
 lineage_future_count <- tab_mat[uniq_lineage, paste0("week5_", treatment)]
+
+# do some initializations
+tmp <- .lineage_cleanup(cell_features = cell_features,
+                        cell_lineage = cell_lineage,
+                        lineage_future_count = lineage_future_count)
+cell_features <- tmp$cell_features
+cell_lineage <- tmp$cell_lineage
+lineage_future_count <- tmp$lineage_future_count
 
 tmp_res <- multiomeFate:::.compute_initial_parameters(
   cell_features = cell_features,
@@ -64,7 +71,7 @@ names(loocv_fit_list) <- loocv_lineages
 for(i in 1:loocv_len){
   print(paste0("Dropping lineage #", i, " out of ", loocv_len, " (", loocv_lineages[i], ")"))
   
-  cell_features_train <- cell_features[-loocv_idx_list[[i]],var_names,drop = F]
+  cell_features_train <- cell_features[-loocv_idx_list[[i]],,drop = F]
   cell_lineage_train <- cell_lineage[-loocv_idx_list[[i]]]
   lineage_future_count_train <- lineage_future_count[-which(names(lineage_future_count) == loocv_lineages[i])]
   
@@ -74,7 +81,7 @@ for(i in 1:loocv_len){
     cell_lineage = cell_lineage_train,
     lambda_initial = lambda_initial,
     lineage_future_count = lineage_future_count_train,
-    verbose = 0
+    verbose = 1
   )
   
   save(loocv_fit_list, date_of_run, session_info,
@@ -82,7 +89,7 @@ for(i in 1:loocv_len){
 }
 
 save(date_of_run, session_info,
-     cell_features_full,
+     cell_features,
      cell_lineage,
      lineage_current_count,
      lineage_future_count,
