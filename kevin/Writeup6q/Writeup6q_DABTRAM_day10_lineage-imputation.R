@@ -41,10 +41,12 @@ uniq_lineage <- sort(unique(cell_lineage))
 lineage_current_count <- tab_mat[uniq_lineage, paste0("day10_", treatment)]
 lineage_future_count <- tab_mat[uniq_lineage, paste0("week5_", treatment)]
 
-tmp_res <- .compute_initial_parameters(cell_features = cell_features,
-                                       cell_lineage = cell_lineage,
-                                       lineage_future_count = lineage_future_count,
-                                       multipler = 1e4)
+tmp_res <- multiomeFate:::.compute_initial_parameters(
+  cell_features = cell_features,
+  cell_lineage = cell_lineage,
+  lineage_future_count = lineage_future_count,
+  multipler = 1e4
+)
 lambda_initial <- tmp_res$lambda_initial
 
 loocv_lineages <- rownames(tab_mat)[intersect(which(tab_mat[,paste0("week5_", treatment)] >= 20),
