@@ -65,7 +65,7 @@ loocv_idx_list <- lapply(loocv_lineages, function(lineage){
 
 #########################
 
-loocv_fit_list <- numeric("list", length = loocv_len)
+loocv_fit_list <- vector("list", length = loocv_len)
 names(loocv_fit_list) <- loocv_lineages
 
 for(i in 1:loocv_len){
