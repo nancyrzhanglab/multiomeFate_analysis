@@ -133,8 +133,9 @@ for(i in 1:loocv_len){
                                     train_loglik = train_loglik,
                                     train_fit = train_fit)
   
+  
   save(loocv_fit_list, date_of_run, session_info,
-       file = paste0("../../../../out/kevin/Writeup6q/Writeup6q_", treatment, "_day0_lineage-imputation-tmp.RData"))
+       file = paste0("../../../../out/kevin/Writeup6q/Writeup6q_", treatment, "_", day_early, "_lineage-imputation-tmp.RData"))
 }
 
 save(date_of_run, session_info,
@@ -144,6 +145,6 @@ save(date_of_run, session_info,
      lineage_future_count,
      loocv_fit_list, 
      tab_mat,
-     file = paste0("../../../../out/kevin/Writeup6q/Writeup6q_", treatment, "_day0_lineage-imputation.RData"))
+     file = paste0("../../../../out/kevin/Writeup6q/Writeup6q_", treatment, "_", day_early, "day0_lineage-imputation.RData"))
 
 print("Done! :)")
