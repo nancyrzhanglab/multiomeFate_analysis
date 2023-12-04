@@ -90,7 +90,7 @@ for(i in 1:loocv_len){
     cell_features = cell_features_train,
     cell_lineage = cell_lineage_train,
     lambda_initial = lambda_initial,
-    lambda_sequence_length = 30,
+    lambda_sequence_length = 50,
     lineage_future_count = lineage_future_count_train,
     verbose = 1
   )
