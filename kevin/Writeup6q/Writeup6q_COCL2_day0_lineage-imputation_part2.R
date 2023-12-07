@@ -1,7 +1,7 @@
 rm(list=ls())
 library(Seurat)
 
-treatment <- "CIS"
+treatment <- "COCL2"
 day_early <- "day0"
 day_later <- "day10"
 day_early_full <- day_early

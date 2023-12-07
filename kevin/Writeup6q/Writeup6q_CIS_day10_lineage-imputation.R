@@ -59,7 +59,7 @@ tmp_res <- multiomeFate:::.compute_initial_parameters(
   lineage_future_count = lineage_future_count,
   multipler = 1e4
 )
-lambda_initial <- tmp_res$lambda_initial
+lambda_initial <- 10
 
 loocv_lineages <- rownames(tab_mat)[intersect(which(tab_mat[,day_later_full] >= 20),
                                               which(tab_mat[,day_early_full] >= 1))]
@@ -145,6 +145,6 @@ save(date_of_run, session_info,
      lineage_future_count,
      loocv_fit_list, 
      tab_mat,
-     file = paste0("../../../../out/kevin/Writeup6q/Writeup6q_", treatment, "_", day_early, "day0_lineage-imputation.RData"))
+     file = paste0("../../../../out/kevin/Writeup6q/Writeup6q_", treatment, "_", day_early, "_lineage-imputation.RData"))
 
 print("Done! :)")

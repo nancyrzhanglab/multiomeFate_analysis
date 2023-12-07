@@ -2,9 +2,9 @@ rm(list=ls())
 library(Seurat)
 
 treatment <- "CIS"
-day_early <- "day0"
-day_later <- "day10"
-day_early_full <- day_early
+day_early <- "day10"
+day_later <- "week5"
+day_early_full <- paste0(day_early, "_", treatment)
 day_later_full <- paste0(day_later, "_", treatment)
 
 load(paste0("../../../../out/kevin/Writeup6q/Writeup6q_", treatment, "_", day_early, "_lineage-imputation.RData"))
@@ -114,12 +114,6 @@ set.seed(10)
 all_data <- Seurat::RunUMAP(all_data, 
                             reduction = paste0("fasttopic_", treatment),
                             dims = 1:30)
-
-plot1 <- Seurat::DimPlot(all_data, reduction = "umap",
-                         group.by = "dataset", pt.size = .3, label = T)
-plot1 <- plot1 + Seurat::NoLegend()
-ggplot2::ggsave(filename = paste0("../../../../out/figures/kevin/Writeup6q/Writeup6q_", treatment, "_umap.png"),
-                plot1, device = "png", width = 5, height = 4, units = "in")
 
 ############################
 
