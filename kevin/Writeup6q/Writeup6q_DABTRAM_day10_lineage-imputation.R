@@ -107,7 +107,7 @@ for(i in 1:loocv_len){
                                           cell_lineage = cell_lineage_train,
                                           coefficient_vec = train_fit$fit_list[[kk]]$coefficient_vec,
                                           lineage_future_count = lineage_future_count_train,
-                                          lambda = lambda_sequence[kk])
+                                          lambda = 0)
   })
   
   # round(sapply(train_fit$fit_list, function(x){ x$coefficient_vec }),2)
@@ -124,7 +124,7 @@ for(i in 1:loocv_len){
                                           cell_lineage = cell_lineage_test,
                                           coefficient_vec = train_fit$fit_list[[kk]]$coefficient_vec,
                                           lineage_future_count = lineage_future_count_test,
-                                          lambda = lambda_sequence[kk])
+                                          lambda = 0)
   })
   
   #################
