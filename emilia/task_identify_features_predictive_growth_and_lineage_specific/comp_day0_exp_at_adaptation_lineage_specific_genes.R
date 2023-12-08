@@ -2,7 +2,7 @@ library(tidyverse)
 library(data.table)
 
 dir <- '~/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/'
-future_treatment <- 'day10_DABTRAM'
+future_treatment <- 'day10_CIS'
 keygenes <- list(
   jackpot = sort(c("SOX10", "MITF", "FN1", "AXL", "EGFR", "NT5E",
                    "C1S", "FRZB", "SERPINB2", "SERPINE1", "NGFR",
@@ -23,7 +23,7 @@ keygenes <- list(
 # ==============================================================================
 
 # growth potential
-load(paste0(dir, future_treatment, '/Writeup6n_DABTRAM_day10_lineage-imputation_stepdown_concise-postprocessed.RData'))
+load(paste0(dir, future_treatment, '/Writeup6n_CIS_day10_lineage-imputation_stepdown_concise-postprocessed.RData'))
 growth_potential_use <- cell_imputed_count
 growth_potential_use <- growth_potential_use[!is.na(growth_potential_use)]
 
@@ -150,8 +150,8 @@ results$corr_dir <- ifelse(results$correlation < 0, 'Neg', results$corr_dir)
 
 results[is.na(results)] <- 1
 results$corr_dir <- ifelse(results$corr_dir == 1, 'Others', results$corr_dir)
-results <- results[results$winner_minus_others != 1, ]
-results <- results[results$correlation != 1, ]
+# results <- results[results$winner_minus_others != 1, ]
+# results <- results[results$correlation != 1, ]
 
 genes_of_interest <- c('BACE2', 'ACTB', 'FN1', 'BAAT', 'MYO1D', 'PSD3', 'ANXA2')
 ggplot(results,aes(x = correlation, y = winner_minus_others)) +
@@ -204,13 +204,20 @@ t_test_results$winner_minus_others <- t_test_results$mean_winner - t_test_result
 #  Plotting
 # ==============================================================================
 
+t_test_results <- read_csv(paste0("/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/", future_treatment, "_adaptation_genes_diff_t_tests_on_day0_cells.csv"))
+t_test_results_sig <- t_test_results[t_test_results$p_val_adjust < 0.05, ]
+results$sig_by_t_test <- ifelse(results$gene %in% t_test_results_sig$gene, 'Yes', 'No')
+results_sig <- results[results$sig_by_t_test == 'Yes', ]
+
 ggplot(results, aes(x = factor(corr_dir, levels = c('Pos', 'Neg', 'Others')), y=winner_minus_others)) +
   geom_boxplot(outlier.alpha = 0) +
-  geom_jitter(alpha=0.3, size=1) +
+  geom_jitter(alpha=0.5, size=1, aes(color=sig_by_t_test)) +
+  scale_color_manual(values=c("#A9A9A9", "#ff0000")) +
   xlab('Correlation direction') +
   ylim(c(-0.4, 0.4)) +
   theme_bw()
 
+ggsave(paste0("/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/", future_treatment, "_adaptation_genes_diff_t_tests_on_day0_cells.png"))
 
 ggplot(data_to_check, aes(x = reorder(gene, -abs_correlation), y = RNA_SAVER, fill=cell_lineage_category, color=corr_dir)) +
   geom_boxplot(lwd=0.8) +

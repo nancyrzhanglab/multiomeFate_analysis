@@ -49,32 +49,32 @@ chromVar_mat <- chromVar_mat[chromVar_mat$assigned_lineage %in% plasticity_score
 # ==============================================================================
 # Calculate expression variance
 # ==============================================================================
-chromVar_var <- data.frame(matrix(nrow=length(unique(chromVar_mat$assigned_lineage)), ncol=0))
-chromVar_var$assigned_lineage <- unique(chromVar_mat$assigned_lineage)
+chromVar_mean <- data.frame(matrix(nrow=length(unique(chromVar_mat$assigned_lineage)), ncol=0))
+chromVar_mean$assigned_lineage <- unique(chromVar_mat$assigned_lineage)
 
 chromVar_mat <- chromVar_mat[, -c(1)]
 for (motif in colnames(chromVar_mat)[1: num_motifs]) {
   df <- chromVar_mat[, c(motif, 'assigned_lineage')]
   colnames(df) <- c('motif1', 'assigned_lineage')
-  df_var <- df %>% 
+  df_mean <- df %>% 
     group_by(assigned_lineage) %>% 
-    summarise(motif_var = var(motif1))
+    summarise(motif_mean = mean(motif1))
   colnames(df_var) <- c('assigned_lineage', motif)
-  chromVar_var <- merge(chromVar_var, df_var, by = 'assigned_lineage')
+  chromVar_mean <- merge(chromVar_mean, df_mean, by = 'assigned_lineage')
 }
 
-colnames(chromVar_var) <- c('assigned_lineage', motifs$motif_names[1:2])
+colnames(chromVar_mean) <- c('assigned_lineage', motifs$motif_names)
 # ==============================================================================
 # Correlate with plasticity
 # ==============================================================================
 
-chromVar_var <- merge(chromVar_var, plasticity_scores, by = 'assigned_lineage')
-rownames(chromVar_var) <- chromVar_var$assigned_lineage
-day10_chromVar_mat <- chromVar_var[, seq(2, ncol(chromVar_var)-1)]
+chromVar_mean <- merge(chromVar_mean, plasticity_scores, by = 'assigned_lineage')
+rownames(chromVar_mean) <- chromVar_mean$assigned_lineage
+day10_chromVar_mat <- chromVar_mean[, seq(2, ncol(chromVar_mean)-1)]
 
 
 cor_vec <- sapply(1:ncol(day10_chromVar_mat), function(j){
-  res <- stats::cor.test(chromVar_var$normalized_avg_euc_dist_by_shuffle, day10_chromVar_mat[,j],
+  res <- stats::cor.test(chromVar_mean$normalized_avg_euc_dist_by_shuffle, day10_chromVar_mat[,j],
                          alternative = "two.sided",
                          method = "pearson")
   c(res$estimate, res$p.value)
@@ -85,7 +85,4 @@ rownames(cor_vec) <- colnames(day10_chromVar_mat)
 
 save(date_of_run, session_info,
      cor_vec,
-     file = paste0(dir, "task_identify_features_predictive_growth_and_lineage_specific/outs/", sample, "_motif_chromVAR_day10_plasticity_byRNA_correlation.RData"))
-
-
-
+     file = paste0(dir, "task_identify_features_predictive_growth_and_lineage_specific/outs/", sample, "_motif_mean_chromVAR_day10_plasticity_byRNA_correlation.RData"))

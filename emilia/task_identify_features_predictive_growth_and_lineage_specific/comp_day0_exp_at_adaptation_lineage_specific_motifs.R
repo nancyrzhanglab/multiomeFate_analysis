@@ -2,14 +2,14 @@ library(tidyverse)
 library(data.table)
 
 dir <- '~/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/'
-future_treatment <- 'day10_COCL2'
+future_treatment <- 'day10_CIS'
 
 # ==============================================================================
 # Read data
 # ==============================================================================
 
 # growth potential
-load(paste0(dir, future_treatment, '/Writeup6n_COCL2_day10_lineage-imputation_stepdown_concise-postprocessed.RData'))
+load(paste0(dir, future_treatment, '/Writeup6n_CIS_day10_lineage-imputation_stepdown_concise-postprocessed.RData'))
 growth_potential_use <- cell_imputed_count
 growth_potential_use <- growth_potential_use[!is.na(growth_potential_use)]
 
@@ -40,21 +40,42 @@ data <- select(data, -c('motif_code', 'motif_names'))
 # ==============================================================================
 
 # =====================================
-# find winning lineages
+# find winning lineages (v1 - max(day10 growth potential for week5) > 0)
 # =====================================
-winners <- as.data.frame(growth_potential_use[growth_potential_use > 0])
-others <- as.data.frame(growth_potential_use[growth_potential_use <= 0])
+# winners <- as.data.frame(growth_potential_use[growth_potential_use > 0])
+# others <- as.data.frame(growth_potential_use[growth_potential_use <= 0])
+# 
+# colnames(winners) <- c('growth_potential')
+# winners$category  <- 'winners'
+# winners$cell_id <- row.names(winners)
+# winners <- merge(winners, metadata_day10[, c('assigned_lineage', 'cell_id')], by='cell_id')
+# 
+# metadata_day10$winning_lineage <- ifelse(metadata_day10$assigned_lineage %in% winners$assigned_lineage, 'winning_lineage', 'other_lineage')
+# 
+# day10_lineage_status <- metadata_day10[, c('assigned_lineage', 'winning_lineage')]
+# row.names(day10_lineage_status) <- NULL
+# day10_lineage_status <- unique( day10_lineage_status )
+# 
+# day10_winners <- day10_lineage_status[day10_lineage_status$winning_lineage == 'winning_lineage', ]
+# day10_others <- day10_lineage_status[day10_lineage_status$winning_lineage == 'other_lineage', ]
 
-colnames(winners) <- c('growth_potential')
-winners$category  <- 'winners'
-winners$cell_id <- row.names(winners)
-winners <- merge(winners, metadata_day10[, c('assigned_lineage', 'cell_id')], by='cell_id')
+# =====================================
+# find winning lineages (v2 - max(day10 growth potential for week5) > 0 + mean(day10 growth potential for week5) > -1)
+# =====================================
 
-metadata_day10$winning_lineage <- ifelse(metadata_day10$assigned_lineage %in% winners$assigned_lineage, 'winning_lineage', 'other_lineage')
+growth_potential_use <- as.data.frame(growth_potential_use)
+colnames(growth_potential_use) <- c('growth_potential')
+growth_potential_use$cell_id <- row.names(growth_potential_use)
+growth_potential_use <- merge(growth_potential_use, metadata_day10[, c('assigned_lineage', 'cell_id')], by='cell_id')
 
-day10_lineage_status <- metadata_day10[, c('assigned_lineage', 'winning_lineage')]
-row.names(day10_lineage_status) <- NULL
-day10_lineage_status <- unique( day10_lineage_status )
+day10_lineage_status <- growth_potential_use %>% 
+  group_by(assigned_lineage) %>% 
+  summarise(max_GP = max(growth_potential),
+            mean_GP = mean(growth_potential),
+            lineage_size = n())
+
+day10_lineage_status$winning_lineage <- ifelse(day10_lineage_status$max_GP > 0 & day10_lineage_status$mean_GP > -1,
+                                          'winning_lineage', 'other_lineage')
 
 day10_winners <- day10_lineage_status[day10_lineage_status$winning_lineage == 'winning_lineage', ]
 day10_others <- day10_lineage_status[day10_lineage_status$winning_lineage == 'other_lineage', ]
@@ -208,7 +229,9 @@ t_test_results <- t_test_results %>%
 features_to_label <- head(t_test_results, 10)$motif_names
 features_to_label <- c(features_to_label, tail(t_test_results, 10)$motif_names)
 
+sig_threshold <- min(t_test_results[t_test_results$p_val_adjust < 0.05, ]$neg_log10_pval)
 ggplot(data=t_test_results, aes(x=winner_minus_others, y=neg_log10_pval)) +
+  geom_hline(yintercept = sig_threshold, linetype='dashed', alpha=0.7) +
   geom_point(color='gray', size=1) +
   ggrepel::geom_text_repel(data = subset(t_test_results, motif_names %in% features_to_label),
                            ggplot2::aes(label = motif_names),
@@ -216,8 +239,7 @@ ggplot(data=t_test_results, aes(x=winner_minus_others, y=neg_log10_pval)) +
                            point.padding = ggplot2::unit(0.1, 'lines'),
                            color = 'blue',
                            max.overlaps = 80) +
-  geom_hline(yintercept = 3.2, linetype='dashed') +
-  xlim(c(-0.7, 0.7)) +
+  xlim(c(-1.7, 1.7)) +
   theme_minimal()
 
 hist(t_test_results$p_val, breaks=100)
