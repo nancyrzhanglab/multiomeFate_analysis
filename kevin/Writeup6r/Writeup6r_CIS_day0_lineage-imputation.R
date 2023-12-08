@@ -42,14 +42,7 @@ cell_lineage <- all_data$assigned_lineage
 uniq_lineage <- sort(unique(cell_lineage))
 lineage_current_count <- tab_mat[uniq_lineage, day_early_full]
 lineage_future_count <- tab_mat[uniq_lineage, day_later_full]
-
-# do some initializations
-tmp <- multiomeFate:::.lineage_cleanup(cell_features = cell_features,
-                                       cell_lineage = cell_lineage,
-                                       lineage_future_count = lineage_future_count)
-cell_features <- tmp$cell_features
-cell_lineage <- tmp$cell_lineage
-lineage_future_count <- tmp$lineage_future_count
+tab_mat <- tab_mat[uniq_lineage,]
 
 lambda_initial <- 10
 
@@ -70,18 +63,21 @@ fold_lineage_list <- lapply(1:num_folds, function(i){
 })
 names(fold_lineage_list) <- paste0("fold:", 1:num_folds)
 
-cv_cell_list <- lapply(fold_lineage_list, function(i){
-  unlist(lapply(fold_lineage_list[[i]], function(lineage){
+cv_cell_list <- lapply(fold_lineage_list, function(lineages){
+  unlist(lapply(lineages, function(lineage){
     which(cell_lineage == lineage)
   }))
 })
 names(cv_cell_list) <- names(fold_lineage_list)
+
+# bool_vec <- sapply(1:num_folds, function(i){all(sort(unique(cell_lineage[cv_cell_list[[1]]])) == sort(fold_lineage_list[[1]]))}); all(bool_vec)
 
 #########################
 
 cv_fit_list <- vector("list", length = num_folds)
 names(cv_fit_list) <- names(fold_lineage_list)
 
+set.seed(10)
 for(i in 1:num_folds){
   fold <- names(fold_lineage_list)[i]
   print(paste0("Dropping fold #", i, " out of ", num_folds))
