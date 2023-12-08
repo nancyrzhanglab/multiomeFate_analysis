@@ -168,7 +168,7 @@ for(treatment in treatment_vec){
                                             features = "imputed_count")
     p1 <- p1 + ggplot2::ggtitle(paste0(
       treatment, "\n", day_later, " growth potential of ", day_early, 
-      " cells\n(Stepdown from RNA fasttopics, ATAC PeakVI)\n(Log-scale)")
+      " cells\n(RNA fasttopics, ATAC PeakVI)\n(Log-scale)")
     )
     ggplot2::ggsave(filename = paste0("../../../../out/figures/kevin/Writeup6q/Writeup6q_",
                                       treatment, "-", day_early, "_imputation-ridge_umap.png"),
@@ -210,7 +210,7 @@ for(treatment in treatment_vec){
       "\nCorrelation:", round(stats::cor(lineage_imputed_count2, lineage_future_count2), 2))
     ) +
       ggplot2::xlab("Observed lineage count (Log10)") + ggplot2::ylab("Predicted lineage count (Log10)")
-    p1 <- p1 + Seurat::NoLegend()
+    p1 <- p1 + Seurat::NoLegend() + ggplot2::coord_fixed()
     
     ggplot2::ggsave(filename = paste0("../../../../out/figures/kevin/Writeup6q/Writeup6q_", treatment, "-", day_early, "_imputation-ridge_lineage-level.png"),
                     p1, device = "png", width = 10, height = 10, units = "in")
