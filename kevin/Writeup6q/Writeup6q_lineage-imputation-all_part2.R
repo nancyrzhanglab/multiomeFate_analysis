@@ -5,8 +5,6 @@ library(Signac)
 treatment_vec <- c("CIS", "COCL2", "DABTRAM")
 day_early_vec <- c("day0", "day10")
 day_later_vec <- c("day10", "week5")
-day_early_full_vec <- c(day_early_vec[1], paste0(day_early_vec[2], "_", treatment))
-day_later_full_vec <- paste0(day_later_vec, "_", treatment)
 
 #######################
 
@@ -35,8 +33,13 @@ for(treatment in treatment_vec){
   for(ii in 1:2){
     day_early <- day_early_vec[ii]
     day_later <- day_later_vec[ii]
-    day_early_full <- day_early_full_vec[ii]
-    day_later_full <- day_later_full_vec[ii]
+    
+    if(day_early == "day0") {
+      day_early_full <- day_early
+    } else {
+      day_early_full <- paste0(day_early, "_", treatment)
+    }
+    day_later_full <- paste0(day_later, "_", treatment)
     
     print(paste0("Working on ", day_early))
     
@@ -227,5 +230,5 @@ for(treatment in treatment_vec){
   }
 }
 
-
+print("Done! :)")
 
