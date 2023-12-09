@@ -129,10 +129,9 @@ for(i in 1:num_folds){
   
   #################
   
-  cv_fit_list[[lineage]] <- list(test_loglik = test_loglik,
-                                 train_loglik = train_loglik,
-                                 train_fit = train_fit)
-  
+  cv_fit_list[[fold]] <- list(test_loglik = test_loglik,
+                              train_loglik = train_loglik,
+                              train_fit = train_fit)
   
   save(cv_fit_list, date_of_run, session_info,
        file = paste0("../../../../out/kevin/Writeup6r/Writeup6r_", treatment, "_", day_early, "_lineage-imputation-tmp.RData"))
