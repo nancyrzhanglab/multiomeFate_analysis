@@ -1,6 +1,5 @@
 rm(list=ls())
 library(Seurat)
-library(Signac)
 
 treatment_vec <- c("CIS", "COCL2", "DABTRAM")
 day_early_vec <- c("day0", "day10")
@@ -56,19 +55,23 @@ for(treatment in treatment_vec){
       x$test_loglik
     })
     
-    train_mean <- Matrix::rowMeans(train_mat)
-    test_mean <- Matrix::rowMeans(test_mat)
-    train_sd <- apply(train_mat, 1, stats::sd)
-    test_sd <- apply(test_mat, 1, stats::sd)
+    # train_mean <- Matrix::rowMeans(train_mat)
+    # test_mean <- Matrix::rowMeans(test_mat)
+    # train_sd <- apply(train_mat, 1, stats::sd)
+    # test_sd <- apply(test_mat, 1, stats::sd)
+    
+    train_quantile <- apply(train_mat, 1, function(vec){stats::quantile(vec, probs = c(0.1, 0.5, 0.9))})
+    test_quantile <- apply(test_mat, 1, function(vec){stats::quantile(vec, probs = c(0.1, 0.5, 0.9))})
     
     lambda_sequence <- cv_fit_list[[1]]$train_fit$lambda_sequence
-    lambda <- lambda_sequence[which.min(test_mean)]
+    # lambda <- lambda_sequence[which.min(test_mean)]
+    lambda <- lambda_sequence[which.min(test_quantile[2,])]
     lambda
     
     final_fit <- multiomeFate:::lineage_imputation(
       cell_features = cell_features,
       cell_lineage = cell_lineage,
-      coefficient_initial_list = cv_fit_list[[1]]$train_fit$fit_list[[which.min(test_mean)]]$coefficient_vec,
+      coefficient_initial_list = cv_fit_list[[1]]$train_fit$fit_list[[which.min(test_quantile[2,])]]$coefficient_vec,
       lambda = lambda,
       lineage_future_count = lineage_future_count,
       verbose = 0
