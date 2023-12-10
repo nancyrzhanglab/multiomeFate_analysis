@@ -140,6 +140,9 @@ for(treatment in treatment_vec){
     
     ############################
     
+    cell_features <- cbind(1, cell_features)
+    colnames(cell_features)[1] <- "Intercept"
+    stopifnot(all(colnames(cell_features) == names(final_fit$fit$coefficient_vec)))
     cell_imputed_score <- as.numeric(cell_features %*% final_fit$fit$coefficient_vec)
     names(cell_imputed_score) <- rownames(cell_features)
     cell_imputed_count <- exp(cell_imputed_score)
