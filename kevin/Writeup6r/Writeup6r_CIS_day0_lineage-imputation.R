@@ -44,7 +44,7 @@ lineage_current_count <- tab_mat[uniq_lineage, day_early_full]
 lineage_future_count <- tab_mat[uniq_lineage, day_later_full]
 tab_mat <- tab_mat[uniq_lineage,]
 
-lambda_initial <- 10
+lambda_initial <- 3
 
 ###############################
 
