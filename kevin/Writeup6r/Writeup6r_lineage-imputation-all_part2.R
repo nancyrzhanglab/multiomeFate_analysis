@@ -91,13 +91,13 @@ for(treatment in treatment_vec){
                treatment, "-", day_early, "_train-test-curve.png"),
         height = 1500, width = 3000, units = "px", res = 300)
     par(mfrow = c(1,2), mar = c(4,4,4,4))
-    plot(lambda_sequence2, train_mean, 
+    plot(lambda_sequence2, train_quantile[2,], 
          log = "x", type = "n",
          main = paste0(treatment, " ", day_later, " growth potential of ", day_early),
          xaxt = "n",
          xlab = "Lambda+1 (Log-scale tickmarks)", 
          ylab = "Negative loglikelihood (Training)",
-         ylim = range(c(train_mean + train_sd, rev(train_mean - train_sd))))
+         ylim = range(c(train_quantile[1,], rev(train_quantile[3,]))))
     axis(side = 1, 
          at = xaxt_values, 
          labels = FALSE)
@@ -108,20 +108,20 @@ for(treatment in treatment_vec){
            as.character(format(x, scientific = FALSE))
          }))
     polygon(x = c(lambda_sequence2, rev(lambda_sequence2)),
-            y = c(train_mean + train_sd, rev(train_mean - train_sd)),
+            y = c(train_quantile[1,], rev(train_quantile[3,])),
             col = "gray", 
             border = "black")
-    points(lambda_sequence2, train_mean, pch = 16)
-    lines(lambda_sequence2, train_mean, lwd = 2)
+    points(lambda_sequence2, train_quantile[2,], pch = 16)
+    lines(lambda_sequence2, train_quantile[2,], lwd = 2)
     
-    plot(lambda_sequence2, test_mean, 
+    plot(lambda_sequence2, test_quantile[2,], 
          log = "x", type = "n",
          main = paste0(treatment, " ", day_later, " growth potential of ", day_early,
                        "\nLambda = ", round(lambda,3)),
          xaxt = "n",
          xlab = "Lambda+1 (Log-scale tickmarks)", 
          ylab = "Negative loglikelihood (Testing)",
-         ylim = range(c(test_mean + test_sd, rev(test_mean - test_sd))))
+         ylim = range(c(test_quantile[1,], rev(test_quantile[3,]))))
     axis(side = 1, 
          at = xaxt_values, 
          labels = FALSE)
@@ -132,11 +132,11 @@ for(treatment in treatment_vec){
            as.character(format(x, scientific = FALSE))
          }))
     polygon(x = c(lambda_sequence2, rev(lambda_sequence2)),
-            y = c(test_mean + test_sd, rev(test_mean - test_sd)),
+            y = c(test_quantile[1,], rev(test_quantile[3,])),
             col = "gray", 
             border = "black")
-    points(lambda_sequence2, test_mean, pch = 16)
-    lines(lambda_sequence2, test_mean, lwd = 2)
+    points(lambda_sequence2, test_quantile[2,], pch = 16)
+    lines(lambda_sequence2, test_quantile[2,], lwd = 2)
     lines(rep(lambda+1, 2), c(-1e6, 1e6), col = "red", lty = 2)
     
     graphics.off()
