@@ -171,15 +171,14 @@ for(treatment in treatment_vec){
     
     all_data2$imputed_count <- cell_imputed_score_full
     max_val <- stats::quantile(cell_imputed_score_full, probs = 0.95, na.rm = T)
-    min_val <- stats::quantile(cell_imputed_score_full, probs = 0.05, na.rm = T)
-    all_data2$imputed_count_thres <- pmin(pmax(cell_imputed_score_full, min_val), max_val)
+    all_data2$imputed_count_thres <- pmin(cell_imputed_score_full, max_val)
     
     p1 <- scCustomize::FeaturePlot_scCustom(all_data2, 
                                             colors_use = list("red", "lightgray", "blue"),
                                             na_cutoff = quantile(all_data2$imputed_count_thres, probs = 0.05, na.rm = T),
                                             na_color = "bisque",
                                             reduction = "umap", 
-                                            features = "imputed_count")
+                                            features = "imputed_count_thres")
     p1 <- p1 + ggplot2::ggtitle(paste0(
       treatment, "\n", day_later, " growth potential of ", day_early, 
       " cells\n(RNA fasttopics, ATAC PeakVI)\n(Log-scale)")
