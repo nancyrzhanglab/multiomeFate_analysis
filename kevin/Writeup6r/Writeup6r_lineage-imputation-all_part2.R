@@ -7,11 +7,13 @@ day_later_vec <- c("day10", "week5")
 
 #######################
 
+load("../../../../out/kevin/Writeup6p/Writeup6p_all-data_lightweight_noATAC.RData")
+all_data_safe <- all_data
+
 for(treatment in treatment_vec){
   print(paste0("Working on ", treatment))
- 
-  load("../../../../out/kevin/Writeup6p/Writeup6p_all-data_lightweight_noATAC.RData")
   
+  all_data <- all_data_safe
   keep_vec <- rep(FALSE, ncol(all_data))
   idx <- which(all_data$dataset %in% c("day0", paste0("day10_", treatment), paste0("week5_", treatment)))
   keep_vec[idx] <- TRUE
@@ -163,6 +165,43 @@ for(treatment in treatment_vec){
     
     ###########################
     
+    rna_mat <- all_data2[[paste0("fasttopic_", treatment)]]@cell.embeddings[rownames(cell_features),]
+    atac_mat <- all_data2[[paste0("peakVI_", treatment)]]@cell.embeddings[rownames(cell_features),]
+    
+    n <- nrow(cell_features)
+    d <- min(ncol(rna_mat), ncol(atac_mat))
+    
+    rna_proj <- rna_mat %*% tcrossprod(solve(crossprod(rna_mat)), rna_mat)
+    atac_proj <- atac_mat %*% tcrossprod(solve(crossprod(atac_mat)), atac_mat)
+    
+    basis_list <- list(
+      shared = svd(rna_proj %*% atac_proj %*% rna_mat)$u[,1:d],
+      rna_uniq = svd((diag(n) - atac_proj) %*% rna_mat)$u[,1:d],
+      atac_uniq = svd((diag(n) - rna_proj) %*% atac_mat)$u[,1:d]
+    )
+    
+    r2_vec <- sapply(basis_list, function(tmp){
+      df <- data.frame(cell_imputed_score, tmp)
+      colnames(df)[1] <- "y"
+      lm_res <- stats::lm(y ~ ., data = df)
+      summary(lm_res)$r.squared
+    })
+    
+    df <- data.frame(modality = names(r2_vec),
+                     r2 = r2_vec)
+    
+    p1 <- ggplot2::ggplot(df, ggplot2::aes(x=modality, y=r2)) + 
+      ggplot2::geom_bar(stat = "identity")
+    p1 <- p1 + ggplot2::ggtitle(paste0(
+      treatment, "\n", day_later, " growth potential of ", day_early, 
+      " cells\nImportance of each modality")
+    )
+    ggplot2::ggsave(filename = paste0("../../../../out/figures/kevin/Writeup6r/Writeup6r_",
+                                      treatment, "-", day_early, "_modality-weights.png"),
+                    p1, device = "png", width = 5, height = 5, units = "in")
+    
+    ###########################
+    
     print("Plotting UMAP with lineage imputation")
     
     cell_imputed_score_full <- rep(NA, ncol(all_data2))
@@ -181,7 +220,7 @@ for(treatment in treatment_vec){
                                             features = "imputed_count_thres")
     p1 <- p1 + ggplot2::ggtitle(paste0(
       treatment, "\n", day_later, " growth potential of ", day_early, 
-      " cells\n(RNA fasttopics, ATAC PeakVI)\n(Log-scale)")
+      " cells\n(UMAP of RNA fasttopics)\n(Log-scale)")
     )
     ggplot2::ggsave(filename = paste0("../../../../out/figures/kevin/Writeup6r/Writeup6r_",
                                       treatment, "-", day_early, "_imputation-ridge_umap.png"),
@@ -202,8 +241,9 @@ for(treatment in treatment_vec){
     labeling_vec[intersect(which(lineage_future_count2 >= 1.5),
                            order(lineage_future_count2, decreasing = T)[1:10])] <- TRUE
     
+    n <- length(lineage_imputed_count2)
     df <- data.frame(lineage_imputed_count = lineage_imputed_count2,
-                     lineage_future_count = lineage_future_count2,
+                     lineage_future_count = log10(lineage_future_count+1++ stats::runif(n, min = 0, max = 0.5)),
                      name = names(lineage_imputed_count2),
                      labeling = labeling_vec)
     # put all the labeling == TRUE on bottom
