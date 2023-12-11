@@ -114,6 +114,11 @@ for(treatment in treatment_vec){
     points(lambda_sequence2, train_quantile[2,], pch = 16)
     lines(lambda_sequence2, train_quantile[2,], lwd = 2)
     
+    test_upper <- test_quantile[3,]
+    test_upper <- pmin(test_upper, stats::quantile(test_upper, probs = 0.95))
+    test_lower <- test_quantile[1,]
+    test_upper <- pmax(test_upper, stats::quantile(test_upper, probs = 0.05))
+    
     plot(lambda_sequence2, test_quantile[2,], 
          log = "x", type = "n",
          main = paste0(treatment, " ", day_later, " growth potential of ", day_early,
@@ -121,7 +126,7 @@ for(treatment in treatment_vec){
          xaxt = "n",
          xlab = "Lambda+1 (Log-scale tickmarks)", 
          ylab = "Negative loglikelihood (Testing)",
-         ylim = range(c(test_quantile[1,], rev(test_quantile[3,]))))
+         ylim = range(c(test_upper, rev(test_lower))))
     axis(side = 1, 
          at = xaxt_values, 
          labels = FALSE)
@@ -132,7 +137,7 @@ for(treatment in treatment_vec){
            as.character(format(x, scientific = FALSE))
          }))
     polygon(x = c(lambda_sequence2, rev(lambda_sequence2)),
-            y = c(test_quantile[1,], rev(test_quantile[3,])),
+            y = c(test_upper, rev(test_lower)),
             col = "gray", 
             border = "black")
     points(lambda_sequence2, test_quantile[2,], pch = 16)
@@ -165,10 +170,13 @@ for(treatment in treatment_vec){
     cell_imputed_score_full[rownames(cell_features)] <- cell_imputed_score
     
     all_data2$imputed_count <- cell_imputed_score_full
+    max_val <- stats::quantile(cell_imputed_score_full, probs = 0.95)
+    min_val <- stats::quantile(cell_imputed_score_full, probs = 0.05)
+    all_data2$imputed_count_thres <- pmin(pmax(cell_imputed_score_full, min_val), max_val)
     
     p1 <- scCustomize::FeaturePlot_scCustom(all_data2, 
                                             colors_use = list("red", "lightgray", "blue"),
-                                            na_cutoff = quantile(all_data2$imputed_count, probs = 0.05, na.rm = T),
+                                            na_cutoff = quantile(all_data2$imputed_count_thres, probs = 0.05, na.rm = T),
                                             na_color = "bisque",
                                             reduction = "umap", 
                                             features = "imputed_count")
