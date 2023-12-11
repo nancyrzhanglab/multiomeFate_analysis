@@ -170,8 +170,8 @@ for(treatment in treatment_vec){
     cell_imputed_score_full[rownames(cell_features)] <- cell_imputed_score
     
     all_data2$imputed_count <- cell_imputed_score_full
-    max_val <- stats::quantile(cell_imputed_score_full, probs = 0.95)
-    min_val <- stats::quantile(cell_imputed_score_full, probs = 0.05)
+    max_val <- stats::quantile(cell_imputed_score_full, probs = 0.95, na.rm = T)
+    min_val <- stats::quantile(cell_imputed_score_full, probs = 0.05, na.rm = T)
     all_data2$imputed_count_thres <- pmin(pmax(cell_imputed_score_full, min_val), max_val)
     
     p1 <- scCustomize::FeaturePlot_scCustom(all_data2, 
