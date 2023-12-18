@@ -44,7 +44,11 @@ for(treatment in treatment_vec){
     
     print(paste0("Working on ", day_early))
     
-    load(paste0("../../../../out/kevin/Writeup6r/Writeup6r_", treatment, "_", day_early, "_lineage-imputation.RData"))
+    if(day_early == "day10" && treatment == "DABTRAM"){
+      load(paste0("../../../../out/kevin/Writeup6r/Writeup6r_", treatment, "_", day_early, "_lineage-imputation-v2.RData"))
+    } else {
+      load(paste0("../../../../out/kevin/Writeup6r/Writeup6r_", treatment, "_", day_early, "_lineage-imputation.RData"))
+    }
     all_data2 <- all_data
     
     ###################
