@@ -19,7 +19,7 @@ for(treatment in treatment_vec){
     n <- nrow(mat_1)
     p1 <- ncol(mat_1); p2 <- ncol(mat_2)
     p <- min(p1, p2)
-    num_metacells <- max(round(sqrt(n)), 200)
+    num_metacells <- max(round(sqrt(n)), 250)
     
     set.seed(10)
     multiSVD_obj <- tiltedCCA::create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
@@ -56,8 +56,12 @@ for(treatment in treatment_vec){
     date_of_run <- Sys.time()
     session_info <- devtools::session_info()
     save(multiSVD_obj, 
+         cell_imputed_score,
+         fit,
          date_of_run, session_info,
          file = paste0("../../../../out/kevin/Writeup6s/Writeup6s_", treatment, "_", day_early, "_tiltedCCA.RData"))
     
   }
 }
+
+print("Done! :)")
