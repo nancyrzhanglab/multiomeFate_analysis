@@ -46,6 +46,7 @@ for(treatment in treatment_vec){
     multiSVD_obj <- tiltedCCA::tiltedCCA(input_obj = multiSVD_obj,
                                          verbose = 0)
     multiSVD_obj <- tiltedCCA::fine_tuning(input_obj = multiSVD_obj,
+                                           max_iter = 20,
                                            verbose = 0)
     multiSVD_obj <- tiltedCCA::tiltedCCA_decomposition(input_obj = multiSVD_obj,
                                                        verbose = 0,
