@@ -105,59 +105,29 @@ rna_z <- rna_basis %*% x_coef
 atac_z <- atac_basis %*% y_coef
 stats::cor(rna_z[,1], atac_z[,1])
 
-common_idx <- which(tmp_cc$cor >= 0.5)
+cca_threshold <- 0.75
+common_idx <- which(tmp_cc$cor >= cca_threshold)
 common_mat <- cbind(rna_z[,common_idx,drop = F], atac_z[,common_idx,drop = F])
 common_svd <- svd(common_mat)
 common_basis <- common_svd$u
 common_proj <- tcrossprod(common_basis)
 
-rna_uniq_basis <- (diag(n) - common_proj) %*% rna_basis
-atac_uniq_basis <- (diag(n) - common_proj) %*% atac_basis
+common_and_atac_basis <- cbind(1, common_basis, atac_basis)
+tmp <- svd(common_and_atac_basis)
+common_and_atac_proj <- tcrossprod(tmp$u[,which(tmp$d >= tol),drop=F])
+rna_uniq_basis <- rna_basis - common_and_atac_proj %*% rna_basis
+tmp <- svd(rna_uniq_basis)
+rna_uniq_basis <- tmp$u[,which(tmp$d >= tol),drop=F]
 
-for(i in 1:10){
-  print(paste0("Iteration ", i))
-  tmp <- svd(rna_uniq_basis)
-  rna_uniq_basis <- tmp$u[,which(tmp$d >= tol),drop = F]
-  tmp <- svd(atac_uniq_basis)
-  atac_uniq_basis <- tmp$u[,which(tmp$d >= tol),drop = F]
-  
-  rna_proj <- tcrossprod(rna_uniq_basis)
-  atac_proj <- tcrossprod(atac_uniq_basis)
-  
-  # some weird underflow issue is going on
-  rna_uniq_basis <- (diag(n) - atac_proj) %*% rna_uniq_basis
-  atac_uniq_basis <- (diag(n) - rna_proj) %*% atac_uniq_basis
-  
-  rna_uniq_basis <- scale(rna_uniq_basis)
-  atac_uniq_basis <- scale(atac_uniq_basis)
-}
+common_and_rna_basis <- cbind(1, common_basis, rna_basis)
+tmp <- svd(common_and_rna_basis)
+common_and_rna_proj <- tcrossprod(tmp$u[,which(tmp$d >= tol),drop=F])
+atac_uniq_basis <- atac_basis - common_and_rna_proj %*% atac_basis
+tmp <- svd(atac_uniq_basis)
+atac_uniq_basis <- tmp$u[,which(tmp$d >= tol),drop=F]
 
-atac_proj <- tcrossprod(atac_uniq_basis)
-rna_uniq_basis <- (diag(n) - atac_proj) %*% rna_uniq_basis
-rna_uniq_basis <- (diag(n) - atac_proj) %*% rna_uniq_basis
-rna_uniq_basis <- (diag(n) - atac_proj) %*% rna_uniq_basis
-rna_uniq_basis <- (diag(n) - atac_proj) %*% rna_uniq_basis
-rna_uniq_basis <- (diag(n) - atac_proj) %*% rna_uniq_basis # some weird underflow thing
-zz <- t(rna_uniq_basis) %*% atac_uniq_basis
-round(zz,2)
-
-df <- as.data.frame(cbind(cell_imputed_score2, common_basis, rna_uniq_basis, atac_uniq_basis))
-colnames(df)[1] <- "y"
-tmp_lm <- lm(y ~ ., data = df)
-quantile(tmp_lm$residuals)
-
-zz <- t(common_basis) %*% rna_uniq_basis
-stopifnot(sum(abs(zz)) <= 1e-5)
-zz <- t(common_basis) %*% atac_uniq_basis
-stopifnot(sum(abs(zz)) <= 1e-5)
-zz <- t(rna_uniq_basis) %*% atac_uniq_basis
-stopifnot(sum(abs(zz)) <= 1e-5)
-
-
-##############
-
-
-
+round(cor(rna_uniq_basis, atac_uniq_basis),2) # ... i think these are the CCA values...
+round(cor(rna_uniq_basis, atac_basis),2)
 
 
 

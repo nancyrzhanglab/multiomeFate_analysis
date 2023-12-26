@@ -94,19 +94,9 @@ for(treatment in treatment_vec){
     plot(lambda_sequence2, train_quantile[2,], 
          log = "x", type = "n",
          main = paste0(treatment, " ", day_later, " growth potential of ", day_early, "\n(Training)"),
-         # xaxt = "n",
          xlab = "Lambda+1 (Log-scale tickmarks)", 
          ylab = "Negative loglikelihood (Training)",
          ylim = range(c(train_quantile[1,], rev(train_quantile[3,]))))
-    # axis(side = 1, 
-    #      at = xaxt_values, 
-    #      labels = FALSE)
-    # axis(side = 1, 
-    #      lwd = 2,
-    #      at = 10^(0:max_base10), 
-    #      labels = sapply(10^(0:max_base10), function(x){
-    #        as.character(format(x, scientific = FALSE))
-    #      }))
     polygon(x = c(lambda_sequence2, rev(lambda_sequence2)),
             y = c(train_quantile[1,], rev(train_quantile[3,])),
             col = "gray", 
@@ -123,19 +113,9 @@ for(treatment in treatment_vec){
          log = "x", type = "n",
          main = paste0(treatment, " ", day_later, " growth potential of ", day_early,
                        "\nLambda = ", round(lambda,3), " (Testing)"),
-         # xaxt = "n",
          xlab = "Lambda+1 (Log-scale tickmarks)", 
          ylab = "Negative loglikelihood (Testing)",
          ylim = range(c(test_upper, rev(test_lower))))
-    # axis(side = 1, 
-    #      at = xaxt_values, 
-    #      labels = FALSE)
-    # axis(side = 1, 
-    #      lwd = 2,
-    #      at = 10^(0:max_base10), 
-    #      labels = sapply(10^(0:max_base10), function(x){
-    #        as.character(format(x, scientific = FALSE))
-    #      }))
     polygon(x = c(lambda_sequence2, rev(lambda_sequence2)),
             y = c(test_upper, rev(test_lower)),
             col = "gray", 
@@ -162,70 +142,6 @@ for(treatment in treatment_vec){
     
     lineage_future_count <- tab_mat[uniq_lineage,day_later_full]
     
-    ###########################
-    
-    # rna_mat <- all_data2[[paste0("fasttopic_", treatment)]]@cell.embeddings[rownames(cell_features),]
-    # atac_mat <- all_data2[[paste0("peakVI_", treatment)]]@cell.embeddings[rownames(cell_features),]
-    # 
-    # rna_mat <- scale(rna_mat)
-    # atac_mat <- scale(atac_mat)
-    # 
-    # n <- nrow(cell_features)
-    # d <- min(ncol(rna_mat), ncol(atac_mat))
-    # 
-    # rna_svd <- svd(rna_mat)
-    # atac_svd <- svd(atac_mat)
-    # 
-    # tol <- 1e-6
-    # rna_idx <- which(rna_svd$d >= tol)
-    # atac_idx <- which(atac_svd$d >= tol)
-    # 
-    # rna_basis <- rna_svd$u[,rna_idx]
-    # atac_basis <- atac_svd$u[,atac_idx]
-    # 
-    # # see https://math.stackexchange.com/questions/25371/how-to-find-a-basis-for-the-intersection-of-two-vector-spaces-in-mathbbrn
-    # tmp <- cbind(rna_basis, -atac_basis)
-    # pracma::Rank(tmp)
-    # nullspace_res <- pracma::nullspace(tmp)
-    # 
-    # rna_proj <- tcrossprod(rna_basis)
-    # atac_proj <- tcrossprod(atac_basis)
-    # 
-    # 
-    # basis_list <- list(
-    #   shared = svd(rna_proj %*% atac_proj %*% rna_mat),
-    #   rna_uniq = svd((diag(n) - atac_proj) %*% (diag(n) - total_proj) %*% rna_mat),
-    #   atac_uniq = svd((diag(n) - rna_proj) %*% (diag(n) - total_proj) %*% atac_mat)
-    # )
-    # 
-    # for(i in 1:3){
-    #   basis_list[[i]] <- basis_list[[i]]$u[,which(basis_list[[i]]$d >= tol),drop = F]
-    # }
-    # 
-    # sapply(basis_list, ncol)
-    # zz <- t(basis_list[[2]])%*%basis_list[[3]]; zz[1:5,1:5]
-    # 
-    # 
-    # r2_vec <- sapply(basis_list, function(tmp){
-    #   df <- data.frame(cell_imputed_score, tmp)
-    #   colnames(df)[1] <- "y"
-    #   lm_res <- stats::lm(y ~ ., data = df)
-    #   summary(lm_res)$r.squared
-    # })
-    # 
-    # df <- data.frame(modality = names(r2_vec),
-    #                  r2 = r2_vec)
-    # 
-    # p1 <- ggplot2::ggplot(df, ggplot2::aes(x=modality, y=r2)) + 
-    #   ggplot2::geom_bar(stat = "identity")
-    # p1 <- p1 + ggplot2::ggtitle(paste0(
-    #   treatment, "\n", day_later, " growth potential of ", day_early, 
-    #   " cells\nImportance of each modality")
-    # )
-    # ggplot2::ggsave(filename = paste0("../../../../out/figures/kevin/Writeup6r/Writeup6r_",
-    #                                   treatment, "-", day_early, "_modality-weights.png"),
-    #                 p1, device = "png", width = 5, height = 5, units = "in")
-    # 
     ###########################
     
     print("Plotting UMAP with lineage imputation")
@@ -299,7 +215,8 @@ for(treatment in treatment_vec){
     
     fit <- final_fit$fit
     
-    save(cell_imputed_score,
+    save(cell_features,
+         cell_imputed_score,
          fit, 
          lineage_imputed_count, 
          date_of_run, session_info,
