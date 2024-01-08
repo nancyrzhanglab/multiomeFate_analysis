@@ -187,7 +187,7 @@ for(treatment in treatment_vec){
     p1 <- p1 + ggplot2::stat_summary(fun=mean, geom="point", shape=16, size=3, color="red")
     p1 <- p1 + ggplot2::stat_summary(fun=max, geom="point", shape=10, size=5, color="blue")
     p1 <- p1 + ggplot2::ggtitle(paste0("ANOVA -Log10(pvalue)=", round(-log10(anova_res$p.value), 2), ", Lineage effect = ", lineage_effect, "%"))
-    ggplot2::ggsave(filename = paste0("../../../../out/figures/kevin/Writeup6r/Writeup6r",
+    ggplot2::ggsave(filename = paste0("../../../../out/figures/kevin/Writeup6r/Writeup6r_",
                                       treatment, "-", day_early, "_lineage-growthpotential-violinplot.png"),
                     p1, device = "png", width = 6, height = 3, units = "in")
     
