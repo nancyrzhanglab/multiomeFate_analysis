@@ -144,6 +144,56 @@ for(treatment in treatment_vec){
     
     ###########################
     
+    lineage_vec <- all_data2$assigned_lineage[names(cell_imputed_score2)]
+    tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
+    tab_vec <- table(lineage_vec)
+    tab_vec <- tab_vec[tab_vec >= 2]
+    later_size <- tab_mat[names(tab_vec), day_later_full]
+    lineage_names <- names(sort(later_size, decreasing = T))[1:20]
+    idx <- which(lineage_vec %in% lineage_names)
+    
+    df <- data.frame(lineage = lineage_vec[idx],
+                     imputed_count = cell_imputed_score2[idx])
+    df_tmp <- df; df_tmp$lineage <- as.factor(df_tmp$lineage)
+    anova_res <- stats::oneway.test(imputed_count ~ lineage, data = df_tmp)
+    df2 <- data.frame(lineage = "All",
+                      imputed_count = cell_imputed_score2)
+    df <- rbind(df, df2)
+    
+    total_std <- sum((df_tmp$imputed_count - mean(df_tmp$imputed_count))^2)
+    within_lineage_std <- sum(sapply(levels(df_tmp$lineage), function(lineage_name){
+      idx <- which(df_tmp$lineage == lineage_name)
+      sum((df_tmp$imputed_count[idx] - mean(df_tmp$imputed_count[idx]))^2)
+    }))
+    across_lineage_std <- sum(sapply(levels(df_tmp$lineage), function(lineage_name){
+      idx <- which(df_tmp$lineage == lineage_name)
+      mean_val <- mean(df_tmp$imputed_count[idx])
+      length(idx) * (mean_val - mean(df_tmp$imputed_count))^2 
+    }))
+    lineage_effect <- round(across_lineage_std/total_std*100,1)
+    
+    col_vec <- c(rep("#999999", length(lineage_names)), "#E69F00")
+    names(col_vec) <- c(lineage_names, "All")
+    
+    p1 <- ggplot2::ggplot(df, ggplot2::aes(x=lineage, y=imputed_count))
+    p1 <- p1 + ggplot2::geom_violin(trim=T, scale = "width", ggplot2::aes(fill=lineage))
+    p1 <- p1 + ggplot2::scale_fill_manual(values = col_vec) 
+    p1 <- p1 + ggplot2::geom_jitter(shape=16, position=ggplot2::position_jitter(0.2), alpha = 0.3, size = 0.5)
+    p1 <- p1 + Seurat::NoLegend()
+    p1 <- p1 + ggplot2::geom_boxplot(width=0.05)
+    p1 <- p1 + ggplot2::scale_x_discrete(limits = c(lineage_names, "All"),
+                                         guide = ggplot2::guide_axis(angle = 45))
+    p1 <- p1 + ggplot2::ylab("Week5 growth potential")
+    p1 <- p1 + ggplot2::stat_summary(fun=mean, geom="point", shape=16, size=3, color="red")
+    p1 <- p1 + ggplot2::stat_summary(fun=max, geom="point", shape=10, size=5, color="blue")
+    p1 <- p1 + ggplot2::ggtitle(paste0("ANOVA -Log10(pvalue)=", round(-log10(anova_res$p.value), 2), ", Lineage effect = ", lineage_effect, "%"))
+    ggplot2::ggsave(filename = paste0("../../../../out/figures/kevin/Writeup6r/Writeup6r",
+                                      treatment, "-", day_early, "_lineage-growthpotential-violinplot.png"),
+                    p1, device = "png", width = 6, height = 3, units = "in")
+    
+    
+    ###########################
+    
     print("Plotting UMAP with lineage imputation")
     
     cell_imputed_score_full <- rep(NA, ncol(all_data2))

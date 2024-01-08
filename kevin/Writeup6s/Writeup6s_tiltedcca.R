@@ -60,7 +60,6 @@ for(treatment in treatment_vec){
          fit,
          date_of_run, session_info,
          file = paste0("../../../../out/kevin/Writeup6s/Writeup6s_", treatment, "_", day_early, "_tiltedCCA.RData"))
-    
   }
 }
 
