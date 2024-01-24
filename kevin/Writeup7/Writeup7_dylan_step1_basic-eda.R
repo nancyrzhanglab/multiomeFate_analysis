@@ -57,7 +57,7 @@ all_genes <- intersect(all_genes, rownames(all_data))
 Seurat::VariableFeatures(all_data) <- all_genes
 
 save(all_data, 
-     file = "~/project/Multiome_fate/out/kevin/Writeup7/Writeup7_dylan_step1_basic-eda")
+     file = "~/project/Multiome_fate/out/kevin/Writeup7/Writeup7_dylan_step1_basic-eda.RData")
 
 all_data <- Seurat::NormalizeData(all_data)
 all_data <- Seurat::ScaleData(all_data)
@@ -69,6 +69,6 @@ print("Finished preprocessing data")
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 save(all_data, date_of_run, session_info,
-     file = "~/project/Multiome_fate/out/kevin/Writeup7/Writeup7_dylan_step1_basic-eda")
+     file = "~/project/Multiome_fate/out/kevin/Writeup7/Writeup7_dylan_step1_basic-eda.RData")
 
 print("Done! :)")
