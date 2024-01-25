@@ -12,7 +12,7 @@ for(treatment in treatment_vec){
   print(paste0("Working on ", treatment))
   
   keep_vec <- rep(FALSE, ncol(all_data))
-  keep_vec[which(all_data$dataset %in% c("naive", treatment))] <- TRUE
+  keep_vec[which(all_data$OG_condition %in% c("naive", treatment))] <- TRUE
   all_data$keep <- keep_vec
   all_data2 <- subset(all_data, keep == TRUE)
   
