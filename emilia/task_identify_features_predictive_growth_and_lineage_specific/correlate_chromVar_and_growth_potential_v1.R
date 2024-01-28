@@ -11,7 +11,7 @@ set.seed(10)
 in_dir <- "/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/"
 out_dir <- "/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/"
 ## Read Day10 growth potentials
-tp_early <- "day10"
+tp_early <- "day0"
 treatment <- "CIS"
 load(paste0(in_dir, 'Growth_potential/Writeup6r_', treatment, "_", tp_early, "_lineage-imputation_postprocess.RData"))
 cis_d10_imputed <- cell_imputed_score[!is.na(cell_imputed_score)]
@@ -23,14 +23,15 @@ load(paste0(in_dir, "Growth_potential/Writeup6r_", treatment, "_", tp_early, "_l
 dabtram_d10_imputed <- cell_imputed_score[!is.na(cell_imputed_score)]
 
 ## Read chromVars
-cis_day10_chromVar_mat <- readRDS(paste0(in_dir, 'ChromVar/Vierstra/mat.motifs_day10_CIS_Vierstra_annotations.rds'))
+cis_day10_chromVar_mat <- readRDS(paste0(in_dir, 'ChromVar/Vierstra/mat.motifs_day0_Vierstra_annotations.rds'))
 cis_day10_chromVar_mat <- t(cis_day10_chromVar_mat@assays@data@listData[["z"]])
-cocl2_day10_chromVar_mat <- readRDS(paste0(in_dir, 'ChromVar/Vierstra/mat.motifs_day10_COCL2_Vierstra_annotations.rds'))
-cocl2_day10_chromVar_mat <- t(cocl2_day10_chromVar_mat@assays@data@listData[["z"]])
-dabtram_day10_chromVar_mat <- readRDS(paste0(in_dir, 'ChromVar/Vierstra/mat.motifs_day10_DABTRAM_Vierstra_annotations.rds'))
-dabtram_day10_chromVar_mat <- t(dabtram_day10_chromVar_mat@assays@data@listData[["z"]])
+# cocl2_day10_chromVar_mat <- readRDS(paste0(in_dir, 'ChromVar/Vierstra/mat.motifs_day0_COCL2_Vierstra_annotations.rds'))
+# cocl2_day10_chromVar_mat <- t(cocl2_day10_chromVar_mat@assays@data@listData[["z"]])
+# dabtram_day10_chromVar_mat <- readRDS(paste0(in_dir, 'ChromVar/Vierstra/mat.motifs_day0_DABTRAM_Vierstra_annotations.rds'))
+# dabtram_day10_chromVar_mat <- t(dabtram_day10_chromVar_mat@assays@data@listData[["z"]])
 
-
+cocl2_day10_chromVar_mat <- cis_day10_chromVar_mat
+dabtram_day10_chromVar_mat <- cis_day10_chromVar_mat
 # ==============================================================================
 # Calculate correlation data
 # ==============================================================================
@@ -83,6 +84,6 @@ names(correlation_list) <- c('cis_cor_vec', 'cocl2_cor_vec', 'dabtram_cor_vec')
 
 save(date_of_run, session_info,
      correlation_list,
-     file = paste0(out_dir, "day10_chromVar_day10_growth_potential_for_week5_correlation_writeup6r.RData"))
+     file = paste0(out_dir, "day0_chromVar_day0_growth_potential_for_day10_correlation_writeup6r.RData"))
 
 

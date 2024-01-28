@@ -69,41 +69,41 @@ cor_mat_chromVAR_cis_cocl2 <- cor_df_chromVAR[, c("motif_name",
                                                   "corr.cocl2.chromVAR")]
 rownames(cor_mat_chromVAR_cis_cocl2) <- cor_mat_chromVAR_cis_cocl2$motif_name
 cor_mat_chromVAR_cis_cocl2 <- subset(cor_mat_chromVAR_cis_cocl2, select=-c(motif_name))
-db_chromVAR_cis_cocl2 <- dbscan(cor_mat_chromVAR_cis_cocl2, eps = 0.04, minPts = 2) # TO-CONTINUE
+db_chromVAR_cis_cocl2 <- dbscan(cor_mat_chromVAR_cis_cocl2, eps = 0.04, minPts = 1) #eps = 0.03, minPts = 2
 db_chromVAR_cis_cocl2
 pairs(cor_mat_chromVAR_cis_cocl2, col = db_chromVAR_cis_cocl2$cluster + 1L)
 
 db_chromVAR_cis_cocl2_cluster <- as.data.frame(db_chromVAR_cis_cocl2$cluster)
 colnames(db_chromVAR_cis_cocl2_cluster) <- 'cluster_cis_cocl2'
-db_chromVAR_cis_cocl2_cluster$motif_names <- rownames(cor_mat_chromVAR_cis_cocl2)
+db_chromVAR_cis_cocl2_cluster$motif_name <- rownames(cor_mat_chromVAR_cis_cocl2)
 
 # DABTRAM and COCL2
-cor_mat_chromVAR_dabtram_cocl2 <- cor_df_chromVAR[, c("motif_names", 
+cor_mat_chromVAR_dabtram_cocl2 <- cor_df_chromVAR[, c("motif_name", 
                                                       "corr.dabtram.chromVAR", 
                                                       "corr.cocl2.chromVAR")]
-rownames(cor_mat_chromVAR_dabtram_cocl2) <- cor_mat_chromVAR_dabtram_cocl2$motif_names
-cor_mat_chromVAR_dabtram_cocl2 <- subset(cor_mat_chromVAR_dabtram_cocl2, select=-c(motif_names))
-db_chromVAR_dabtram_cocl2 <- dbscan(cor_mat_chromVAR_dabtram_cocl2, eps = 0.03, minPts = 4)
+rownames(cor_mat_chromVAR_dabtram_cocl2) <- cor_mat_chromVAR_dabtram_cocl2$motif_name
+cor_mat_chromVAR_dabtram_cocl2 <- subset(cor_mat_chromVAR_dabtram_cocl2, select=-c(motif_name))
+db_chromVAR_dabtram_cocl2 <- dbscan(cor_mat_chromVAR_dabtram_cocl2, eps = 0.1, minPts = 1) #eps = 0.06, minPts = 1
 db_chromVAR_dabtram_cocl2
 pairs(cor_mat_chromVAR_dabtram_cocl2, col = db_chromVAR_dabtram_cocl2$cluster + 1L)
 
 db_chromVAR_dabtram_cocl2_cluster <- as.data.frame(db_chromVAR_dabtram_cocl2$cluster)
 colnames(db_chromVAR_dabtram_cocl2_cluster) <- 'cluster_dabtram_cocl2'
-db_chromVAR_dabtram_cocl2_cluster$motif_names <- rownames(cor_mat_chromVAR_dabtram_cocl2)
+db_chromVAR_dabtram_cocl2_cluster$motif_name <- rownames(cor_mat_chromVAR_dabtram_cocl2)
 
 # plotting
-chromVAR_cluster <- cor_df_chromVAR[, c("motif_names", "corr.dabtram.chromVAR", "corr.cocl2.chromVAR", "corr.cis.chromVAR")]
-chromVAR_cluster <- merge(chromVAR_cluster, db_chromVAR_cis_cocl2_cluster, by='motif_names')
-chromVAR_cluster <- merge(chromVAR_cluster, db_chromVAR_dabtram_cocl2_cluster, by='motif_names')
+chromVAR_cluster <- cor_df_chromVAR[, c("motif_name", "corr.dabtram.chromVAR", "corr.cocl2.chromVAR", "corr.cis.chromVAR")]
+chromVAR_cluster <- merge(chromVAR_cluster, db_chromVAR_cis_cocl2_cluster, by='motif_name')
+chromVAR_cluster <- merge(chromVAR_cluster, db_chromVAR_dabtram_cocl2_cluster, by='motif_name')
 
 chromVAR_cluster$cluster_dabtram_cocl2 <- as.factor(chromVAR_cluster$cluster_dabtram_cocl2)
 chromVAR_cluster$cluster_cis_cocl2 <- as.factor(chromVAR_cluster$cluster_cis_cocl2)
 
 p1 <- ggplot(chromVAR_cluster) +
-  geom_point(aes(x = corr.cocl2.chromVAR, y = corr.dabtram.chromVAR, col=cluster_cis_cocl2)) +
+  geom_point(aes(x = corr.cocl2.chromVAR, y = corr.dabtram.chromVAR, col=cluster_dabtram_cocl2)) +
   theme_bw()
 p2 <- ggplot(chromVAR_cluster) +
-  geom_point(aes(x = corr.cocl2.chromVAR, y = corr.cis.chromVAR, col=cluster_cis_cocl2)) +
+  geom_point(aes(x = corr.cocl2.chromVAR, y = corr.cis.chromVAR, col=cluster_dabtram_cocl2)) +
   theme_bw()
 grid.arrange(p1, p2, nrow=1)
 
@@ -113,8 +113,13 @@ ggplot(chromVAR_cluster) +
   theme_bw()
 chromVAR_cluster2 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 2, ]
 chromVAR_cluster3 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 3, ]
-# chromVAR_cluster8 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 8, ]
-# chromVAR_cluster10 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 10, ]
+chromVAR_cluster4 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 4, ]
+chromVAR_cluster5 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 5, ]
+chromVAR_cluster6 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 6, ]
+chromVAR_cluster7 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 7, ]
+chromVAR_cluster8 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 8, ]
+chromVAR_cluster9 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 9, ]
+chromVAR_cluster10 <- chromVAR_cluster[chromVAR_cluster$cluster_dabtram_cocl2 == 10, ]
 chromVAR_cluster2_3 <- rbind(chromVAR_cluster2, chromVAR_cluster3)
 # write.csv(chromVAR_cluster2_3, '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/common_motifs_in_corr_with_growth_v2.csv', row.names = FALSE)
 

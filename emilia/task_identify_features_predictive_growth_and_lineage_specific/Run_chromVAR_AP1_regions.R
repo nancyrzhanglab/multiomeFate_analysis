@@ -5,8 +5,8 @@ library(SummarizedExperiment)
 library(BSgenome.Hsapiens.UCSC.hg38)
 
 bsgenome <- BSgenome.Hsapiens.UCSC.hg38
-in_dir <- '/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/emiliac/lineage_trace/task_identify_features_predictive_growth_and_lineage_specific/'
-out_dir <- '/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/emiliac/lineage_trace/task_identify_features_predictive_growth_and_lineage_specific/outs/compare_chromvar_rna_corr_with_gp/'
+# in_dir <- '/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/emiliac/lineage_trace/task_identify_features_predictive_growth_and_lineage_specific/'
+# out_dir <- '/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/emiliac/lineage_trace/task_identify_features_predictive_growth_and_lineage_specific/outs/compare_chromvar_rna_corr_with_gp/'
 # ==============================================================================
 # Read data
 # ==============================================================================
@@ -17,8 +17,8 @@ ap1_peaks_targetRNA <- read.table('/Users/emiliac/Dropbox/Thesis/Lineage_trace/o
 # ap1_peaks_targetRNA <- read.table(paste0(in_dir, 'outs/compare_chromvar_rna_corr_with_gp/common_genes_in_corr_with_growth_v2_AP1_peaks.bed'), sep='\t', header = TRUE)
 # ap1_peaks_targetRNA <- makeGRangesFromDataFrame(ap1_peaks_targetRNA)
 ap1_peaks_targetRNA <- makeGRangesListFromDataFrame(ap1_peaks_targetRNA)
-ap1_peaks_nonTargetRNA <- read.table('/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/common_genes_in_corr_with_growth_v2_nonTarget_AP1_peaks.bed', sep='\t', header = TRUE)
-ap1_peaks_nonTargetRNA <- read.table(paste0(in_dir, 'outs/compare_chromvar_rna_corr_with_gp/common_genes_in_corr_with_growth_v2_nonTarget_AP1_peaks.bed'), sep='\t', header = TRUE)
+ap1_peaks_nonTargetRNA <- read.table('/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/common_genes_in_corr_with_growth_v2_nonTarget_Jun_peaks.bed', sep='\t', header = TRUE)
+ap1_peaks_nonTargetRNA <- read.table(paste0(in_dir, 'outs/compare_chromvar_rna_corr_with_gp/common_genes_in_corr_with_growth_v2_nonTarget_Jun_peaks.bed'), sep='\t', header = TRUE)
 ap1_peaks_nonTargetRNA <- makeGRangesFromDataFrame(ap1_peaks_nonTargetRNA)
 ap1_peaks_nonTargetRNA <- makeGRangesListFromDataFrame(ap1_peaks_nonTargetRNA)
 

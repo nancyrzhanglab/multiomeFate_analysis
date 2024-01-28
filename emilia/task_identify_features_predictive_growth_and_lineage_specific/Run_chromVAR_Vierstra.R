@@ -63,6 +63,11 @@ anno_ix <- matchMotifs(
   subject = counts, 
   genome = BSgenome.Hsapiens.UCSC.hg38)
 
+saveRDS(anno_ix, file=paste0(out_dir, "mat.motifs_day10_COCL2_Viertra_motif_peak_match.rds"))
+
+mat_rowSums <- rowSums(mat)
+mat_colSums <- colSums(mat)
+
 # Compute deviations
 dev <- computeDeviations(
   object = counts, 
