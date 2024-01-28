@@ -131,7 +131,7 @@ for(treatment in treatment_vec){
   ###########################
   
   lineage_vec <- all_data2$assigned_lineage[names(cell_imputed_score2)]
-  tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
+  tab_mat <- table(all_data$assigned_lineage, all_data$OG_condition)
   tab_vec <- table(lineage_vec)
   tab_vec <- tab_vec[tab_vec >= 2]
   later_size <- tab_mat[names(tab_vec), day_later]
