@@ -7,9 +7,9 @@ library(ggExtra)
 # Read & formatting data
 # ==============================================================================
 in_dir <- '~/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/'
-chromVar_dev <- readRDS(paste0(in_dir, 'dev_day10_DABTRAM_ap1_at_target_vs_nonTarget.rds'))
+chromVar_dev <- readRDS(paste0(in_dir, 'dev_day10_COCL2_Jun_BS_in_peaks_at_target_vs_nonTarget.rds'))
 chromVar_dev_z <- chromVar_dev@assays@data@listData[["z"]]
-rownames(chromVar_dev_z) <-  c('ap1_peaks_targetRNA', 'ap1_peaks_nonTargetRNA')
+rownames(chromVar_dev_z) <-  c('Jun_binding_site_in_peaks_targetRNA', 'Jun_binding_site_in_peaks_nonTargetRNA')
 chromVar_dev_z <- as.data.frame(t(chromVar_dev_z))
 chromVar_dev_z$cell_barcode <- rownames(chromVar_dev_z)
 chromVar_dev_z <- melt(chromVar_dev_z, id.vars = 'cell_barcode')
@@ -21,6 +21,10 @@ ggplot(chromVar_dev_z, aes(x = variable, y = value)) +
   geom_boxplot() +
   stat_summary(fun=median, geom="point", size=2, color="red")
 
+ggplot(chromVar_dev_z, aes(x = variable, y = value)) +
+  geom_violin() +
+  stat_summary(fun=median, geom="point", size=2, color="red")
+
 # --------------------------------------------------------------------------------------------------------------
 
 in_dir <- '~/Dropbox/Thesis/Lineage_trace/'
@@ -29,7 +33,7 @@ in_dir <- '~/Dropbox/Thesis/Lineage_trace/'
 # Read & formatting data
 # ==============================================================================
 sc <- readRDS(paste0(in_dir, 'data/Shaffer_lab/Raw_and_Processed/day10_DABTRAM_processed.rds'))
-chromVar_dev <- readRDS(paste0(in_dir, 'outputs/task4_identify_genes_corr_growth_and_lineage_specific/dev_day10_DABTRAM_ap1_at_target_vs_nonTarget.rds'))
+chromVar_dev <- readRDS(paste0(in_dir, 'outputs/task4_identify_genes_corr_growth_and_lineage_specific/dev_day10_DABTRAM_Jun_BS_in_peaks_at_target_vs_nonTarget.rds'))
 chromVar_dev_z <- chromVar_dev@assays@data@listData[["z"]]
 rownames(chromVar_dev_z) <-  c('ap1_peaks_targetRNA', 'ap1_peaks_nonTargetRNA')
 chromVar_dev_z <- as.data.frame(t(chromVar_dev_z))
@@ -92,6 +96,7 @@ ggplot(rna_set_exp_m1, aes(x = chromVar_score, y = RNA_score, color=cell_imputed
 p <- ggplot(rna_set_exp_m, aes(x = chromVar_score, y = cell_imputed_count, color = variable)) +
   geom_point(alpha=0.3) + 
   scale_color_manual(values=c("red", "blue")) +
+  stat_smooth(geom="line", method = 'lm', alpha=1, lwd = 0.8, se = TRUE) +
   theme_bw() + theme(legend.position="bottom")
 ggMarginal(p, type="density", alpha=0.5, groupColour = TRUE, groupFill = TRUE)
 

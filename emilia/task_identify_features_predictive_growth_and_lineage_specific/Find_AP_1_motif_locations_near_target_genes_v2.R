@@ -27,6 +27,7 @@ motif_data$End <- motif_data$End + 50
 binding_sites_df <- motif_data
 binding_sites_df <- binding_sites_df[, c('Chr', 'Start', 'End')]
 binding_sites_GR <- makeGRangesFromDataFrame(binding_sites_df)
+reduce(unlist(binding_sites_GR), min.gapwidth = 2L)
 
 # Get target gene body
 gene_peaks <- matching_list
@@ -78,9 +79,12 @@ overlap_df$isNonTargetRNA <- ifelse(overlap_df$gene %in% rna_targets_non$gene, '
 overlap_df_targetRNA <- overlap_df[overlap_df$isTargetGene == 'YES', ] 
 overlap_df_nonTargetRNA <- overlap_df[overlap_df$isNonTargetRNA == 'YES', ] 
 
-overlap_df_targetRNA <- overlap_df_targetRNA[, c("chr_gene", "start_gene", "end_gene")]
-overlap_df_nonTargetRNA <- overlap_df_nonTargetRNA[, c("chr_gene", "start_gene", "end_gene")]
+overlap_df_targetRNA <- overlap_df_targetRNA[, c("chr_TF", "start_TF", "end_TF")]
+overlap_df_nonTargetRNA <- overlap_df_nonTargetRNA[, c("chr_TF", "start_TF", "end_TF")]
 
-write.table(overlap_df_targetRNA, '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/common_genes_in_corr_with_growth_v2_Jun_peaks.bed', sep='\t', row.names = FALSE)
-write.table(overlap_df_nonTargetRNA, '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/common_genes_in_corr_with_growth_v2_nonTarget_Jun_peaks.bed', sep='\t', row.names = FALSE)
+overlap_df_targetRNA <- overlap_df_targetRNA %>% distinct()
+overlap_df_nonTargetRNA <- overlap_df_nonTargetRNA %>% distinct()
 
+
+write.table(overlap_df_targetRNA, '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/common_genes_in_corr_with_growth_v2_Jun_BS_in_peaks.bed', sep='\t', quote = FALSE, row.names = FALSE)
+write.table(overlap_df_nonTargetRNA, '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/common_genes_in_corr_with_growth_v2_nonTarget_Jun_BS_in_peaks.bed', sep='\t',quote = FALSE, row.names = FALSE)
