@@ -11,6 +11,10 @@ mat <- Seurat::GetAssayData(object = seurat_object,
                             assay = "RNA", 
                             layer = "counts")
 mat <- mat[Seurat::VariableFeatures(seurat_object),]
+sum_vec <- Matrix::rowSums(mat)
+if(any(sum_vec <= 0.3)){
+  mat <- mat[sum_vec > 0.3, ]
+}
 mat <- Matrix::t(mat)
 
 K <- 30
@@ -26,8 +30,8 @@ topic_res$L <- topic_res$L[rownames(topic_res$L) %in% colnames(seurat_object),]
 for(i in 1:nrow(topic_res$L)){
   topic_mat[rownames(topic_res$L)[i],] <- topic_res$L[i,]
 }
-colnames(topic_mat) <- paste0("fastTopic", treatment, "_", 1:ncol(topic_mat))
-colnames(topic_res$F) <- paste0("fastTopic", treatment, "_", 1:ncol(topic_mat))
+colnames(topic_mat) <- paste0("fastTopic_", 1:ncol(topic_mat))
+colnames(topic_res$F) <- paste0("fastTopic_", 1:ncol(topic_mat))
 
 seurat_object[["fasttopic"]] <- Seurat::CreateDimReducObject(embeddings = topic_mat, 
                                                              loadings =  topic_res$F,

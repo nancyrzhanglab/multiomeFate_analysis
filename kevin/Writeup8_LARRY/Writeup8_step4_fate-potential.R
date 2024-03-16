@@ -1,7 +1,7 @@
 rm(list=ls())
 library(Seurat)
 library(multiomeFate)
-load("~/project/Multiome_fate/out/kevin/Writeup8/Writeup8_larry-dataset_step2_lineage-plotting.RData")
+load("~/project/Multiome_fate/out/kevin/Writeup8/Writeup8_larry-dataset_step3_fasttopics.RData")
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
