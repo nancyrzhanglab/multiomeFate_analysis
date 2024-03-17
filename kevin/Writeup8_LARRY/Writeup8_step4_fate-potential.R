@@ -20,12 +20,12 @@ for(treatment in treatment_vec){
   
   # keep only the relevant cells
   keep_vec <- rep(FALSE, ncol(seurat_object2))
-  idx <- which(seurat_object2$time_celltype %in% day_early_vec)
+  idx <- which(seurat_object2$time_celltype %in% c(day_early_vec,treatment))
   keep_vec[idx] <- TRUE
   seurat_object2$keep <- keep_vec
   seurat_object2 <- subset(seurat_object2, keep == TRUE)
   
-  tab_mat <- table(seurat_object2$assigned_lineage, seurat_object2$time_celltype)
+  tab_mat <- table(seurat_object2$assigned_lineage, droplevels(seurat_object2$time_celltype))
   
   # keep only the relevant cells for this analysis
   keep_vec <- rep(FALSE, ncol(seurat_object2))
@@ -34,13 +34,13 @@ for(treatment in treatment_vec){
   seurat_object2 <- subset(seurat_object2, keep == TRUE)
   
   # construct cell_features matrix
-  topic_mat <- seurat_object2[[paste0("fasttopic_", treatment)]]@cell.embeddings
+  topic_mat <- seurat_object2[["fasttopic"]]@cell.embeddings
   cell_features <- scale(topic_mat)
   p <- ncol(cell_features)
   
   cell_lineage <- seurat_object2$assigned_lineage
   uniq_lineage <- sort(unique(cell_lineage))
-  lineage_current_count <- tab_mat[uniq_lineage, day_early_vec]
+  lineage_current_count <- rowSums(tab_mat[uniq_lineage, day_early_vec])
   lineage_future_count <- tab_mat[uniq_lineage, day_later]
   tab_mat <- tab_mat[uniq_lineage,]
   
@@ -132,13 +132,14 @@ for(treatment in treatment_vec){
                                 train_fit = train_fit)
     
     save(cv_fit_list, date_of_run, session_info,
-         file = paste0("../../../../out/kevin/Writeup6r/Writeup6r_", treatment, "_", day_early, "_lineage-imputation-tmp.RData"))
+         file = paste0("~/project/Multiome_fate/out/kevin/Writeup8/Writeup8_", treatment, "_from_day", day_early, "_lineage-imputation-tmp.RData"))
   }
   
   
   print(paste0("Finished ", treatment))
   date_of_run <- Sys.time()
   session_info <- devtools::session_info()
+  
   save(date_of_run, session_info,
        cell_features,
        cell_lineage,
@@ -149,7 +150,7 @@ for(treatment in treatment_vec){
        lineage_future_count,
        tab_mat,
        treatment,
-       file = paste0("~/project/Multiome_fate/out/kevin/Writeup7/Writeup7_dylan_step5_growth-potential_", treatment, ".RData"))
+       file = paste0("~/project/Multiome_fate/out/kevin/Writeup8/Writeup8_", treatment, "_from_day", day_early, "_lineage-imputation.RData"))
   
   print("=========")
 }
