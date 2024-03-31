@@ -203,6 +203,20 @@ for(treatment in treatment_vec){
     " cells\n(UMAP of RNA fasttopics)\n(Log10-scale)")
   )
   ggplot2::ggsave(filename = paste0("~/project/Multiome_fate/out/figures/Writeup8/Writeup8_",
+                                    treatment, "_imputation-ridge_ft-umap.png"),
+                  p1, device = "png", width = 5, height = 5, units = "in")
+  
+  p1 <- scCustomize::FeaturePlot_scCustom(seurat_object, 
+                                          colors_use = list("red", "lightgray", "blue"),
+                                          na_cutoff = quantile(seurat_object$imputed_count_thres, probs = 0.05, na.rm = T),
+                                          na_color = "bisque",
+                                          reduction = "umap", 
+                                          features = "imputed_count_thres")
+  p1 <- p1 + ggplot2::ggtitle(paste0(
+    treatment, "\n", day_later, " growth potential of ", day_early, 
+    " cells\n(UMAP of RNA fasttopics)\n(Log10-scale)")
+  )
+  ggplot2::ggsave(filename = paste0("~/project/Multiome_fate/out/figures/Writeup8/Writeup8_",
                                     treatment, "_imputation-ridge_umap.png"),
                   p1, device = "png", width = 5, height = 5, units = "in")
   
