@@ -1,4 +1,6 @@
 rm(list=ls())
+library(ggplot2)
+library(ggtern)
 library(Seurat)
 library(multiomeFate)
 library(biomaRt)
@@ -92,6 +94,7 @@ for(treatment in treatment_vec){
   
   cell_imputation_mat <- cbind(cell_imputation_mat, cell_imputed_score)
 }
+colnames(cell_imputation_mat) <- treatment_vec
 
 cell_imputation_mat2 <- 10^cell_imputation_mat
 cell_imputation_mat2 <- pmax(cell_imputation_mat2, 10^(-1.5))
@@ -166,5 +169,125 @@ plot_list <- lapply(treatment_vec, function(treatment){
 plot_all <- cowplot::plot_grid(plotlist = plot_list, ncol = 3)
 ggplot2::ggsave(filename = "~/project/Multiome_fate/out/figures/Writeup8/Writeup8_percent_fate_full.png",
                 plot_all, device = "png", width = 14, height = 4, units = "in")
+
+######################################
+
+# pairs plot of the cells
+
+cell_imputation_mat2 <- 10^cell_imputation_mat
+cell_imputation_mat2 <- pmax(cell_imputation_mat2, 10^(-1.5))
+n <- nrow(cell_imputation_mat2)
+for(i in 1:n){
+  tmp <- cell_imputation_mat2[i,]
+  if(sum(tmp) <= 0.1){
+    cell_imputation_mat2[i,] <- NA
+  } else {
+    cell_imputation_mat2[i,] <- tmp/sum(tmp)
+  }
+}
+colnames(cell_imputation_mat2) <- paste0("percent_fate_", treatment_vec)
+celltype_vec <- as.character(seurat_object$time_celltype[rownames(cell_imputation_mat2)])
+color_palette <- c("blue3", "coral2", "gray50")
+names(color_palette) <- paste0(c("Monocyte", "Neutrophil", "Undifferentiated"), "-4")
+
+# color_vec <- color_palette[celltype_vec]
+# pair_mat <- utils::combn(3,2)
+# png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup8/Writeup8_percent-fate_", day_early, "_cell-pairs.png"),
+#     height = 1200, width = 3600, units = "px", res = 300)
+# par(mfrow = c(1,3), mar = c(4,4,4,0.5))
+# for(kk in 1:3){
+#   i <- pair_mat[1,kk]
+#   j <- pair_mat[2,kk]
+#   
+#   plot(x = cell_imputation_mat2[,i],
+#        y = cell_imputation_mat2[,j],
+#        pch = 16,
+#        col = color_vec,
+#        xlab = colnames(cell_imputation_mat2)[i],
+#        ylab = colnames(cell_imputation_mat2)[j],
+#        asp = TRUE)
+# }
+# graphics.off()
+
+# https://cran.r-project.org/web/packages/Ternary/vignettes/Ternary.html ?
+# https://www.marvinschmitt.com/blog/ggsimplex-prerelease/
+# https://cran.r-project.org/web/packages/ggtern/index.html
+# https://rpubs.com/KDVdecisions/triadtutorial1
+# http://www.ggtern.com/d/2.2.2/ggsave.html
+
+# add jitter
+cell_imputation_mat3 <- cell_imputation_mat2
+set.seed(10)
+n <- nrow(cell_imputation_mat3)
+for(i in 1:n){
+  if(any(is.na(cell_imputation_mat3[i,]))) next()
+  cell_imputation_mat3[i,] <- cell_imputation_mat3[i,] + stats::runif(3, min = 0, max = 0.1)
+  cell_imputation_mat3[i,] <- cell_imputation_mat3[i,]/sum(cell_imputation_mat3[i,])
+}
+
+cell_imputation_mat3 <- as.data.frame(cell_imputation_mat3)
+colnames(cell_imputation_mat3) <- c("Monocyte", "Neutrophil", "Undifferentiated")
+cell_imputation_mat3 <- cbind(cell_imputation_mat3, celltype_vec)
+colnames(cell_imputation_mat3)[4] <- "celltype"
+cell_imputation_mat3$celltype <- factor(cell_imputation_mat3$celltype)
+idx <- which(is.na(cell_imputation_mat3[,1]))
+cell_imputation_mat3 <- cell_imputation_mat3[-idx,]
+
+color_palette <- c("blue3", "coral2", "gray50")
+names(color_palette) <- paste0(c("Monocyte", "Neutrophil", "Undifferentiated"), "-4")
+day_early <- "4"
+tab_vec <- table(cell_imputation_mat3$celltype)
+tab_vec <- sort(tab_vec, decreasing = TRUE)
+row_idx <- unlist(lapply(names(tab_vec), function(val){
+  which(cell_imputation_mat3$celltype == val)
+}))
+cell_imputation_mat3 <- cell_imputation_mat3[row_idx,]
+
+
+
+plot1 <- ggtern::ggtern(data = cell_imputation_mat3,
+                        mapping = ggplot2::aes(x = Monocyte, 
+                                               y = Neutrophil, 
+                                               z = Undifferentiated,
+                                               color = celltype)) +
+  ggplot2::geom_point() +
+  ggplot2::scale_color_manual(values = color_palette) +
+  ggtern::theme_showarrows() + 
+  ggplot2::labs(x = "Monocyte", 
+                y = "Neutrophil",
+                z = "Undifferentiated",
+                title = paste0("Percent fate for day ", day_early))
+ggtern::ggsave(filename = paste0("~/project/Multiome_fate/out/figures/Writeup8/Writeup8_percent-fate_", day_early, "_cell-pairs.png"),
+               plot1, 
+               device = "png", 
+               width = 10, 
+               height = 5, 
+               units = "in")
+
+# pairs plot of the genes
+rna_mat <- SeuratObject::LayerData(seurat_object,
+                                   data = "data",
+                                   assay = "RNA",
+                                   features = Seurat::VariableFeatures(seurat_object))
+gene_corr_list <- vector("list", length = length(treatment_vec))
+names(gene_corr_list) <- treatment_vec
+
+for(treatment in treatment_vec){
+  rna_mat2 <- Matrix::t(rna_mat[,rownames(cell_imputation_mat)])
+  corr_vec <- sapply(1:ncol(rna_mat2), function(j){
+    stats::cor(cell_imputation_mat[,treatment], rna_mat2[,j])
+  })
+  names(corr_vec) <- colnames(rna_mat2)
+  corr_vec[is.na(corr_vec)] <- 0
+  gene_corr_list[[treatment]] <- corr_vec
+}
+
+df <- data.frame(do.call(cbind, gene_corr_list))
+p1 <- GGally::ggpairs(df, 
+                      mapping = ggplot2::aes(color = "coral1"),
+                      lower = list(continuous = GGally::wrap("points", alpha = 0.2, shape = 16)),
+                      progress = FALSE) 
+ggplot2::ggsave(filename = paste0("~/project/Multiome_fate/out/figures/Writeup8/Writeup8_growth-potential_", day_early, "_pairs_gene-corr.png"),
+                p1, device = "png", width = 8, height = 8, units = "in")
 
 
