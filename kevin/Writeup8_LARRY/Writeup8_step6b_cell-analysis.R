@@ -14,9 +14,9 @@ set.seed(10)
 seurat_object_safe <- seurat_object
 
 treatment_vec <- as.character(sort(unique(seurat_object$time_celltype)))
-day_early_vec <- treatment_vec[grep("^.*-4", treatment_vec)]
-day_early <- "4"
-treatment_vec <- treatment_vec[grep("^.*-6", treatment_vec)]
+day_early_vec <- treatment_vec[grep("^.*-2", treatment_vec)]
+day_early <- "2"
+treatment_vec <- treatment_vec[grep("^.*-4", treatment_vec)]
 
 # https://satijalab.org/seurat/articles/cell_cycle_vignette.html
 # https://github.com/satijalab/seurat/issues/2493

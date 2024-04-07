@@ -100,3 +100,31 @@ for(i in 1:length(file_vec)){
   graphics.off()
 }
 
+######################################
+
+cell_imputed_mat <- numeric(0)
+
+for(treatment in treatment_vec){
+  load(paste0("~/project/Multiome_fate/out/kevin/Writeup7/Writeup7_dylan_step6_growth-potential_", treatment, "_postprocess.RData"))
+  cell_imputed_mat <- cbind(cell_imputed_mat, cell_imputed_score)
+}
+
+df <- data.frame(cell_imputed_mat)
+colnames(df) <- treatment_vec
+
+p1 <- GGally::ggpairs(df, 
+                      lower = list(continuous = GGally::wrap("points", alpha = 0.2, shape = 16)),
+                      progress = FALSE) 
+ggplot2::ggsave(filename = "~/project/Multiome_fate/out/figures/Writeup7/Writeup7_growth-potential_pairs_cell-corr_logscale.png",
+                p1, device = "png", width = 8, height = 8, units = "in")
+
+
+df <- data.frame(pmin(10^cell_imputed_mat, 100))
+colnames(df) <- treatment_vec
+
+p1 <- GGally::ggpairs(df, 
+                      lower = list(continuous = GGally::wrap("points", alpha = 0.2, shape = 16)),
+                      progress = FALSE) 
+ggplot2::ggsave(filename = "~/project/Multiome_fate/out/figures/Writeup7/Writeup7_growth-potential_pairs_cell-corr.png",
+                p1, device = "png", width = 8, height = 8, units = "in")
+
