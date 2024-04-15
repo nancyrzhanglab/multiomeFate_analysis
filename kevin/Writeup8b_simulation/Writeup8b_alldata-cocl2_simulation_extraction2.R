@@ -40,8 +40,6 @@ all_data[["umap"]]@assay.used <- "Lineage"
 all_data[["fasttopic_COCL2"]]@assay.used <- "Lineage"
 all_data[["peakVI_COCL2"]]@assay.used <- "Lineage"
 
-Seurat::DefaultAssay(all_data) <- "Lineage"
-
 note <- "Lightweight data only for simulation purposes. Kept the RNA modality"
 save(all_data, date_of_run, session_info, note,
      file = "~/project/Multiome_fate/out/kevin/Writeup8b/Writeup8b_simulation_day10-COCL2_withRNA.RData")
