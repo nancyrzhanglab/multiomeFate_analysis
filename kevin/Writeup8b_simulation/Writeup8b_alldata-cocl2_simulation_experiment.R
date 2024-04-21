@@ -14,10 +14,10 @@ embedding_mat <- all_data[["fasttopic_COCL2"]]@cell.embeddings
 embedding_mat <- scale(embedding_mat)
 embedding_mat <- pmin(embedding_mat, 2)
 coefficient_intercept <- -2
-coefficient_vec <- stats::runif(ncol(embedding_mat), min = -0.5, max = 0.25) # rep(1, ncol(embedding_mat))
+embedding_coefficient_vec <- stats::runif(ncol(embedding_mat), min = -0.5, max = 0.25) # rep(1, ncol(embedding_mat))
 
 # double-check the fate potentials are ok
-tmp <- exp((embedding_mat %*% coefficient_vec) + coefficient_intercept)
+tmp <- exp((embedding_mat %*% embedding_coefficient_vec) + coefficient_intercept)
 quantile(tmp)
 sum(tmp)
 
@@ -34,7 +34,7 @@ simulation_res <- multiomeFate:::generate_simulation(
   embedding_mat = embedding_mat[early_idx,,drop=FALSE],
   bool_add_randomness = TRUE,
   coefficient_intercept = coefficient_intercept,
-  coefficient_vec = coefficient_vec,
+  embedding_coefficient_vec = embedding_coefficient_vec,
   lineage_spread = lineage_spread,
   lineage_prior = lineage_prior,
   num_lineages = num_lineages,
@@ -61,11 +61,9 @@ plot(all_data[["umap"]]@cell.embeddings,
      xlab = "UMAP1", ylab = "UMAP2",
      main = paste0("Spread: ", lineage_spread))
 for(kk in 1:3){
-  for(i in idx){
-    idx <- which(simulation_res$lineage_assignment == paste0("lineage:", kk))
-    points(all_data[["umap"]]@cell.embeddings[early_idx[idx],,drop = FALSE],
-           pch = 16, col = kk, cex = 1)
-  }
+  idx <- which(simulation_res$lineage_assignment == paste0("lineage:", kk))
+  points(all_data[["umap"]]@cell.embeddings[early_idx[idx],,drop = FALSE],
+         pch = 16, col = kk, cex = 1)
 }
 
 
@@ -104,11 +102,11 @@ final_fit <- lineage_cv_finalize(
 )
 lineage_imputed_count <- final_fit$lineage_imputed_count
 cell_imputed_score <- final_fit$cell_imputed_score
-round(final_fit$coefficient_vec, 2)
+round(final_fit$embedding_coefficient_vec, 2)
 
 par(mfrow = c(1,1))
-plot(x = c(coefficient_intercept, coefficient_vec),
-     y = final_fit$coefficient_vec,
+plot(x = c(coefficient_intercept, embedding_coefficient_vec),
+     y = final_fit$embedding_coefficient_vec,
      xlab = "True coefficients",
      ylab = "Estimated coefficients",
      asp = TRUE, pch = 16)
