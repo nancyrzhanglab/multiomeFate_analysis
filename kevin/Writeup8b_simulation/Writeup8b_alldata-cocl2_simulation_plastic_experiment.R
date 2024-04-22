@@ -18,7 +18,7 @@ names(embedding_coefficient_vec) <- colnames(embedding_mat)
 embedding_coefficient_vec["fastTopicCOCL2_1"] <- 2
 
 held_out_variables <- c("fastTopicCOCL2_2", "fastTopicCOCL2_3", "fastTopicCOCL2_4")
-embedding_coefficient_vec[held_out_variables] <- 1.02 # this is on the exponential scale, so it's **very** sensitive
+embedding_coefficient_vec[held_out_variables] <- 1.05 # this is on the exponential scale, so it's **very** sensitive
 
 rm_idx <- which(colnames(embedding_mat) %in% held_out_variables)
 fatefeatures_mat <- embedding_mat[,rm_idx,drop = FALSE]
