@@ -12,13 +12,27 @@ load("../../out/Writeup8b/Writeup8b_simulation_day10-COCL2.RData")
 set.seed(10)
 embedding_mat <- all_data[["fasttopic_COCL2"]]@cell.embeddings
 embedding_mat <- scale(embedding_mat)
-coefficient_intercept <- -10
-embedding_coefficient_vec <- c(2, rep(0, ncol(embedding_mat)-1))
+coefficient_intercept <- -8
+embedding_coefficient_vec <- rep(0, ncol(embedding_mat))
+names(embedding_coefficient_vec) <- colnames(embedding_mat)
+embedding_coefficient_vec["fastTopicCOCL2_1"] <- 2
+
+held_out_variables <- c("fastTopicCOCL2_2", "fastTopicCOCL2_3", "fastTopicCOCL2_4")
+embedding_coefficient_vec[held_out_variables] <- 1.02 # this is on the exponential scale, so it's **very** sensitive
+
+rm_idx <- which(colnames(embedding_mat) %in% held_out_variables)
+fatefeatures_mat <- embedding_mat[,rm_idx,drop = FALSE]
+fatefeatures_coefficient_vec <- embedding_coefficient_vec[rm_idx]
+
+embedding_mat <- embedding_mat[,-rm_idx,drop = FALSE]
+embedding_coefficient_vec <- embedding_coefficient_vec[-rm_idx]
 
 # double-check the fate potentials are ok
 tmp <- exp((embedding_mat %*% embedding_coefficient_vec) + coefficient_intercept)
 quantile(tmp)
-sum(tmp)
+tmp2 <- exp((embedding_mat %*% embedding_coefficient_vec) + (fatefeatures_mat %*% fatefeatures_coefficient_vec) + coefficient_intercept)
+sum(tmp2)
+cor(tmp, tmp2) # the lower this number is, the harder the problem is
 
 num_lineages <- 50
 
@@ -32,6 +46,8 @@ simulation_res <- multiomeFate:::generate_simulation_plastic(
   bool_add_randomness = TRUE,
   coefficient_intercept = coefficient_intercept,
   embedding_coefficient_vec = embedding_coefficient_vec,
+  fatefeatures_coefficient_vec = fatefeatures_coefficient_vec,
+  fatefeatures_mat = fatefeatures_mat[early_idx,,drop=FALSE], 
   num_lineages = num_lineages,
   verbose = 3
 )
@@ -86,7 +102,6 @@ plot(x = mean_val,
      main = paste0("Corr: ", round(cor(sd_val, mean_val), 2)),
      xlab = "Mean (per lineage)", ylab = "Sd (per lineage)",
      pch = 16, asp = TRUE)
-
 
 #####
 
