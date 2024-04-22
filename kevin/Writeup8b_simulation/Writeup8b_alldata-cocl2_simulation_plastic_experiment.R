@@ -35,8 +35,6 @@ simulation_res <- multiomeFate:::generate_simulation_plastic(
   num_lineages = num_lineages,
   verbose = 3
 )
-print(head(simulation_res$lineage_assignment[rownames(simulation_res$prob_mat)]))
-
 
 # check the simulation to make the sizes look alright
 table(simulation_res$lineage_assignment)
@@ -62,31 +60,6 @@ for(kk in 1:length(lineage_idx_vec)){
          pch = 16, col = kk, cex = 1)
 }
 
-
-# Version 1
-par(mfrow = c(1,3))
-median_val = sapply(levels(simulation_res$lineage_assignment), function(lineage){
-  median(simulation_res$cell_fate_potential_truth[simulation_res$lineage_assignment == lineage])
-})
-plot(median_val, 
-     simulation_res$lineage_future_size, 
-     pch = 16,
-     main = paste0("Future lineage size vs. current median lineage potential\n",
-                   "Corr: ", round(cor(median_val, simulation_res$lineage_future_size), 2)))
-range_val = sapply(levels(simulation_res$lineage_assignment), function(lineage){
-  diff(range(simulation_res$cell_fate_potential_truth[simulation_res$lineage_assignment == lineage]))
-})
-plot(range_val, 
-     simulation_res$lineage_future_size, 
-     pch = 16,
-     main = paste0("Future lineage size vs. current range lineage potential\n",
-                   "Corr: ", round(cor(range_val, simulation_res$lineage_future_size), 2)))
-plot(x = median_val,
-     y = range_val, 
-     xlab = "median", ylab = "range",
-     pch = 16, asp = TRUE)
-
-# Version 2
 par(mfrow = c(1,3))
 mean_val = sapply(levels(simulation_res$lineage_assignment), function(lineage){
   median(simulation_res$cell_fate_potential_truth[simulation_res$lineage_assignment == lineage])
@@ -94,19 +67,24 @@ mean_val = sapply(levels(simulation_res$lineage_assignment), function(lineage){
 plot(mean_val, 
      simulation_res$lineage_future_size, 
      pch = 16,
-     main = paste0("Future lineage size vs. current mean lineage potential\n",
-                   "Corr: ", round(cor(median_val, simulation_res$lineage_future_size), 2)))
+     xlab = "Mean (per lineage)",
+     ylab = "Future size (per lineage)",
+     main = paste0("Future size vs. current mean potential\n",
+                   "Corr: ", round(cor(mean_val, simulation_res$lineage_future_size), 2)))
 sd_val = sapply(levels(simulation_res$lineage_assignment), function(lineage){
   diff(range(simulation_res$cell_fate_potential_truth[simulation_res$lineage_assignment == lineage]))
 })
 plot(sd_val, 
      simulation_res$lineage_future_size, 
      pch = 16,
-     main = paste0("Future lineage size vs. current sd lineage potential\n",
-                   "Corr: ", round(cor(range_val, simulation_res$lineage_future_size), 2)))
+     xlab = "Sd (per lineage)",
+     ylab = "Future size (per lineage)",
+     main = paste0("Future size vs. current sd potential\n",
+                   "Corr: ", round(cor(sd_val, simulation_res$lineage_future_size), 2)))
 plot(x = mean_val,
      y = sd_val, 
-     xlab = "mean", ylab = "sd",
+     main = paste0("Corr: ", round(cor(sd_val, mean_val), 2)),
+     xlab = "Mean (per lineage)", ylab = "Sd (per lineage)",
      pch = 16, asp = TRUE)
 
 
@@ -153,7 +131,6 @@ p1 <- p1 + ggplot2::stat_summary(fun=mean, geom="point", shape=16, size=3, color
 p1 <- p1 + ggplot2::stat_summary(fun=max, geom="point", shape=10, size=5, color="blue")
 p1 <- p1 + ggplot2::ggtitle(paste0("ANOVA -Log10(pvalue)=", round(-log10(anova_res$p.value), 2), ", Lineage effect = ", lineage_effect, "%"))
 p1
-
 
 ##################
 
