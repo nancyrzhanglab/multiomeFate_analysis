@@ -67,7 +67,7 @@ plot(rowSums(simulation_future_res2$mapping_mat))
 plot(apply(simulation_future_res2$mapping_mat, 1, function(x){diff(range(x))}))
 
 
-cell_names <- names(sort(simulation_res$cell_fate_potential, decreasing = TRUE))[c(10,20,30)]
+cell_names <- names(sort(simulation_res$cell_fate_potential, decreasing = TRUE))[c(5,15,25)]
 par(mfrow = c(1,3))
 plot(all_data[["umap"]]@cell.embeddings,
      pch = 16, col = "gray",
