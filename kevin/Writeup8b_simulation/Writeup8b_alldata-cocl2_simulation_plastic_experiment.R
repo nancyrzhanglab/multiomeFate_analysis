@@ -76,31 +76,37 @@ for(kk in 1:length(lineage_idx_vec)){
          pch = 16, col = kk, cex = 1)
 }
 
+par(mfrow = c(1,1))
+plot(x = simulation_res$cell_fate_potential_truth,
+     y = simulation_res$lineage_future_size[simulation_res$lineage_assignment],
+     xlab = "Cell GP", ylab = "Lineage future size",
+     pch = 16, cex = 0.5)
+
 par(mfrow = c(1,3))
-mean_val = sapply(levels(simulation_res$lineage_assignment), function(lineage){
+median_val = sapply(levels(simulation_res$lineage_assignment), function(lineage){
   median(simulation_res$cell_fate_potential_truth[simulation_res$lineage_assignment == lineage])
 })
-plot(mean_val, 
+plot(median_val, 
      simulation_res$lineage_future_size, 
      pch = 16,
-     xlab = "Mean (per lineage)",
+     xlab = "Median (per lineage)",
      ylab = "Future size (per lineage)",
-     main = paste0("Future size vs. current mean potential\n",
-                   "Corr: ", round(cor(mean_val, simulation_res$lineage_future_size), 2)))
-sd_val = sapply(levels(simulation_res$lineage_assignment), function(lineage){
+     main = paste0("Future size vs. current median potential\n",
+                   "Corr: ", round(cor(median_val, simulation_res$lineage_future_size), 2)))
+range_val = sapply(levels(simulation_res$lineage_assignment), function(lineage){
   diff(range(simulation_res$cell_fate_potential_truth[simulation_res$lineage_assignment == lineage]))
 })
-plot(sd_val, 
+plot(range_val, 
      simulation_res$lineage_future_size, 
      pch = 16,
-     xlab = "Sd (per lineage)",
+     xlab = "Range (per lineage)",
      ylab = "Future size (per lineage)",
-     main = paste0("Future size vs. current sd potential\n",
-                   "Corr: ", round(cor(sd_val, simulation_res$lineage_future_size), 2)))
-plot(x = mean_val,
-     y = sd_val, 
-     main = paste0("Corr: ", round(cor(sd_val, mean_val), 2)),
-     xlab = "Mean (per lineage)", ylab = "Sd (per lineage)",
+     main = paste0("Future size vs. current range potential\n",
+                   "Corr: ", round(cor(range_val, simulation_res$lineage_future_size), 2)))
+plot(x = median_val,
+     y = range_val, 
+     main = paste0("Corr: ", round(cor(range_val, median_val), 2)),
+     xlab = "Median (per lineage)", ylab = "Range (per lineage)",
      pch = 16, asp = TRUE)
 
 #####
@@ -142,7 +148,7 @@ p1 <- p1 + ggplot2::geom_boxplot(width=0.05)
 p1 <- p1 + ggplot2::scale_x_discrete(limits = c(lineage_names, "All"),
                                      guide = ggplot2::guide_axis(angle = 45))
 p1 <- p1 + ggplot2::ylab("Week5 growth potential")
-p1 <- p1 + ggplot2::stat_summary(fun=mean, geom="point", shape=16, size=3, color="red")
+p1 <- p1 + ggplot2::stat_summary(fun=median, geom="point", shape=16, size=3, color="red")
 p1 <- p1 + ggplot2::stat_summary(fun=max, geom="point", shape=10, size=5, color="blue")
 p1 <- p1 + ggplot2::ggtitle(paste0("ANOVA -Log10(pvalue)=", round(-log10(anova_res$p.value), 2), ", Lineage effect = ", lineage_effect, "%"))
 p1
