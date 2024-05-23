@@ -61,30 +61,35 @@ fit_res <- multiomeFate:::lineage_cv(
   cell_lineage = cell_lineage,
   future_timepoint = treatment,
   lineage_future_count = lineage_future_count,
-  lambda_initial = 30,
-  lambda_sequence_length = 4,
+  lambda_initial = lambda_initial,
+  lambda_sequence_length = 20,
   tab_mat = tab_mat,
   num_folds = 5,
   savefile_tmp = paste0("~/project/Multiome_fate/out/kevin/Writeup9/Writeup9_", treatment, "_from_day", day_early, "_lineage-imputation_tmp.RData"),
   verbose = 4
 )
 
-
 save(date_of_run, session_info,
      fit_res,
      file = paste0("~/project/Multiome_fate/out/kevin/Writeup9/Writeup9_", treatment, "_from_day", day_early, "_lineage-imputation.RData"))
 
-final_fit <- lineage_cv_finalize(
+final_fit <- multiomeFate:::lineage_cv_finalize(
   cell_features = cell_features,
   cell_lineage = cell_lineage,
   fit_res = fit_res,
   lineage_future_count = lineage_future_count
 )
+lineage_imputed_count <- final_fit$lineage_imputed_count
+cell_imputed_score <- final_fit$cell_imputed_score
 
 save(date_of_run, session_info,
      cell_features,
+     cell_imputed_score,
      cell_lineage,
+     final_fit,
+     fit_res,
      lineage_current_count,
+     lineage_imputed_count,
      lineage_future_count,
      tab_mat,
      treatment,
