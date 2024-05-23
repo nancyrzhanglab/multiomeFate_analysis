@@ -66,7 +66,7 @@ fit_res <- multiomeFate:::lineage_cv(
   tab_mat = tab_mat,
   num_folds = 5,
   savefile_tmp = paste0("~/project/Multiome_fate/out/kevin/Writeup9/Writeup9_", treatment, "_from_day", day_early, "_lineage-imputation_tmp.RData"),
-  verbose = 2
+  verbose = 4
 )
 
 
