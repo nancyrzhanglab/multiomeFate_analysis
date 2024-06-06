@@ -8,7 +8,7 @@ library(ggplot2)
 # Read data
 # ==============================================================================
 # load('~/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/day0/Writeup6n_lineage-imputation_day0-day10-export.RData')
-# load('/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/day10_chromVar_day10_growth_potential_for_week5_correlation.RData')
+load('/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/day10_chromVar_day10_growth_potential_for_week5_correlation.RData')
 load('/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/day0_chromVar_day0_growth_potential_for_day10_correlation.RData')
 
 # modality <-'Gene_exp'

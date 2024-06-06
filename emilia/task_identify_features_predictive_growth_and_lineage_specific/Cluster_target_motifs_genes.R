@@ -10,19 +10,24 @@ library(grid)
 # ==============================================================================
 
 # ChromVAR
-load("~/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/day10_chromVar_day10_growth_potential_for_week5_correlation_writeup6r.RData")
+load("~/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/Results_with_GP_writeup6n/day10_chromVar_day10_growth_potential_for_week5_correlation_writeup6n.RData")
 
-cis_cor_vec <- correlation_list[['cis_cor_vec']]
-cocl2_cor_vec <- correlation_list[['cocl2_cor_vec']]
-dabtram_cor_vec <- correlation_list[['dabtram_cor_vec']]
+# cis_cor_vec <- correlation_list[['cis_cor_vec']]
+# cocl2_cor_vec <- correlation_list[['cocl2_cor_vec']]
+# dabtram_cor_vec <- correlation_list[['dabtram_cor_vec']]
 
-cis_cor_vec$motif_name <- rownames(cis_cor_vec)
-cocl2_cor_vec$motif_name <- rownames(cocl2_cor_vec)
-dabtram_cor_vec$motif_name <- rownames(dabtram_cor_vec)
+# cis_cor_vec$motif_name <- rownames(cis_cor_vec)
+# cocl2_cor_vec$motif_name <- rownames(cocl2_cor_vec)
+# dabtram_cor_vec$motif_name <- rownames(dabtram_cor_vec)
 
-colnames(cis_cor_vec) <- c( "corr.cis.chromVAR", "p.val.cis.chromVAR", "motif_name")
-colnames(cocl2_cor_vec) <- c("corr.cocl2.chromVAR", "p.val.cocl2.chromVAR", "motif_name")
-colnames(dabtram_cor_vec) <- c("corr.dabtram.chromVAR","p.val.dabtram.chromVAR", "motif_name")
+# colnames(cis_cor_vec) <- c( "corr.cis.chromVAR", "p.val.cis.chromVAR", "motif_name")
+# colnames(cocl2_cor_vec) <- c("corr.cocl2.chromVAR", "p.val.cocl2.chromVAR", "motif_name")
+# colnames(dabtram_cor_vec) <- c("corr.dabtram.chromVAR","p.val.dabtram.chromVAR", "motif_name")
+
+colnames(cis_cor_vec) <- c( "motif_name", "corr.cis.chromVAR", "p.val.cis.chromVAR")
+colnames(cocl2_cor_vec) <- c("motif_name", "corr.cocl2.chromVAR", "p.val.cocl2.chromVAR")
+colnames(dabtram_cor_vec) <- c("motif_name", "corr.dabtram.chromVAR","p.val.dabtram.chromVAR")
+
 
 cor_df <- merge(cis_cor_vec,cocl2_cor_vec, by='motif_name' )
 cor_df <- merge(cor_df,dabtram_cor_vec, by='motif_name' )
@@ -69,7 +74,7 @@ cor_mat_chromVAR_cis_cocl2 <- cor_df_chromVAR[, c("motif_name",
                                                   "corr.cocl2.chromVAR")]
 rownames(cor_mat_chromVAR_cis_cocl2) <- cor_mat_chromVAR_cis_cocl2$motif_name
 cor_mat_chromVAR_cis_cocl2 <- subset(cor_mat_chromVAR_cis_cocl2, select=-c(motif_name))
-db_chromVAR_cis_cocl2 <- dbscan(cor_mat_chromVAR_cis_cocl2, eps = 0.04, minPts = 1) #eps = 0.03, minPts = 2
+db_chromVAR_cis_cocl2 <- dbscan(cor_mat_chromVAR_cis_cocl2, eps = 0.02, minPts = 2) #eps = 0.03, minPts = 2
 db_chromVAR_cis_cocl2
 pairs(cor_mat_chromVAR_cis_cocl2, col = db_chromVAR_cis_cocl2$cluster + 1L)
 
@@ -83,7 +88,7 @@ cor_mat_chromVAR_dabtram_cocl2 <- cor_df_chromVAR[, c("motif_name",
                                                       "corr.cocl2.chromVAR")]
 rownames(cor_mat_chromVAR_dabtram_cocl2) <- cor_mat_chromVAR_dabtram_cocl2$motif_name
 cor_mat_chromVAR_dabtram_cocl2 <- subset(cor_mat_chromVAR_dabtram_cocl2, select=-c(motif_name))
-db_chromVAR_dabtram_cocl2 <- dbscan(cor_mat_chromVAR_dabtram_cocl2, eps = 0.1, minPts = 1) #eps = 0.06, minPts = 1
+db_chromVAR_dabtram_cocl2 <- dbscan(cor_mat_chromVAR_dabtram_cocl2, eps = 0.06, minPts = 1) #eps = 0.06, minPts = 1
 db_chromVAR_dabtram_cocl2
 pairs(cor_mat_chromVAR_dabtram_cocl2, col = db_chromVAR_dabtram_cocl2$cluster + 1L)
 
