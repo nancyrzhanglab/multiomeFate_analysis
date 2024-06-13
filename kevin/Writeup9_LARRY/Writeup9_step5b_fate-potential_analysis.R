@@ -10,9 +10,9 @@ set.seed(10)
 seurat_object_safe <- seurat_object
 
 treatment_vec <- as.character(sort(unique(seurat_object$time_celltype)))
-day_early_vec <- treatment_vec[grep("^.*-4", treatment_vec)]
-day_early <- "4"
-treatment_vec <- treatment_vec[grep("^.*-6", treatment_vec)]
+day_early_vec <- treatment_vec[grep("^.*-2", treatment_vec)]
+day_early <- "2"
+treatment_vec <- treatment_vec[grep("^.*-4", treatment_vec)]
 
 for(treatment in treatment_vec){
   print(paste0("Working on ", treatment))
@@ -29,7 +29,7 @@ for(treatment in treatment_vec){
                                    dims = 1:30,
                                    reduction = "fasttopic",
                                    reduction.name = "ft_umap")
-
+  
   
   plot1 <- Seurat::DimPlot(seurat_object, reduction = "ft_umap",
                            group.by = "time_celltype", pt.size = .3, label = T)
