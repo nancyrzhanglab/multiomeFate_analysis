@@ -14,8 +14,8 @@ set.seed(10)
 seurat_object_safe <- seurat_object
 
 treatment_vec <- as.character(sort(unique(seurat_object$time_celltype)))
-day_early <- "2"
-day_later <- "4"
+day_early <- "4"
+day_later <- "6"
 day_early_vec <- treatment_vec[grep(paste0("^.*-", day_early), treatment_vec)]
 treatment_vec <- treatment_vec[grep(paste0("^.*-", day_later), treatment_vec)]
 
@@ -164,4 +164,63 @@ for(celltype in celltype_vec){
 
 
 ##########################################################
+
+# for each cell, identify the dominate future fate of that lineage
+# load("~/project/Multiome_fate/out/kevin/Writeup8/Writeup8_larry-dataset_step3_fasttopics.RData")
+
+df <- as.data.frame(cell_imputation_mat3)
+colnames(df) <- c("Monocyte", "Neutrophil", "Undifferentiated")
+df <- cbind(df, 
+            celltype_vec[rownames(cell_imputation_mat3)], 
+            cellsize[rownames(cell_imputation_mat3)])
+rownames(df) <- rownames(cell_imputation_mat3)
+colnames(df)[4:5] <- c("celltype", "size")
+df$celltype <- factor(df$celltype)
+idx <- which(is.na(df[,1]))
+if(length(idx) > 0) df <- df[-idx,]
+df$lineage <- seurat_object$assigned_lineage[rownames(df)]
+df$dominant_fate <- rep(NA, nrow(df))
+for(lineage in unique(df$lineage)){
+  df_idx <- which(df$lineage == lineage)
+  seurat_idx <- intersect(which(seurat_object$Time.point == as.numeric(day_later)),
+                          which(seurat_object$assigned_lineage == lineage))
+  tab_vec <- table(seurat_object$Cell.type.annotation[seurat_idx])
+  if(length(tab_vec) == 0) next()
+  df$dominant_fate[df_idx] <- names(tab_vec)[which.max(tab_vec)]
+}
+df$dominant_fate[which(is.na(df$dominant_fate))] <- "NA"
+df$dominant_fate <- factor(df$dominant_fate)
+
+color_palette <- c("blue3", "coral2", "gray50", "black")
+names(color_palette) <- paste0(c("Monocyte", "Neutrophil", "Undifferentiated", "NA"))
+tab_vec <- table(df$celltype)
+tab_vec <- sort(tab_vec, decreasing = TRUE)
+row_idx <- unlist(lapply(names(color_palette), function(val){
+  which(df$celltype == val)
+}))
+df <- df[row_idx,]
+
+
+plot1 <- ggtern::ggtern(data = df,
+                        mapping = ggplot2::aes(x = Monocyte, 
+                                               y = Neutrophil, 
+                                               z = Undifferentiated,
+                                               color = dominant_fate,
+                                               size = size)) +
+  ggplot2::geom_point() +
+  ggplot2::scale_color_manual(values = color_palette) +
+  ggtern::theme_showarrows() + 
+  ggplot2::scale_size_area() + 
+  ggplot2::labs(x = "Monocyte", 
+                y = "Neutrophil",
+                z = "Undifferentiated",
+                title = paste0("Percent fate for day ", day_early))
+ggtern::ggsave(filename = paste0("~/project/Multiome_fate/out/figures/Writeup8/Writeup8_percent-fate_", day_early, "_cell-pairs_by-dominate-fate.png"),
+               plot1, 
+               device = "png", 
+               width = 10, 
+               height = 5, 
+               units = "in")
+
+
 
