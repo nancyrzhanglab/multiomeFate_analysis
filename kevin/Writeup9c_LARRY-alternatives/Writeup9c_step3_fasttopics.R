@@ -34,6 +34,7 @@ save(topic_res, date_of_run, session_info,
 #########
 
 topic_mat <- topic_res$L
+rownames(topic_mat) <- Seurat::Cells(seurat_object)
 seurat_object[["fasttopic"]] <- Seurat::CreateDimReducObject(embeddings = topic_mat, 
                                                              loadings =  topic_res$F,
                                                              assay = "RNA",
