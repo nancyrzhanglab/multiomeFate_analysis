@@ -28,18 +28,12 @@ K <- 30
 set.seed(10)
 topic_res <- fastTopics::fit_topic_model(mat, k = K)
 
+save(topic_res, date_of_run, session_info,
+     file = "~/project/Multiome_fate/out/kevin/Writeup9c/Writeup9c_larry-dataset_step3_fasttopics_tmp.RData")
+
 #########
 
-topic_mat <- matrix(NA, nrow = ncol(seurat_object), ncol = ncol(topic_res$L))
-rownames(topic_mat) <- colnames(seurat_object)
-topic_res$L <- topic_res$L[rownames(topic_res$L) %in% colnames(seurat_object),]
-
-for(i in 1:nrow(topic_res$L)){
-  topic_mat[rownames(topic_res$L)[i],] <- topic_res$L[i,]
-}
-colnames(topic_mat) <- paste0("fastTopic_", 1:ncol(topic_mat))
-colnames(topic_res$F) <- paste0("fastTopic_", 1:ncol(topic_mat))
-
+topic_mat <- topic_res$L
 seurat_object[["fasttopic"]] <- Seurat::CreateDimReducObject(embeddings = topic_mat, 
                                                              loadings =  topic_res$F,
                                                              assay = "RNA",
