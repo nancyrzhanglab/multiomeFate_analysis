@@ -28,25 +28,19 @@ if(length(rm_idx) > 0){
 }
 cell_features <- scale(rna_mat)
 
-coefficient_intercept <- -5
+coefficient_intercept <- -7
 coefficient_vec <- rep(0, ncol(cell_features))
 names(coefficient_vec) <- colnames(cell_features)
-coefficient_vec[gene_ordering[1:100]] <- 0.25*sample(c(-1,1), size = 100, replace = TRUE)
-
-held_out_variables <- gene_ordering[101:200]
-coefficient_vec[held_out_variables] <- 0.1*sample(c(-1,1), size = 100, replace = TRUE)
-
-rm_idx <- which(colnames(cell_features) %in% held_out_variables)
-fatefeatures_mat <- cell_features[,rm_idx,drop = FALSE]
-fatefeatures_coefficient_vec <- coefficient_vec[rm_idx]
-
-cell_features <- cell_features[,-rm_idx,drop = FALSE]
-coefficient_vec <- coefficient_vec[-rm_idx]
+num_nonzero_genes <- 500
+set.seed(10)
+vec1 <- stats::rexp(num_nonzero_genes, rate = 1)/8
+vec2 <- sample(c(-1,1), size = num_nonzero_genes, replace = TRUE)
+coefficient_vec[gene_ordering[1:num_nonzero_genes]] <- vec1*vec2
 
 # double-check the fate potentials are ok
 # tmp <- exp((embedding_mat %*% embedding_coefficient_vec) + coefficient_intercept)
 # quantile(tmp)
-tmp2 <- exp((cell_features %*% coefficient_vec) + (fatefeatures_mat %*% fatefeatures_coefficient_vec) + coefficient_intercept)
+tmp2 <- exp((cell_features %*% coefficient_vec) + coefficient_intercept)
 sum(tmp2)
 # plot(tmp, tmp2, main = paste0("Corr: ", round(cor(tmp, tmp2), 2)))
 
@@ -62,8 +56,6 @@ simulation_res <- multiomeFate:::generate_simulation_plastic(
   bool_add_randomness = TRUE,
   coefficient_intercept = coefficient_intercept,
   embedding_coefficient_vec = coefficient_vec,
-  fatefeatures_coefficient_vec = fatefeatures_coefficient_vec,
-  fatefeatures_mat = fatefeatures_mat[early_idx,,drop=FALSE], 
   num_lineages = num_lineages,
   lineage_mean_spread = 1, 
   lineage_sd_spread = NA,
@@ -100,7 +92,7 @@ simulation_res <- multiomeFate:::generate_simulation_plastic(
 #      xlab = "Cell GP", ylab = "Lineage future size",
 #      pch = 16, cex = 0.5)
 
-png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_simulation_same-mean_data-generation.png"),
+png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_simulation_variance2growth.png"),
      width = 15, height = 5, units = "in", res = 300)
 par(mfrow = c(1,3))
 median_vec <- simulation_res$summary_mat["median",]
@@ -143,6 +135,7 @@ colnames(tab_mat) <- c("now", "future")
 # start cross validation
 
 set.seed(10)
+start_time1 <- Sys.time()
 fit_res <- multiomeFate:::lineage_cv(
   cell_features = embedding_mat[early_idx,,drop=FALSE],
   cell_lineage = cell_lineage,
@@ -154,46 +147,59 @@ fit_res <- multiomeFate:::lineage_cv(
   num_folds = 10,
   verbose = 2
 )
+end_time1 <- Sys.time()
 
+start_time2 <- Sys.time()
 final_fit <- multiomeFate:::lineage_cv_finalize(
   cell_features = embedding_mat[early_idx,,drop=FALSE],
   cell_lineage = cell_lineage,
   fit_res = fit_res,
   lineage_future_count = lineage_future_count
 )
+end_time2 <- Sys.time()
 lineage_imputed_count <- final_fit$lineage_imputed_count
 cell_imputed_score <- final_fit$cell_imputed_score
 round(final_fit$coefficient_vec, 2)
 
-par(mfrow = c(1,1))
-plot(x = c(coefficient_intercept, embedding_coefficient_vec),
-     y = final_fit$coefficient_vec,
-     xlab = "True coefficients",
-     ylab = "Estimated coefficients",
-     asp = TRUE, pch = 16)
+date_of_run <- Sys.time()
+session_info <- devtools::session_info()
 
-par(mfrow = c(1,2))
-plot(x = simulation_res$lineage_future_size,
-     y = lineage_imputed_count[names(simulation_res$lineage_future_size)], 
-     asp = TRUE, pch = 16,
-     xlab = "Observed lineage size",
-     ylab = "Fitted lineage size",
-     main = paste0("Correlation: ", round(stats::cor(
-       simulation_res$lineage_future_size,
-       lineage_imputed_count[names(simulation_res$lineage_future_size)]
-     ), 2))
-)
+save(fit_res, final_fit, simulation_res,
+     date_of_run, session_info,
+     start_time1, start_time2, end_time1, end_time2,
+     file = "~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_day10-COCL2_simulation_variance2growth.RData")
 
-plot(x = simulation_res$cell_fate_potential_truth,
-     y = cell_imputed_score[names(simulation_res$cell_fate_potential_truth)], 
-     asp = TRUE, pch = 16, col = rgb(0.5, 0.5, 0.5, 0.3),
-     xlab = "True cell potential",
-     ylab = "Estimated cell potential",
-     main = paste0("Correlation: ", round(stats::cor(
-       simulation_res$cell_fate_potential_truth,
-       cell_imputed_score[names(simulation_res$cell_fate_potential_truth)]
-     ), 2))
-)
+print("Done! :)")
+
+# par(mfrow = c(1,1))
+# plot(x = c(coefficient_intercept, embedding_coefficient_vec),
+#      y = final_fit$coefficient_vec,
+#      xlab = "True coefficients",
+#      ylab = "Estimated coefficients",
+#      asp = TRUE, pch = 16)
+# 
+# par(mfrow = c(1,2))
+# plot(x = simulation_res$lineage_future_size,
+#      y = lineage_imputed_count[names(simulation_res$lineage_future_size)], 
+#      asp = TRUE, pch = 16,
+#      xlab = "Observed lineage size",
+#      ylab = "Fitted lineage size",
+#      main = paste0("Correlation: ", round(stats::cor(
+#        simulation_res$lineage_future_size,
+#        lineage_imputed_count[names(simulation_res$lineage_future_size)]
+#      ), 2))
+# )
+# 
+# plot(x = simulation_res$cell_fate_potential_truth,
+#      y = cell_imputed_score[names(simulation_res$cell_fate_potential_truth)], 
+#      asp = TRUE, pch = 16, col = rgb(0.5, 0.5, 0.5, 0.3),
+#      xlab = "True cell potential",
+#      ylab = "Estimated cell potential",
+#      main = paste0("Correlation: ", round(stats::cor(
+#        simulation_res$cell_fate_potential_truth,
+#        cell_imputed_score[names(simulation_res$cell_fate_potential_truth)]
+#      ), 2))
+# )
 
 
 
