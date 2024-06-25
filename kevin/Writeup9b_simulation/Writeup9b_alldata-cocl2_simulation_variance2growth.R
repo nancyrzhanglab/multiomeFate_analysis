@@ -38,8 +38,6 @@ vec2 <- sample(c(-1,1), size = num_nonzero_genes, replace = TRUE)
 coefficient_vec[gene_ordering[1:num_nonzero_genes]] <- vec1*vec2
 
 # double-check the fate potentials are ok
-# tmp <- exp((embedding_mat %*% embedding_coefficient_vec) + coefficient_intercept)
-# quantile(tmp)
 tmp2 <- exp((cell_features %*% coefficient_vec) + coefficient_intercept)
 sum(tmp2)
 # plot(tmp, tmp2, main = paste0("Corr: ", round(cor(tmp, tmp2), 2)))
@@ -137,7 +135,7 @@ colnames(tab_mat) <- c("now", "future")
 set.seed(10)
 start_time1 <- Sys.time()
 fit_res <- multiomeFate:::lineage_cv(
-  cell_features = embedding_mat[early_idx,,drop=FALSE],
+  cell_features = cell_features[early_idx,,drop=FALSE],
   cell_lineage = cell_lineage,
   future_timepoint = "future",
   lineage_future_count = lineage_future_count,
@@ -151,7 +149,7 @@ end_time1 <- Sys.time()
 
 start_time2 <- Sys.time()
 final_fit <- multiomeFate:::lineage_cv_finalize(
-  cell_features = embedding_mat[early_idx,,drop=FALSE],
+  cell_features = cell_features[early_idx,,drop=FALSE],
   cell_lineage = cell_lineage,
   fit_res = fit_res,
   lineage_future_count = lineage_future_count
