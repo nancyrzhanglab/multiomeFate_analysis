@@ -39,8 +39,11 @@ coefficient_vec <- as.numeric(svd_res$v %*% svd_coefficient_vec)
 names(coefficient_vec) <- colnames(cell_features)
 
 # double-check the fate potentials are ok
-tmp2 <- exp((cell_features %*% coefficient_vec) + coefficient_intercept)
+tmp2 <- exp((svd_features %*% svd_coefficient_vec) + coefficient_intercept)
 sum(tmp2)
+
+original_tmp <- exp((cell_features %*% coefficient_vec) + coefficient_intercept)
+sum(original_tmp)
 # plot(tmp, tmp2, main = paste0("Corr: ", round(cor(tmp, tmp2), 2)))
 
 num_lineages <- 50
@@ -51,10 +54,10 @@ num_lineages <- 50
 early_idx <- which(all_data$dataset == "day10_COCL2")
 set.seed(10)
 simulation_res <- multiomeFate:::generate_simulation_plastic(
-  embedding_mat = cell_features[early_idx,,drop=FALSE],
+  embedding_mat = svd_features[early_idx,,drop=FALSE],
   bool_add_randomness = TRUE,
   coefficient_intercept = coefficient_intercept,
-  embedding_coefficient_vec = coefficient_vec,
+  embedding_coefficient_vec = svd_coefficient_vec,
   num_lineages = num_lineages,
   lineage_mean_spread = 1, 
   lineage_sd_spread = NA,
@@ -91,7 +94,7 @@ simulation_res <- multiomeFate:::generate_simulation_plastic(
 #      xlab = "Cell GP", ylab = "Lineage future size",
 #      pch = 16, cex = 0.5)
 
-png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_simulation_variance2growth.png"),
+png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_pca_simulation_variance2growth.png"),
      width = 15, height = 5, units = "in", res = 300)
 par(mfrow = c(1,3))
 median_vec <- simulation_res$summary_mat["median",]
@@ -136,7 +139,7 @@ colnames(tab_mat) <- c("now", "future")
 set.seed(10)
 start_time1 <- Sys.time()
 fit_res <- multiomeFate:::lineage_cv(
-  cell_features = cell_features[early_idx,,drop=FALSE],
+  cell_features = svd_features[early_idx,,drop=FALSE],
   cell_lineage = cell_lineage,
   future_timepoint = "future",
   lineage_future_count = lineage_future_count,
@@ -150,7 +153,7 @@ end_time1 <- Sys.time()
 
 start_time2 <- Sys.time()
 final_fit <- multiomeFate:::lineage_cv_finalize(
-  cell_features = cell_features[early_idx,,drop=FALSE],
+  cell_features = svd_features[early_idx,,drop=FALSE],
   cell_lineage = cell_lineage,
   fit_res = fit_res,
   lineage_future_count = lineage_future_count
@@ -166,7 +169,7 @@ session_info <- devtools::session_info()
 save(fit_res, final_fit, simulation_res,
      date_of_run, session_info,
      start_time1, start_time2, end_time1, end_time2,
-     file = "~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_day10-COCL2_simulation_variance2growth.RData")
+     file = "~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_day10-COCL2_pca_simulation_variance2growth.RData")
 
 print("Done! :)")
 
