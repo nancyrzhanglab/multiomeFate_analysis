@@ -1,5 +1,5 @@
 rm(list=ls())
-load("~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_day10-COCL2_simulation_variance2growth.RData")
+load("~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_day10-COCL2_pca_simulation_variance2growth.RData")
 
 coefficient_intercept <- simulation_res$coefficient_intercept
 embedding_coefficient_vec <- simulation_res$embedding_coefficient_vec
@@ -20,7 +20,7 @@ if(length(names(cell_imputed_score)) == 0){
 }
 cell_imputed_score <- cell_imputed_score[names(cell_fate_potential_truth)]
 
-png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_simulation_variance2growth_results.png"),
+png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_pca_simulation_variance2growth_results.png"),
     width = 15, height = 5, units = "in", res = 300)
 par(mfrow = c(1,3))
 plot(x = embedding_coefficient_vec,
