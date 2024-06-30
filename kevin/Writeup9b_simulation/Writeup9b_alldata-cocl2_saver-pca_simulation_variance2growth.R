@@ -5,21 +5,16 @@ library(Seurat)
 library(multiomeFate)
 
 load("~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_simulation_day10-COCL2.RData")
+load("~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_day10-COCL2_saver.RData")
 
 set.seed(10)
-rna_mat <- SeuratObject::LayerData(all_data, 
-                                   layer = "data", 
-                                   assay = "RNA",
-                                   features = Seurat::VariableFeatures(all_data))
+rna_mat <- saver_res$estimate
 rna_mat <- Matrix::t(rna_mat)
-gene_sparsity_vec <- sapply(1:ncol(rna_mat), function(j){
-  length(multiomeFate:::.nonzero_col(rna_mat,
-                              col_idx = j,
-                              bool_value = FALSE))
-})
-names(gene_sparsity_vec) <- colnames(rna_mat)
-gene_ordering <- names(gene_sparsity_vec)[order(gene_sparsity_vec, decreasing = TRUE)]
-rna_mat <- as.matrix(rna_mat)
+rna_mat <- pmin(rna_mat, 10)
+
+early_idx <- which(all_data$dataset == "day10_COCL2")
+rna_mat <- rna_mat[early_idx,]
+
 mean_vec <- colMeans(rna_mat)
 sd_vec <- apply(rna_mat, 2, stats::sd)
 rm_idx <- which(sd_vec <= 1e-3)
@@ -31,34 +26,30 @@ svd_res <- irlba::irlba(cell_features, nv = 30)
 svd_features <- sweep(svd_res$u, MARGIN = 2, STATS = svd_res$d, FUN = '*')
 rownames(svd_features) <- rownames(rna_mat)
 colnames(svd_features) <- paste0("svd_", 1: ncol(svd_features))
+cell_features <- svd_features
 
-coefficient_intercept <- -10
+coefficient_intercept <- -14
 svd_coefficient_vec <- rep(0, ncol(svd_features))
 names(svd_coefficient_vec) <- colnames(svd_features)
-svd_coefficient_vec[1:5] <- seq(0.5, 0.2, length.out = 5)
-coefficient_vec <- as.numeric(svd_res$v %*% svd_coefficient_vec)
+svd_coefficient_vec[1:5] <- seq(0.2, 0.1, length.out = 5)
+coefficient_vec <- svd_coefficient_vec
 names(coefficient_vec) <- colnames(cell_features)
 
 # double-check the fate potentials are ok
-tmp2 <- exp((svd_features %*% svd_coefficient_vec) + coefficient_intercept)
+tmp2 <- exp((cell_features %*% coefficient_vec) + coefficient_intercept)
 sum(tmp2)
-
-original_tmp <- exp((cell_features %*% coefficient_vec) + coefficient_intercept)
-sum(original_tmp)
 # plot(tmp, tmp2, main = paste0("Corr: ", round(cor(tmp, tmp2), 2)))
 
 num_lineages <- 50
 
 ############################
 # not much to change after this line
-
-early_idx <- which(all_data$dataset == "day10_COCL2")
 set.seed(10)
 simulation_res <- multiomeFate:::generate_simulation_plastic(
-  embedding_mat = svd_features[early_idx,,drop=FALSE],
+  embedding_mat = cell_features,
   bool_add_randomness = TRUE,
   coefficient_intercept = coefficient_intercept,
-  embedding_coefficient_vec = svd_coefficient_vec,
+  embedding_coefficient_vec = coefficient_vec,
   num_lineages = num_lineages,
   lineage_mean_spread = 1, 
   lineage_sd_spread = NA,
@@ -95,8 +86,8 @@ simulation_res <- multiomeFate:::generate_simulation_plastic(
 #      xlab = "Cell GP", ylab = "Lineage future size",
 #      pch = 16, cex = 0.5)
 
-png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_pca_simulation_variance2growth.png"),
-     width = 15, height = 5, units = "in", res = 300)
+png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_simulation_variance2growth.png"),
+    width = 15, height = 5, units = "in", res = 300)
 par(mfrow = c(1,3))
 median_vec <- simulation_res$summary_mat["median",]
 range_vec <- simulation_res$summary_mat["range",]
@@ -140,7 +131,7 @@ colnames(tab_mat) <- c("now", "future")
 set.seed(10)
 start_time1 <- Sys.time()
 fit_res <- multiomeFate:::lineage_cv(
-  cell_features = svd_features[early_idx,,drop=FALSE],
+  cell_features = cell_features,
   cell_lineage = cell_lineage,
   future_timepoint = "future",
   lineage_future_count = lineage_future_count,
@@ -154,7 +145,7 @@ end_time1 <- Sys.time()
 
 start_time2 <- Sys.time()
 final_fit <- multiomeFate:::lineage_cv_finalize(
-  cell_features = svd_features[early_idx,,drop=FALSE],
+  cell_features = cell_features,
   cell_lineage = cell_lineage,
   fit_res = fit_res,
   lineage_future_count = lineage_future_count
@@ -170,11 +161,6 @@ session_info <- devtools::session_info()
 save(fit_res, final_fit, simulation_res,
      date_of_run, session_info,
      start_time1, start_time2, end_time1, end_time2,
-     file = "~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_day10-COCL2_pca_simulation_variance2growth.RData")
+     file = "~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_day10-COCL2_saver-pca_simulation_variance2growth.RData")
 
 print("Done! :)")
-
-
-
-
-
