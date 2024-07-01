@@ -1,5 +1,5 @@
 rm(list=ls())
-load("~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_day10-COCL2_simulation_variance2growth.RData")
+load("~/project/Multiome_fate/out/kevin/Writeup9b/Writeup9b_day10-COCL2_saver_simulation_variance2growth.RData")
 
 coefficient_intercept <- simulation_res_full$coefficient_intercept
 embedding_coefficient_vec <- simulation_res_full$embedding_coefficient_vec
@@ -20,19 +20,19 @@ if(length(names(cell_imputed_score)) == 0){
 }
 cell_imputed_score <- cell_imputed_score[names(cell_fate_potential_truth)]
 
-png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_simulation_variance2growth_results.png"),
+png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_saver_simulation_variance2growth_results.png"),
     width = 15, height = 5, units = "in", res = 300)
 par(mfrow = c(1,3))
 plot(x = embedding_coefficient_vec,
      y = est_coefficient_vec,
-     xlab = "True coefficients (Full)",
+     xlab = "True coefficients (Saver, Full)",
      ylab = "Estimated coefficients",
      asp = TRUE, pch = 16)
 
 plot(x = lineage_future_size,
      y = lineage_imputed_count,
      asp = TRUE, pch = 16,
-     xlab = "Observed lineage size (Full)",
+     xlab = "Observed lineage size (Saver, Full)",
      ylab = "Fitted lineage size",
      main = paste0("Correlation: ", round(stats::cor(
        lineage_future_size,
@@ -43,7 +43,7 @@ plot(x = lineage_future_size,
 plot(x = cell_fate_potential_truth,
      y = cell_imputed_score,
      asp = TRUE, pch = 16, col = rgb(0.5, 0.5, 0.5, 0.3),
-     xlab = "True cell potential (Full)",
+     xlab = "True cell potential (Saver, Full)",
      ylab = "Estimated cell potential",
      main = paste0("Correlation: ", round(stats::cor(
        cell_fate_potential_truth,
@@ -74,19 +74,19 @@ if(length(names(cell_imputed_score)) == 0){
 }
 cell_imputed_score <- cell_imputed_score[names(cell_fate_potential_truth)]
 
-png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_pca_simulation_variance2growth_results.png"),
+png(filename = paste0("~/project/Multiome_fate/out/figures/Writeup9b/Writeup9b_alldata-cocl2_saver-pca_simulation_variance2growth_results.png"),
     width = 15, height = 5, units = "in", res = 300)
 par(mfrow = c(1,3))
 plot(x = embedding_coefficient_vec,
      y = est_coefficient_vec,
-     xlab = "True coefficients (PCA)",
+     xlab = "True coefficients (Saver, PCA)",
      ylab = "Estimated coefficients",
      asp = TRUE, pch = 16)
 
 plot(x = lineage_future_size,
      y = lineage_imputed_count,
      asp = TRUE, pch = 16,
-     xlab = "Observed lineage size (PCA)",
+     xlab = "Observed lineage size (Saver, PCA)",
      ylab = "Fitted lineage size",
      main = paste0("Correlation: ", round(stats::cor(
        lineage_future_size,
@@ -97,7 +97,7 @@ plot(x = lineage_future_size,
 plot(x = cell_fate_potential_truth,
      y = cell_imputed_score,
      asp = TRUE, pch = 16, col = rgb(0.5, 0.5, 0.5, 0.3),
-     xlab = "True cell potential (PCA)",
+     xlab = "True cell potential (Saver, PCA)",
      ylab = "Estimated cell potential",
      main = paste0("Correlation: ", round(stats::cor(
        cell_fate_potential_truth,

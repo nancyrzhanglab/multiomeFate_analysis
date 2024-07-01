@@ -36,10 +36,10 @@ svd_features <- sweep(svd_res$u, MARGIN = 2, STATS = svd_res$d, FUN = '*')
 rownames(svd_features) <- rownames(rna_mat)
 colnames(svd_features) <- paste0("svd_", 1: ncol(svd_features))
 
-coefficient_intercept <- -10
+coefficient_intercept <- 0.7
 svd_coefficient_vec <- rep(0, ncol(svd_features))
 names(svd_coefficient_vec) <- colnames(svd_features)
-svd_coefficient_vec[1:5] <- seq(0.5, 0.2, length.out = 5)
+svd_coefficient_vec[1:5] <- seq(0.1, 0.04, length.out = 5)
 coefficient_vec <- as.numeric(svd_res$v %*% svd_coefficient_vec)
 names(coefficient_vec) <- colnames(cell_features)
 
