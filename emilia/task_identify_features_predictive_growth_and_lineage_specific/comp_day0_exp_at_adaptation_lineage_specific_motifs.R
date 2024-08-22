@@ -2,23 +2,23 @@ library(tidyverse)
 library(data.table)
 
 dir <- '~/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/'
-future_treatment <- 'day10_CIS'
+future_treatment <- 'day10_DABTRAM'
 
 # ==============================================================================
 # Read data
 # ==============================================================================
 
 # growth potential
-load(paste0(dir, future_treatment, '/Writeup6n_CIS_day10_lineage-imputation_stepdown_concise-postprocessed.RData'))
+load(paste0(dir, future_treatment, '/Writeup6n_DABTRAM_day10_lineage-imputation_stepdown_concise-postprocessed.RData'))
 growth_potential_use <- cell_imputed_count
 growth_potential_use <- growth_potential_use[!is.na(growth_potential_use)]
 
 # adaptation motifs
-adaptation_motifs <- read.csv(paste0("/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/", future_treatment, "_adaptation_motifs.csv"))
+adaptation_motifs <- read.csv(paste0("/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task4_identify_genes_corr_growth_and_lineage_specific/Results_with_GP_writeup6n/", future_treatment, "_adaptation_motifs.csv"))
 
 # day0 data
 file_name <- 'chromVar_day0_data'
-load(paste0(dir, file_name, '.RData'))
+load(paste0(dir, 'ChromVAR/JASPAR/', file_name, '.RData'))
 data <- chromvar_results_day0
 data <- as.data.frame(data)
 
@@ -212,6 +212,19 @@ ggplot(results, aes(x = factor(corr_dir, levels = c('Pos', 'Neg', 'Others')), y=
   xlab('Correlation direction') +
   ylim(c(-0.7, 0.7)) +
   theme_bw()
+
+results$JUN_related <- ifelse(grepl('JUN', results$motif_names), 'Yes', 'No')
+
+ggplot(results, aes(x = factor(corr_dir, levels = c('Pos', 'Neg', 'Others')), y=winner_minus_others)) +
+  geom_boxplot(outlier.alpha = 0) +
+  geom_jitter(alpha=0.3, size=1, aes(color = JUN_related)) +
+  scale_color_manual(values = c('black', 'red')) +
+  xlab('Correlation direction') +
+  ggtitle('Day0 for DABTRAM') +
+  ylim(c(-0.7, 0.7)) +
+  theme_bw()
+
+
 
 ggplot(data_to_check, aes(x = reorder(motif_names, -abs_correlation), y = chromVAR, fill=cell_lineage_category, color=corr_dir)) +
   geom_boxplot(lwd=0.8) +

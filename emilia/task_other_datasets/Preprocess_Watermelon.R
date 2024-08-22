@@ -1,5 +1,8 @@
 rm(list=ls())
 library(Seurat)
+library(destiny)
+library(cccd)
+library(ForceAtlas2)
 library(fastTopics)
 library(ggplot2)
 library(GGally)
@@ -67,7 +70,8 @@ rownames(lineage_size_w) <- lineage_size_w$lineage_barcode
 lineage_size_w <- subset(lineage_size_w, select = -c(lineage_barcode))
 
 
-ggpairs(lineage_size_w) + 
+ggpairs(lineage_size_w,
+        lower = list(continuous=wrap("points", position=position_jitter(height=0.05, width=0.05), alpha = 0.1))) + 
   theme_bw()
 
 
@@ -164,5 +168,62 @@ date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 save(seurat_object, date_of_run, session_info,
      file = paste0(out_dir, "/PC9_time_course_fasttopics.RData"))
+
+# ==============================================================================
+# FDG
+# ==============================================================================
+
+in_dir <- '~/Dropbox/Thesis/Lineage_trace/data/Watermelon/'
+out_dir <- '~/Dropbox/Thesis/Lineage_trace/outputs/task5_cospar/Watermelon/'
+hvg <- read.csv('~/Downloads/watermelon_fig2g.csv')
+
+load(paste0(in_dir, 'PC9_time_course_fasttopics.RData'))
+
+mat <- Seurat::GetAssayData(object = seurat_object, 
+                            assay = "RNA", 
+                            layer = "data")
+mat <- as.matrix(mat)
+mat <- mat[Seurat::VariableFeatures(seurat_object), ]
+mat <- mat[intersect(hvg$X, rownames(mat)), ]
+
+rm(seurat_object)
+
+mat <- t(mat)
+options(Matrix.warnDeprecatedCoerce = 0)
+dm_guo <- DiffusionMap(mat, verbose = FALSE,
+                       sigma = "local", k=1422, n_eigs=20, n_pcs = 50)
+
+plot(dm_guo)
+plot(dm_guo, 1:2)
+
+diffusion_comps <- dm_guo@eigenvectors
+diffusion_comps <- as.data.frame(diffusion_comps)
+rownames(diffusion_comps) <- NULL
+diffusion_comps$cell_barcode <- rownames(diffusion_comps)
+
+# write.csv(diffusion_comps, paste0(in_dir, 'PC9_time_course_DiffusionComponents.csv'))
+
+diffusion_comps <- read.csv(paste0(in_dir, 'PC9_time_course_DiffusionComponents.csv'), row.names = 1)
+
+metadat <- seurat_object@meta.data
+metadat$cell_barcode <- rownames(metadat)
+
+metadat <- merge(metadat, diffusion_comps, by = 'cell_barcode')
+
+ggplot(metadat, aes(x = DC1, y = DC2, color = majority_fate)) +
+  geom_point(size = 0.5) +
+  theme_bw()
+
+colnames(diffusion_comps) <- NULL
+diffusion_comps1 <- as.matrix(diffusion_comps)
+
+graph <- nng(x = diffusion_comps[1:20000, ], k = 15)
+layout <- layout.forceatlas2(graph, iterations=20, plotstep=100)
+plot(graph, layout=layout)
+
+
+x <- matrix(runif(100),ncol=2)
+as.matrix(proxy::dist(diffusion_comps))
+
 
 

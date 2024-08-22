@@ -4,7 +4,8 @@ library(tidyr)
 library(ggplot2)
 library(GGally)
 library(reshape2)
-library(multiomeFate)
+library(Seurat)
+# library(multiomeFate)
 
 in_dir <- '~/Dropbox/Thesis/Lineage_trace/data/Watermelon/'
 out_dir <- '~/Dropbox/Thesis/Lineage_trace/output/Watermelon/'
@@ -13,11 +14,30 @@ out_dir <- '~/Dropbox/Thesis/Lineage_trace/output/Watermelon/'
 # Read data
 # ==============================================================================
 load(paste0(in_dir, 'PC9_time_course_fasttopics.RData'))
+seurat_object <- readRDS(paste0(in_dir, 'pc9_time_course.rds'))
+Idents(seurat_object) <- 'majority_fate'
+DimPlot(seurat_object)
+# ggsave('~/Downloads/watermelon_pc9_UMAP_majority_fate.png', dpi = 300, width = 4, height = 3)
+
 metadat <- seurat_object@meta.data
 metadat <- metadat %>% drop_na()
 metadat$cell_barcode <- rownames(metadat)
 
 supp.data <- read.csv('~/Downloads/watermelon_fig2c.csv')
+colnames(supp.data) <- c('lineage_barcode', '0', '3', '7', '14','majority_fate')
+supp.data.m <- melt(supp.data[, c('lineage_barcode', '0', '3', '7', '14')])
+
+lineage_size <- metadat %>% 
+  group_by(lineage_barcode, time_point) %>% 
+  summarise(num_cells = n())
+
+comp <- merge(lineage_size, supp.data.m, by.x = c('lineage_barcode', 'time_point'), by.y = c('lineage_barcode', 'variable'))
+
+ggplot(comp, aes(x = num_cells, y = value)) +
+  geom_point() +
+  xlab('Lineage size (we calculated)') +
+  ylab('Lineage size from source data 2c') +
+  facet_wrap(. ~ time_point, scale = 'free')
 
 # ==============================================================================
 # Compare majority lineage fate information

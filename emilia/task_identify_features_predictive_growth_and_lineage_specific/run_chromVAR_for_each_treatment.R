@@ -6,9 +6,17 @@ date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 set.seed(10)
 
+# ==============================================================================
+# Read data
+# ==============================================================================
+
 cis <- readRDS('/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/emiliac/lineage_trace/task_identify_features_predictive_growth_and_lineage_specific/data/week5_CIS.rds')
 cocl2 <- readRDS('/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/emiliac/lineage_trace/task_identify_features_predictive_growth_and_lineage_specific/data/week5_COCL2.rds')
 dabtram <- readRDS('/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/emiliac/lineage_trace/task_identify_features_predictive_growth_and_lineage_specific/data/week5_DABTRAM.rds')
+
+# ==============================================================================
+# Run chromVar
+# ==============================================================================
 
 Seurat::DefaultAssay(cis) <- "ATAC"
 Seurat::DefaultAssay(cocl2) <- "ATAC"
@@ -28,6 +36,10 @@ dabtram <- Signac::RunChromVAR(
   object = dabtram,
   genome = "hg38"
 )
+
+# ==============================================================================
+# Extract results
+# ==============================================================================
 
 chromvar_results_cis <- cis@assays[["chromvar"]]@data
 chromvar_results_cocl2 <- cocl2@assays[["chromvar"]]@data
