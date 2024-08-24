@@ -58,8 +58,7 @@ print("Creating frag objects")
 frags_list <- lapply(1:length(file_folders), function(i){
   file_folder <- file_folders[i]
   Signac::CreateFragmentObject(
-    path = paste0(file_prefix, file_folder, "/outs/atac_fragments.tsv.gz"),
-    cells = colnames(seurat_list[[i]])
+    path = paste0(file_prefix, file_folder, "/outs/atac_fragments.tsv.gz")
   )
 })
 
@@ -67,8 +66,7 @@ print("Constructing count matrices")
 atac_count_list <- lapply(1:length(file_folders), function(i){
   Signac::FeatureMatrix(
     fragments = frags_list[[i]],
-    features = combined_peaks,
-    cells = colnames(seurat_list[[i]])
+    features = combined_peaks
   )
 })
 
