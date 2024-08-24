@@ -88,7 +88,7 @@ all_data_atac <- merge(seurat_atac_list[[1]], y = c(seurat_atac_list[[2]], seura
                                                     seurat_atac_list[[4]], seurat_atac_list[[5]], 
                                                     seurat_atac_list[[6]], seurat_atac_list[[7]]), 
                        add.cell.ids = name_vec, 
-                       project = "All_Data", merge.data = T)
+                       project = "All_Data", merge.data = TRUE)
 
 print("Finished processing ATAC")
 save(all_data_atac, date_of_run, session_info,
