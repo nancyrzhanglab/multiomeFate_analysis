@@ -12,6 +12,25 @@ out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Write
 load(paste0(out_folder, "Writeup10a_ppStep1_peakmerging.RData"))
 load(paste0(out_folder, "Writeup10a_ppStep2_rna-merge.RData"))
 
+print("Adjusting the RNA dataset")
+merged_counts <- do.call(cbind, lapply(1:7, function(i){
+  SeuratObject::LayerData(all_data_rna, 
+                          assay = "RNA",
+                          layer = paste0("counts.", i))
+}))
+SeuratObject::LayerData(all_data_rna, 
+                        assay = "RNA",
+                        layer = "counts") <- merged_counts
+
+for(i in 1:7){
+  SeuratObject::LayerData(all_data_rna, 
+                          assay = "RNA",
+                          layer = paste0("counts.", i)) <- NULL
+  SeuratObject::LayerData(all_data_rna, 
+                          assay = "RNA",
+                          layer = paste0("data.", i)) <- NULL
+}
+
 print("ATAC")
 print(all_data_atac)
 print("RNA")
@@ -40,7 +59,7 @@ all(atac_cells == rna_cells)
 
 rna_counts <- SeuratObject::LayerData(all_data_rna, 
                                       assay = "RNA",
-                                      slot = "counts")
+                                      layer = "counts")
 rna_counts <- rna_counts[,Seurat::Cells(all_data_atac)]
 all_data_atac[["RNA"]] <- Seurat::CreateAssayObject(rna_counts,
                                                     check.matrix = TRUE)
@@ -59,14 +78,14 @@ save(all_data, date_of_run, session_info,
 print("RNA")
 zz <- SeuratObject::LayerData(all_data, 
                               assay = "RNA",
-                              slot = "counts")
+                              layer = "counts")
 print(zz[1:5,1:5])
 print(quantile(zz@x))
 
 print("ATAC")
 zz <- SeuratObject::LayerData(all_data, 
                               assay = "ATAC",
-                              slot = "counts")
+                              layer = "counts")
 print(zz[1:5,1:5])
 print(quantile(zz@x))
 
