@@ -15,7 +15,7 @@ lin_mat <- SeuratObject::LayerData(all_data,
                                    layer = "counts")
 lin_mat <- lin_mat[Matrix::rowSums(lin_mat) > 0,]
 
-res_clusters <- multiomeFate::barcode_clustering(lin_mat)
+res_clusters <- multiomeFate:::barcode_clustering(lin_mat)
 table(sapply(res_clusters$lineage_clusters, length))
 
 cluster_size <- sapply(res_clusters$lineage_clusters, length)
@@ -32,7 +32,7 @@ for(i in 1:length(cluster_size)){
 # combining lineages
 lin_mat <- as.matrix(lin_mat)
 lin_mat2 <- lin_mat
-lin_mat <- multiomeFate::barcode_combine(lin_mat = lin_mat,
+lin_mat <- multiomeFate:::barcode_combine(lin_mat = lin_mat,
                                          lineage_clusters = res_clusters$lineage_clusters,
                                          verbose = 1)
 
@@ -47,7 +47,7 @@ stopifnot(sum(abs(zz-yy)) == 0)
 
 #########################
 
-posterior_res <- multiomeFate::barcoding_posterior(lin_mat = lin_mat,
+posterior_res <- multiomeFate:::barcoding_posterior(lin_mat = lin_mat,
                                                    verbose = 1)
 
 maxBhat <- apply(posterior_res$posterior_mat,2,max) #chosen lineage 
@@ -59,7 +59,7 @@ lineage_sum <- colSums(lin_mat)
 table(is_unique_vec_b, lineage_sum > 0)
 table(is_unique_vec_b[naive_idx], lineage_sum[naive_idx] > 0)
 
-assignment_vec <- multiomeFate::barcoding_assignment(posterior_mat = posterior_res$posterior_mat,
+assignment_vec <- multiomeFate:::barcoding_assignment(posterior_mat = posterior_res$posterior_mat,
                                                      difference_val = 0.2,
                                                      verbose = 1)
 
