@@ -1,5 +1,16 @@
+rm(list=ls())
+library(Seurat)
+library(Signac)
+library(multiomeFate)
 
-print("Seurat preprocess of RNA")
+out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/"
+load(paste0(out_folder, "Writeup10a_ppStep5_barcode-assignment.RData"))
+
+set.seed(10)
+date_of_run <- Sys.time()
+session_info <- devtools::session_info()
+
+print("Set the variable genes in RNA")
 Seurat::DefaultAssay(all_data) <- "RNA"
 subset_list <- list(day0 = "day0", 
                     day10_CIS = "day10_CIS",
@@ -39,12 +50,32 @@ all_genes <- unique(c(unlist(var_list), jackpot_genes, hk_genes, cycling_genes))
 all_genes <- intersect(all_genes, rownames(all_data))
 all_data[["RNA"]]@var.features <- all_genes
 
+print("Basic processing of RNA")
 all_data <- Seurat::NormalizeData(all_data)
 all_data <- Seurat::CellCycleScoring(all_data, 
                                      g2m.features = cc.genes$g2m.genes, 
                                      s.features = cc.genes$s.genes)
+all_data[["percent.mt"]] <- Seurat::PercentageFeatureSet(object = all_data, pattern = "^MT-")
+all_data[["percent.rb"]] <- Seurat::PercentageFeatureSet(object = all_data, pattern = "^RPS")
+
+print("Basic processing of ATAC")
+file_prefix <- "/scratch/nzh/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/"
+file_suffix <- "/outs/filtered_feature_bc_matrix.h5"
+file_folders <- c("2022_05_19_arc_time0", "2022_05_19_arc_time10_CIS", 
+                  "2022_05_19_arc_time10_COCL2", "2022_05_19_arc_time10_DABTRAM",
+                  "2022_05_19_arc_week5_CIS", "2022_05_19_arc_week5_COCL2",
+                  "2022_05_19_arc_week5_DABTRAM")
+
+Seurat::DefaultAssay(all_data) <- "ATAC"
+all_data <- Signac::NucleosomeSignal(object = all_data)
+all_data <- Signac::TSSEnrichment(all_data, fast = FALSE)
+all_data$high.tss <- ifelse(all_data$TSS.enrichment > 2, 'High', 'Low')
+all_data$blacklist_fraction <- Signac::FractionCountsInRegion(
+  object = all_data, 
+  assay = "ATAC",
+  regions = blacklist_hg19
+)
 
 print("Finished preprocessing data")
 save(all_data, date_of_run, session_info,
-     file = "../../../../out/kevin/Writeup4e/Writeup4e_timeAll_peakmerging.RData")
-
+     file = paste0(out_folder, "Writeup10a_ppStep6_qc.RData"))

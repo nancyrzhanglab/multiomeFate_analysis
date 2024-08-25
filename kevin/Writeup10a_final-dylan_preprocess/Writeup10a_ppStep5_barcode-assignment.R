@@ -84,6 +84,7 @@ save(all_data, date_of_run, session_info,
 ###################################
 
 # do a simple check
+head(posterior_res$posterior_mat)
 posterior_res$posterior_mat[assignment_vec[1],1]
 sort(posterior_res$posterior_mat[,2], decreasing = T)[1:5]
 
