@@ -15,7 +15,7 @@ Seurat::DefaultAssay(all_data) <- "ATAC"
 all_data[["Lineage"]] <- NULL
 all_data[["RNA"]] <- NULL
 
-treatment_vec <- c("CIS", "COCL2", "DABTRAM")
+treatment_vec <- c("All", "CIS", "COCL2", "DABTRAM")
 all_data_full <- all_data
 
 for(treatment in treatment_vec){
@@ -23,10 +23,12 @@ for(treatment in treatment_vec){
   all_data <- all_data_full
   
   print("Subsetting")
-  keep_vec <- rep(FALSE, length(Seurat::Cells(all_data)))
-  keep_vec[which(all_data$dataset %in% c("day0", paste0("day10_", treatment), paste0("week5_", treatment)))] <- TRUE
-  all_data$keep <- keep_vec
-  all_data <- subset(all_data, keep == TRUE)
+  if(treatment != "all"){
+    keep_vec <- rep(FALSE, length(Seurat::Cells(all_data)))
+    keep_vec[which(all_data$dataset %in% c("day0", paste0("day10_", treatment), paste0("week5_", treatment)))] <- TRUE
+    all_data$keep <- keep_vec
+    all_data <- subset(all_data, keep == TRUE)
+  }
   all_data[["ATAC"]]@motifs <- NULL # see https://github.com/mojaveazure/seurat-disk/issues/15#issuecomment-1544286445
   all_data[["ATAC"]]@positionEnrichment <- list()
   all_data <- Seurat::DietSeurat(all_data, 

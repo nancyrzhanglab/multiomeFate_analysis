@@ -40,7 +40,7 @@ np.random.seed(0)
 scvi.settings.seed = 0
 
 # see https://docs.scvi-tools.org/en/stable/tutorials/notebooks/atac/PeakVI.html
-adata = scvi.data.read_h5ad("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_ppStep7c_peakvi-prep_DABTRAM.h5ad")
+adata = scvi.data.read_h5ad("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_ppStep7c_peakvi-prep_all.h5ad")
 
 print("# regions before filtering:", adata.shape[-1])
 
@@ -56,7 +56,7 @@ print("Training PeakVI")
 model = scvi.model.PEAKVI(adata)
 model.train()
 
-model.save("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_ppStep7c_peakvi_DABTRAM", overwrite=True)
+model.save("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_ppStep7c_peakvi_all", overwrite=True)
 # model = scvi.model.PEAKVI.load("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup6o/Writeup6o_all-data-atac_CIS_peakVI", adata=adata)
 
 PEAKVI_LATENT_KEY = "X_peakvi"
@@ -67,7 +67,7 @@ adata.obsm[PEAKVI_LATENT_KEY] = latent
 print("Saving peakVI as CSV")
 cell_names = adata.obs_names
 df = pd.DataFrame(latent, index = cell_names)
-df.to_csv('/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_ppStep7c_peakvi_DABTRAM_embedding.csv')
+df.to_csv('/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_ppStep7c_peakvi_all_embedding.csv')
 
 print("Plotting")
 PEAKVI_CLUSTERS_KEY = "dataset"
@@ -82,6 +82,6 @@ sc.pl.umap(adata,
            legend_loc='on data',
            legend_fontsize=12, 
            legend_fontoutline=2)
-plt.savefig("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/figures/kevin/Writeup10a/Writeup10a_ppStep7c_peakvi_DABTRAM_umap.png", dpi=300)
+plt.savefig("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/figures/kevin/Writeup10a/Writeup10a_ppStep7c_peakvi_all_umap.png", dpi=300)
 
 print("Done! :)")
