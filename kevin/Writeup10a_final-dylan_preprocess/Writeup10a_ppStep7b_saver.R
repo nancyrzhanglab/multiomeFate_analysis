@@ -86,3 +86,5 @@ all_data$blacklist_fraction <- Signac::FractionCountsInRegion(
 print("Finished preprocessing data")
 save(all_data, date_of_run, session_info,
      file = paste0(out_folder, "Writeup10a_ppStep6_qc.RData"))
+
+print("Done! :)")
