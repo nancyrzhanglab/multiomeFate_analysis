@@ -63,9 +63,6 @@ assignment_vec <- multiomeFate:::barcoding_assignment(posterior_mat = posterior_
                                                      difference_val = 0.2,
                                                      verbose = 1)
 
-SeuratObject::LayerData(all_data,
-                        assay = "Lineage",
-                        layer = "data") <- posterior_res$posterior_mat
 all_data$assigned_lineage <- assignment_vec
 all_data$assigned_posterior <- maxBhat
 
