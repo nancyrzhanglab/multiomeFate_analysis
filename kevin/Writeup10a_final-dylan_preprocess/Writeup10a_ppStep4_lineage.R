@@ -3,12 +3,12 @@ library(Seurat)
 library(Signac)
 library(EnsDb.Hsapiens.v86)
 
+out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/"
+load(paste0(out_folder, "Writeup10a_ppStep3_combine.RData"))
+
 set.seed(10)
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
-
-out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/"
-load(paste0(out_folder, "Writeup10a_ppStep3_combine.RData"))
 
 ## see https://www.r-bloggers.com/2020/03/what-is-a-dgcmatrix-object-made-of-sparse-matrix-format-in-r/
 # if you want to find the nonzero entries for a row, I suggest

@@ -3,14 +3,14 @@ library(Seurat)
 library(Signac)
 library(EnsDb.Hsapiens.v86)
 
-set.seed(10)
-date_of_run <- Sys.time()
-session_info <- devtools::session_info()
-
 print("Combine both dataset")
 out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/"
 load(paste0(out_folder, "Writeup10a_ppStep1_peakmerging.RData"))
 load(paste0(out_folder, "Writeup10a_ppStep2_rna-merge.RData"))
+
+set.seed(10)
+date_of_run <- Sys.time()
+session_info <- devtools::session_info()
 
 print("Adjusting the RNA dataset")
 merged_counts <- do.call(cbind, lapply(1:7, function(i){
