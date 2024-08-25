@@ -19,7 +19,7 @@ treatment_vec <- c("CIS", "COCL2", "DABTRAM")
 all_data_full <- all_data
 
 for(treatment in treatment_vec){
-  print(paste0("Working on ",))
+  print(paste0("Working on ", treatment))
   all_data <- all_data_full
   
   print("Subsetting")
