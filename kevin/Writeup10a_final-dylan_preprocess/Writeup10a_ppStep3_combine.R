@@ -17,7 +17,7 @@ rna_cells <- Seurat::Cells(all_data_rna)
 common_cells <- intersect(atac_cells, rna_cells)
 
 all_data_atac <- subset(all_data_atac, cells = common_cells)
-all_data_rna <- subset(all_data_atac, cells = common_cells)
+all_data_rna <- subset(all_data_rna, cells = common_cells)
 gc(TRUE)
 
 atac_cells <- Seurat::Cells(all_data_atac)
