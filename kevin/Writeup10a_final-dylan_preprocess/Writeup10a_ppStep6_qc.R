@@ -59,14 +59,21 @@ all_data[["percent.mt"]] <- Seurat::PercentageFeatureSet(object = all_data, patt
 all_data[["percent.rb"]] <- Seurat::PercentageFeatureSet(object = all_data, pattern = "^RPS")
 
 print("Basic processing of ATAC")
-file_prefix <- "/scratch/nzh/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/"
-file_suffix <- "/outs/filtered_feature_bc_matrix.h5"
+file_prefix <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/BarcodeOutputs/2022_02/Cellranger_count_output/"
+file_suffix <- "/outs/atac_fragments.tsv.gz"
 file_folders <- c("2022_05_19_arc_time0", "2022_05_19_arc_time10_CIS", 
                   "2022_05_19_arc_time10_COCL2", "2022_05_19_arc_time10_DABTRAM",
                   "2022_05_19_arc_week5_CIS", "2022_05_19_arc_week5_COCL2",
                   "2022_05_19_arc_week5_DABTRAM")
 
 Seurat::DefaultAssay(all_data) <- "ATAC"
+
+# updating the path
+for(i in 1:length(all_data[["ATAC"]]@fragments)){
+  idx <- which(sapply(file_folders, function(x){length(grep(x, all_data[["ATAC"]]@fragments[[i]]@path)) > 0}))
+  all_data[["ATAC"]]@fragments[[i]]@path <- paste0(file_prefix, file_folders[idx], file_suffix)
+}
+
 all_data <- Signac::NucleosomeSignal(object = all_data)
 all_data <- Signac::TSSEnrichment(all_data, fast = FALSE)
 all_data$high.tss <- ifelse(all_data$TSS.enrichment > 2, 'High', 'Low')
