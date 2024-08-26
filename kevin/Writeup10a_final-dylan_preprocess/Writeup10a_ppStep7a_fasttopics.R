@@ -15,7 +15,9 @@ treatment_vec <- c("CIS", "COCL2", "DABTRAM")
 for(treatment in treatment_vec){
   print(paste0("Working on ", treatment))
   keep_vec <- rep(FALSE, ncol(all_data))
-  keep_vec[which(all_data$dataset %in% c("day0", "day10_CIS", "week5_CIS"))] <- TRUE
+  keep_vec[which(all_data$dataset %in% c("day0", 
+                                         paste0("day10_", treatment), 
+                                         paste0("week5_", treatment)))] <- TRUE
   all_data$keep <- keep_vec
   all_data2 <- subset(all_data, keep == TRUE)
   

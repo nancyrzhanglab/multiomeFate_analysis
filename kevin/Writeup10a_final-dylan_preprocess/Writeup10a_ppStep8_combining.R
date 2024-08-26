@@ -16,27 +16,26 @@ for(treatment in treatment_vec){
   cell_names <- Seurat::Cells(all_data)
   K <- ncol(topic_res$L)
   topic_mat <- matrix(NA, nrow = length(cell_names), ncol = K)
+  full_umap_res <- matrix(NA, nrow = length(cell_names), ncol = 2)
   rownames(topic_mat) <- cell_names
-  topic_res$L <- topic_res$L[rownames(topic_res$L) %in% cell_names,]
+  rownames(full_umap_res) <- cell_names
+  
+  set.seed(10)
+  umap_res <- Seurat::RunUMAP(topic_res$L)@cell.embeddings
   
   for(i in 1:nrow(topic_res$L)){
     topic_mat[rownames(topic_res$L)[i],] <- topic_res$L[i,]
+    full_umap_res[rownames(umap_res)[i],] <- umap_res[i,]
   }
   colnames(topic_mat) <- paste0("fastTopic", treatment, "_", 1:K)
   colnames(topic_res$F) <- paste0("fastTopic", treatment, "_", 1:K)
+  colnames(full_umap_res) <- paste0("ft", treatment, "umap_", 1:2)
   
-  all_data[[paste0("fasttopic_", treatment)]] <- Seurat::CreateDimReducObject(embeddings = topic_mat, 
+  all_data[[paste0("fasttopic.", treatment)]] <- Seurat::CreateDimReducObject(embeddings = topic_mat, 
                                                                               loadings =  topic_res$F,
-                                                                              assay = "RNA",
-                                                                              key =  paste0("fastTopic", treatment, "_"))
-  
-  print("Computing UMAP")
-  set.seed(10)
-  all_data <- Seurat::RunUMAP(all_data, 
-                              dims = 1:K,
-                              reduction = paste0("fasttopic_", treatment),
-                              reduction.name = paste0("ft.", treatment, ".umap"))
-                                                                              
+                                                                              assay = "RNA")
+  all_data[[paste0("ft.", treatment, ".umap")]] <- Seurat::CreateDimReducObject(embeddings = full_umap_res,
+                                                                                assay = "RNA")
 }
 
 #############################
@@ -60,7 +59,7 @@ print("Computing UMAP")
 set.seed(10)
 all_data <- Seurat::RunUMAP(all_data, 
                             dims = 1:50,
-                            reduction = "saverpca",
+                            reduction = "saver.pca",
                             reduction.name = "saver.umap")
 
 #################
