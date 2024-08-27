@@ -2,7 +2,7 @@
 #$ -N peakvi_cocl2
 #$ -j y
 #$ -o ../../../../out/kevin/Writeup10a/qsub/
-#$ -l m_mem_free=50G
+#$ -l m_mem_free=20G
 
 conda activate scvi
 
