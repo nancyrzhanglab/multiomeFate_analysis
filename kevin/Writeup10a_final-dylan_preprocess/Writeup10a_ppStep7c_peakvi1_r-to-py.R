@@ -23,7 +23,7 @@ for(treatment in treatment_vec){
   all_data <- all_data_full
   
   print("Subsetting")
-  if(treatment != "all"){
+  if(treatment != "All"){
     keep_vec <- rep(FALSE, length(Seurat::Cells(all_data)))
     keep_vec[which(all_data$dataset %in% c("day0", paste0("day10_", treatment), paste0("week5_", treatment)))] <- TRUE
     all_data$keep <- keep_vec

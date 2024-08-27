@@ -139,3 +139,35 @@ for(i in 1:length(lineage_vec)){
 }
 
 dev.off()
+
+#####################
+
+categorical_vars <- c("dataset")
+numerical_vars <- c("nCount_ATAC", "nFeature_ATAC", "nCount_RNA", "nFeature_RNA",
+                    "percent.mt", "percent.rb")
+plot_list_categorial <- lapply(categorical_vars, function(variable){
+  plot1 <- Seurat::DimPlot(all_data, 
+                           reduction = "umap",
+                           group.by = variable, 
+                           label = TRUE,
+                           repel = TRUE, 
+                           label.size = 2.5)
+  plot1
+})
+
+plot_list_numerical <- lapply(numerical_vars, function(variable){
+  plot1 <- scCustomize::FeaturePlot_scCustom(all_data, 
+                                             features = variable,
+                                             reduction = "umap")
+  plot1
+})
+
+plot_list <- c(plot_list_categorial, plot_list_numerical)
+
+pdf("../../../../out/figures/kevin/Writeup6s/Writeup6s_exploration_umaps.pdf",
+    width = 6, height = 5, onefile = TRUE)
+for(i in 1:length(plot_list)){
+  print(plot_list[[i]])
+}
+graphics.off()
+
