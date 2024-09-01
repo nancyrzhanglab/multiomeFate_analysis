@@ -130,4 +130,26 @@ length(unique(all_data$assigned_lineage))
 print("Finished preprocessing data")
 save(all_data, date_of_run, session_info,
      file = paste0(out_folder, "Writeup10a_ppStep6_qc-step2.RData"))
+
+all_data_rna <- all_data[["RNA"]]
+all_data_pca <- all_data[["pca"]]
+all_data_umap <- all_data[["umap"]]
+all_data_atac <- all_data[["ATAC"]]
+all_data_lineage <- all_data[["Lineage"]]
+all_data_metadata <- all_data@meta.data
+
+date_of_run <- Sys.time()
+session_info <- devtools::session_info()
+
+save(all_data_rna, date_of_run, session_info,
+     file = paste0(out_folder, "Writeup10a_data_rna.RData"))
+save(all_data_pca, all_data_umap, date_of_run, session_info,
+     file = paste0(out_folder, "Writeup10a_data_rna_dimred.RData"))
+save(all_data_atac, date_of_run, session_info,
+     file = paste0(out_folder, "Writeup10a_data_atac.RData"))
+save(all_data_lineage, date_of_run, session_info,
+     file = paste0(out_folder, "Writeup10a_data_lineage.RData"))
+save(all_data_metadata, date_of_run, session_info,
+     file = paste0(out_folder, "Writeup10a_data_metadata.RData"))
+
 print("Done! :)")

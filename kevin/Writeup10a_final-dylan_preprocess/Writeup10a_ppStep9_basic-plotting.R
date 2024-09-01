@@ -4,17 +4,24 @@ library(Signac)
 
 out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/"
 plot_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/figures/kevin/Writeup10a/"
-load(paste0(out_folder, "Writeup10a_ppStep6_qc-step2.RData"))
 
 #######
 
-tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
-tab_mat <- tab_mat[order(rowSums(tab_mat),decreasing = TRUE),]
-df <- as.data.frame(apply(as.matrix.noquote(log10(tab_mat+1)),2,as.numeric))
-p1 <- GGally::ggpairs(df, 
-                      lower = list(continuous = GGally::wrap("points",
-                                                             alpha = 0.2, 
-                                                             shape = 16)),
-                      progress = FALSE) 
-ggplot2::ggsave(filename = paste0(plot_folder, "Writeup10a_lineage_pairsplot.png"),
-                p1, device = "png", width = 8, height = 8, units = "in")
+all_data <- data_loader(which_files = c("rna", "saver", "peakvi", "fasttopics", "wnn"))
+
+dimred_vec <- names(all_data@reductions)
+dimred_vec <- dimred_vec[grep("umap", dimred_vec)]
+
+pdf(paste0(plot_folder, "Writeup10a_all-umaps.pdf"),
+    onefile = TRUE, width = 8, height = 5)
+
+for(kk in 1:length(dimred_vec)){
+  plot1 <- scCustomize::DimPlot_scCustom(all_data, 
+                           reduction = dimred_vec[kk],
+                           group.by = "dataset",
+                           colors_use = all_data@misc$dataset_colors)
+  plot1 <- plot1 + ggplot2::ggtitle(dimred_vec[kk])
+  print(plot1)
+}
+
+dev.off()
