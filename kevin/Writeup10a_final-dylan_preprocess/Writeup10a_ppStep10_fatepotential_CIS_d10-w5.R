@@ -52,7 +52,7 @@ lambda_initial <- 3
 fit_res <- multiomeFate:::lineage_cv(
   cell_features = cell_features,
   cell_lineage = cell_lineage,
-  future_timepoint = treatment,
+  future_timepoint = day_later_vec,
   lineage_future_count = lineage_future_count,
   lambda_initial = lambda_initial,
   lambda_sequence_length = 20,
