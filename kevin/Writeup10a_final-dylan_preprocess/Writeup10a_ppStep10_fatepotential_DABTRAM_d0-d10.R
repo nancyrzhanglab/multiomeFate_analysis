@@ -11,11 +11,11 @@ set.seed(10)
 
 # we'll focus on predict all the day6 cells at multiple timepoints from day4
 
-treatment <- "CIS"
-day_early_vec <- paste0("day10_", treatment)
-day_early <- "d10"
-day_later_vec <- paste0("week5_", treatment)
-day_later <- "w5"
+treatment <- "DABTRAM"
+day_early_vec <- "day0"
+day_early <- "d0"
+day_later_vec <- paste0("day10_", treatment)
+day_later <- "d10"
 
 # keep only the relevant cells
 keep_vec <- rep(FALSE, ncol(all_data))

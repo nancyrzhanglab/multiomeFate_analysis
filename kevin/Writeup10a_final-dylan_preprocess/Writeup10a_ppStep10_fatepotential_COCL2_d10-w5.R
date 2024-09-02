@@ -11,7 +11,7 @@ set.seed(10)
 
 # we'll focus on predict all the day6 cells at multiple timepoints from day4
 
-treatment <- "CIS"
+treatment <- "COCL2"
 day_early_vec <- paste0("day10_", treatment)
 day_early <- "d10"
 day_later_vec <- paste0("week5_", treatment)
