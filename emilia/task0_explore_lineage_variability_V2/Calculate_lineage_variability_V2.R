@@ -4,7 +4,7 @@ library(dplyr)
 library(ggplot2)
 # library(ggpubr)
 
-# source('/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/git/multiomeFate/R/data_loader.R')
+source('/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/git/multiomeFate/R/data_loader.R')
 # =============================================================================
 # Load data
 # =============================================================================
@@ -27,7 +27,7 @@ if (TIME == 'day10') {
 # data_dir = '~/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/'
 output_dir = "/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task0_explore_lineage_variability_V2/"
 
-all_data = multiomeFate:::data_loader(which_files = c("chromvar", "saver_treatment"))
+all_data = data_loader(which_files = c("chromvar", "saver_treatment"))
 metadat = all_data@meta.data
 
 date_of_run <- Sys.time()
