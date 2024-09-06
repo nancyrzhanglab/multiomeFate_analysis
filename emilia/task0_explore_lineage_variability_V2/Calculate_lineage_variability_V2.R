@@ -2,7 +2,7 @@ rm(list=ls())
 library(multiomeFate)
 library(dplyr)
 library(ggplot2)
-library(ggpubr)
+# library(ggpubr)
 
 # source('/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/git/multiomeFate/R/data_loader.R')
 # =============================================================================
@@ -161,7 +161,7 @@ d_in_df = merge(d_in_df, fp_var, by = 'assigned_lineage')
 
 p4 = ggplot(d_in_df, aes(x = fp_var, y = normalized_avg_eud_dist_by_shuffle)) + 
   geom_point() + 
-  stat_cor(method="spearman") +
+  # stat_cor(method="spearman") +
   theme_bw() +
   labs(title = paste0('Lineage variability vs FP variance (', SAMPLE_NAME, ')'), 
        x = 'FP variance', y = 'Normalized average Euclidean distance')
