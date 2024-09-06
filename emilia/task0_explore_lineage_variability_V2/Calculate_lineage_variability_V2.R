@@ -9,25 +9,28 @@ source('/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/git/mult
 # Load data
 # =============================================================================
 #!/usr/bin/env Rscript
-args = commandArgs(trailingOnly=TRUE)
-TIME = args[1]
-TREATMENT = args[2]
-# TIME = 'day10'
-# TREATMENT = 'DABTRAM'
+# args = commandArgs(trailingOnly=TRUE)
+# TIME = args[1]
+# TREATMENT = args[2]
+
+TIME = 'week5'
+TREATMENT = 'COCL2'
 
 if (TIME == 'day10') {
   FP_NAME = paste0('fatepotential_', TREATMENT, '_d10_w5')
   SAMPLE_NAME = paste0(TIME, '_', TREATMENT)
-}else{
+}else if (TIME == 'day0') {
   FP_NAME = paste0('fatepotential_', TREATMENT, '_d0_d10')
   SAMPLE_NAME = TIME
-}
+}else if (TIME == 'week5' {
+  SAMPLE_NAME = paste0(TIME, '_', TREATMENT)
+})
 
 
 # data_dir = '~/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/'
 output_dir = "/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task0_explore_lineage_variability_V2/"
 
-all_data = data_loader(which_files = c("chromvar", "saver_treatment"))
+all_data = multiomeFate:::data_loader(which_files = c("lineage", "saver_treatment"))
 metadat = all_data@meta.data
 
 date_of_run <- Sys.time()
@@ -152,18 +155,18 @@ p3 = ggplot(d_in_df, aes(x = n_cells, y = normalized_avg_eud_dist_by_shuffle)) +
 ggsave(paste0(output_dir, SAMPLE_NAME, '/lineage_variability_vs_size_', SAMPLE_NAME, '.png'), plot = p3, width = 5, height = 5 )
 
 # Plotting lineage variability's correlation with FP variance
-fp_var = metadat_use %>% 
-  group_by(assigned_lineage) %>% 
-  summarise(fp_var = var(.data[[FP_NAME]])) %>% 
-  arrange(desc(fp_var))
+# fp_var = metadat_use %>% 
+#   group_by(assigned_lineage) %>% 
+#   summarise(fp_var = var(.data[[FP_NAME]])) %>% 
+#   arrange(desc(fp_var))
+# 
+# d_in_df = merge(d_in_df, fp_var, by = 'assigned_lineage')
 
-d_in_df = merge(d_in_df, fp_var, by = 'assigned_lineage')
-
-p4 = ggplot(d_in_df, aes(x = fp_var, y = normalized_avg_eud_dist_by_shuffle)) + 
-  geom_point() + 
-  # stat_cor(method="spearman") +
-  theme_bw() +
-  labs(title = paste0('Lineage variability vs FP variance (', SAMPLE_NAME, ')'), 
-       x = 'FP variance', y = 'Normalized average Euclidean distance')
-ggsave(paste0(output_dir, '/lineage_variability_vs_fp_var_', SAMPLE_NAME, '.png'), 
-       plot = p4, width = 5, height = 5)
+# p4 = ggplot(d_in_df, aes(x = fp_var, y = normalized_avg_eud_dist_by_shuffle)) + 
+#   geom_point() + 
+#   # stat_cor(method="spearman") +
+#   theme_bw() +
+#   labs(title = paste0('Lineage variability vs FP variance (', SAMPLE_NAME, ')'), 
+#        x = 'FP variance', y = 'Normalized average Euclidean distance')
+# ggsave(paste0(output_dir,SAMPLE_NAME, '/lineage_variability_vs_fp_var_', SAMPLE_NAME, '.png'), 
+#        plot = p4, width = 5, height = 5)
