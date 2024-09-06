@@ -42,6 +42,6 @@ seurat_obj$time_celltype <- factor(seurat_obj$time_celltype)
 table(seurat_obj$time_celltype)
 
 save(seurat_obj, date_of_run, session_info,
-     file = paste0(out_folder, "Writeup11_larry_seurat_fasttoics.RData"))
+     file = paste0(out_folder, "Writeup11_larry_seurat_fasttopics.RData"))
 
 print("Done! :)")

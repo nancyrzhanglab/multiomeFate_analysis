@@ -3,7 +3,7 @@ library(Seurat)
 library(multiomeFate)
 
 out_folder <- "~/project/Multiome_fate/out/kevin/Writeup11/"
-load(paste0(out_folder, "Writeup11_larry_seurat_fasttoics.RData"))
+load(paste0(out_folder, "Writeup11_larry_seurat_fasttopics.RData"))
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
@@ -13,8 +13,8 @@ set.seed(10)
 # we'll focus on predict all the day6 cells at multiple timepoints from day4
 
 treatment_vec <- as.character(sort(unique(seurat_obj$time_celltype)))
-day_early_vec <- treatment_vec[grep("^.*-4", treatment_vec)]
-treatment_vec <- treatment_vec[grep("^.*-6", treatment_vec)]
+day_early_vec <- treatment_vec[grep("^.*-2", treatment_vec)]
+treatment_vec <- treatment_vec[grep("^.*-4", treatment_vec)]
 
 treatment <- treatment_vec[1]
 day_early <- "2"

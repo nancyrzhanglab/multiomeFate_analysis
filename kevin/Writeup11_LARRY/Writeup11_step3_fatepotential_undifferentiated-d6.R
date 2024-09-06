@@ -3,7 +3,7 @@ library(Seurat)
 library(multiomeFate)
 
 out_folder <- "~/project/Multiome_fate/out/kevin/Writeup11/"
-load(paste0(out_folder, "Writeup11_larry_seurat_fasttoics.RData"))
+load(paste0(out_folder, "Writeup11_larry_seurat_fasttopics.RData"))
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
