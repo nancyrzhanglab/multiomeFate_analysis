@@ -14,7 +14,7 @@ SAMPLE_NAME = paste0(TIME_CUR, '_', TREATMENT)
 
 data_dir = "/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task0_explore_lineage_variability_V2/"
 
-lineage_variability = read.csv(paste0(data_dir, SAMPLE_NAME, '/', 'lineage_variability_', SAMPLE_NAME, '.csv'))
+lineage_variability = read.csv(paste0(data_dir, SAMPLE_NAME, '/', 'lineage_variability_', SAMPLE_NAME, '_saver_sample.csv'))
 load('~/nzhanglab/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_data_empty.RData')
 metadat = all_data@meta.data
 
@@ -41,6 +41,6 @@ p = ggplot(lineage_variability, aes(x = normalized_avg_eud_dist_by_shuffle, y = 
   labs(y = 'Lineage size at future timepoint (log10)', x = 'Lineage variability') + 
   theme_bw()
 
-cor.test(lineage_variability$normalized_avg_eud_dist_by_shuffle, lineage_variability$n_cells_FUT_LOG10, method = 'spearmann')
+cor.test(lineage_variability$normalized_avg_eud_dist_by_shuffle, lineage_variability$n_cells_FUT_LOG10, method = 'spearman')
 
 ggsave(paste0(data_dir, SAMPLE_NAME, '/Lineage_variability_vs_future_lineage_size_', SAMPLE_NAME, '.png'), plot = p, width = 5, height = 5 )

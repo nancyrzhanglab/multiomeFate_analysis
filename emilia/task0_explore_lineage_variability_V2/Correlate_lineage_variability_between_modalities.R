@@ -6,8 +6,8 @@ library(ggplot2)
 # Load data
 # =============================================================================
 
-TIME = 'week5' # 'week5', 'day10', or 'day0'
-TREATMENT = 'COCL2' # 'COCL2', 'DABTRAM', or 'CIS'
+TIME = 'day10' # 'week5', 'day10', or 'day0'
+TREATMENT = 'DABTRAM' # 'COCL2', 'DABTRAM', or 'CIS'
 MODALITY_1 = 'saver_treatment' 
 MODALITY_2 = 'peakvi'
 SAMPLE_NAME = paste0(TIME, '_', TREATMENT)
@@ -15,8 +15,8 @@ SAMPLE_NAME = paste0(TIME, '_', TREATMENT)
 data_dir = "/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task0_explore_lineage_variability_V2/"
 
 
-lineage_variability_m1 = read.csv(paste0(data_dir, SAMPLE_NAME, '/', 'lineage_variability_', SAMPLE_NAME, '.csv'))
-lineage_variability_m2 = read.csv(paste0(data_dir, SAMPLE_NAME, '/', 'lineage_variability_', SAMPLE_NAME, '_', MODALITY_2, '.csv'))
+lineage_variability_m1 = read.csv(paste0(data_dir, SAMPLE_NAME, '/', 'lineage_variability_', SAMPLE_NAME, '_saver_sample.csv'))
+lineage_variability_m2 = read.csv(paste0(data_dir, SAMPLE_NAME, '/embeding_treatment/', 'lineage_variability_', SAMPLE_NAME, '_', MODALITY_2, '.csv'))
 
 stopifnot(dim(lineage_variability_m1)[1] == dim(lineage_variability_m2)[1])
 

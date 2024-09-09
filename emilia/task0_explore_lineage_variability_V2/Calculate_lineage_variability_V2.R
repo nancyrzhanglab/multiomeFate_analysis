@@ -13,8 +13,8 @@ source('/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/git/mult
 # TREATMENT = args[2]
 
 TIME = 'day10' # 'week5', 'day10', or 'day0'
-TREATMENT = 'COCL2' # 'COCL2', 'DABTRAM', or 'CIS'
-MODALITY = 'peakvi' # or 'saver_treatment'
+TREATMENT = 'DABTRAM' # 'COCL2', 'DABTRAM', or 'CIS'
+MODALITY = 'saver_treatment' # or 'saver_treatment'
 
 if (TIME == 'day10') {
   FP_NAME = paste0('fatepotential_', TREATMENT, '_d10_w5')
@@ -43,15 +43,16 @@ set.seed(10)
 # Wrangle data
 # =============================================================================
 
-if (MODALITY == 'saver_treatment') {
-  data_use = all_data@reductions[[paste0('Saver.', TREATMENT, '.pca')]]
-} else if (MODALITY == 'peakvi') {
-  data_use = all_data@reductions[[paste0('peakVI.', TREATMENT)]]
-} else {
-  stop('MODALITY not recognized')
-}
+# if (MODALITY == 'saver_treatment') {
+#   data_use = all_data@reductions[[paste0('Saver.', TREATMENT, '.pca')]]
+# } else if (MODALITY == 'peakvi') {
+#   data_use = all_data@reductions[[paste0('peakVI.', TREATMENT)]]
+# } else {
+#   stop('MODALITY not recognized')
+# }
 
-data_use = as.data.frame(data_use@cell.embeddings)
+# data_use = as.data.frame(data_use@cell.embeddings)
+data_use = read.csv(paste0(output_dir, 'processed_data/','data_pca_saver_sample_', SAMPLE_NAME, '.csv'), row.names = 1)
 
 NUM_DIM = dim(data_use)[2]
 MIN_CELL = 4
@@ -86,6 +87,8 @@ if (MODALITY == 'saver_treatment') {
 } else {
   stop('MODALITY not recognized')
 }
+
+embedding_col_names = paste0('PC_', 1:NUM_DIM)
 
 for(l in unique(data_use$assigned_lineage)) {
   df = data_use %>% filter(assigned_lineage == l)
