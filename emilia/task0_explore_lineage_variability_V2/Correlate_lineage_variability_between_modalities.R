@@ -6,9 +6,9 @@ library(ggplot2)
 # Load data
 # =============================================================================
 
-TIME = 'day10' # 'week5', 'day10', or 'day0'
-TREATMENT = 'DABTRAM' # 'COCL2', 'DABTRAM', or 'CIS'
-MODALITY_1 = 'saver_treatment' 
+TIME = 'week5' # 'week5', 'day10', or 'day0'
+TREATMENT = 'COCL2' # 'COCL2', 'DABTRAM', or 'CIS'
+MODALITY_1 = 'saver_sample' 
 MODALITY_2 = 'peakvi'
 SAMPLE_NAME = paste0(TIME, '_', TREATMENT)
 

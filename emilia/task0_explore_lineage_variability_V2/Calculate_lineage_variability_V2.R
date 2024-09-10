@@ -12,9 +12,11 @@ source('/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/git/mult
 # TIME = args[1]
 # TREATMENT = args[2]
 
-TIME = 'day10' # 'week5', 'day10', or 'day0'
+TIME = 'day0' # 'week5', 'day10', or 'day0'
 TREATMENT = 'DABTRAM' # 'COCL2', 'DABTRAM', or 'CIS'
-MODALITY = 'saver_treatment' # or 'saver_treatment'
+MODALITY = 'saver_sample' # 'peakvi' or 'saver_treatment' (or 'saver_sample')
+
+SAMPLE_NAME = TIME
 
 if (TIME == 'day10') {
   FP_NAME = paste0('fatepotential_', TREATMENT, '_d10_w5')
@@ -32,7 +34,8 @@ if (TIME == 'day10') {
 # data_dir = '~/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/'
 output_dir = "/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task0_explore_lineage_variability_V2/"
 
-all_data = multiomeFate:::data_loader(which_files = c("lineage", MODALITY))
+# all_data = multiomeFate:::data_loader(which_files = c("lineage", MODALITY))
+all_data = multiomeFate:::data_loader(which_files = c("lineage"))
 metadat = all_data@meta.data
 
 date_of_run <- Sys.time()
@@ -80,13 +83,13 @@ lineage_barcodes = data_use %>%
 d_in_df = data.frame(matrix(nrow = 0, ncol = 3))
 colnames(d_in_df) = c('assigned_lineage', 'avg_euc_dist', 'n_cells')
 
-if (MODALITY == 'saver_treatment') {
-  embedding_col_names = paste0('Saver', TREATMENT, 'PC_', 1:NUM_DIM)
-} else if (MODALITY == 'peakvi') {
-  embedding_col_names = paste0('peakVI', TREATMENT, '_', 1:NUM_DIM)
-} else {
-  stop('MODALITY not recognized')
-}
+# if (MODALITY == 'saver_treatment') {
+#   embedding_col_names = paste0('Saver', TREATMENT, 'PC_', 1:NUM_DIM)
+# } else if (MODALITY == 'peakvi') {
+#   embedding_col_names = paste0('peakVI', TREATMENT, '_', 1:NUM_DIM)
+# } else {
+#   stop('MODALITY not recognized')
+# }
 
 embedding_col_names = paste0('PC_', 1:NUM_DIM)
 
