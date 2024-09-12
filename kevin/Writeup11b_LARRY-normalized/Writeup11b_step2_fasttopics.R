@@ -5,7 +5,7 @@ library(fastTopics)
 
 out_folder <- "~/project/Multiome_fate/out/kevin/Writeup11b/"
 
-load(out_folder, "Writeup11b_larry-normalized.RData")
+load(paste0(out_folder, "Writeup11b_larry-normalized.RData"))
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
