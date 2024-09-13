@@ -7,15 +7,19 @@ library(ggplot2)
 # Load data
 # =============================================================================
 
-TIME = 'day10' # 'day10', or 'day0'
+TIME = 'day0' # 'day10', or 'day0'
 TREATMENT = 'DABTRAM' # 'COCL2', 'DABTRAM', or 'CIS'
 MODALITY = 'saver' # or 'peakvi' 
-SAMPLE_NAME = paste0(TIME, '_', TREATMENT)
-output_dir = "/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task1_ANOVA_lineage_specific_features/"
+# SAMPLE_NAME = paste0(TIME, '_', TREATMENT)
+SAMPLE_NAME = TIME
+# output_dir = "/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task1_ANOVA_lineage_specific_features/"
 
-load('~/nzhanglab/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_data_empty.RData')
+# load('~/nzhanglab/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_data_empty.RData')
+# 
+# load('~/nzhanglab/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_data_saver.RData')
 
-load('~/nzhanglab/project/Multiome_fate/out/kevin/Writeup10a/Writeup10a_data_saver.RData')
+load('~/Downloads/Writeup10a_data_empty.RData')
+load('~/Downloads/Writeup10a_data_saver.RData')
 all_data[["Saver"]] <- all_data_saver
 all_data[["Saver.pca"]] <- all_data_saver_pca
 all_data[["Saver.umap"]] <- all_data_saver_umap
@@ -58,7 +62,7 @@ lineage_size$larger.than.4 <- ifelse(lineage_size$size >= 4, 'YES', 'NO')
 lineage_size <- lineage_size[lineage_size$larger.than.4 == 'YES', ]
 
 data <- data[data$assigned_lineage %in% lineage_size$assigned_lineage, ]
-
+features <- colnames(data)[seq(2, ncol(data)-1)]
 # ==============================================================================
 # Perform ANOVA
 # ==============================================================================
