@@ -32,6 +32,8 @@ seurat_obj[["fasttopic"]] <- Seurat::CreateDimReducObject(embeddings = topic_mat
                                                           assay = "RNA",
                                                           key =  "fastTopic_")
 
+###########
+
 print("Finished")
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()

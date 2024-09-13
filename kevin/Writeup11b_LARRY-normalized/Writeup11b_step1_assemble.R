@@ -53,19 +53,14 @@ rownames(barcode_mat) <- paste0("Lineage_", 1:nrow(barcode_mat))
 seurat_obj <- Seurat::CreateSeuratObject(counts = expression_matrix,
                                          data = expression_matrix,
                                          meta.data = cell_metadata_df)
-seurat_obj[["Lineage"]] <- Seurat::CreateAssayObject(counts = barcode_mat)
 
 Seurat::DefaultAssay(seurat_obj) <- "RNA"
 set.seed(10)
 seurat_obj <- Seurat::FindVariableFeatures(seurat_obj,
                                            selection.method = "vst",
                                            nfeatures = 2000)
-seurat_obj <- Seurat::ScaleData(seurat_obj)
-seurat_obj <- Seurat::RunPCA(seurat_obj,
-                             features = Seurat::VariableFeatures(object = seurat_obj),
-                             verbose = FALSE)
-seurat_obj <- Seurat::RunUMAP(seurat_obj,
-                              dims = 1:30)
+seurat_obj <- subset(seurat_obj, features = Seurat::VariableFeatures(seurat_obj))
+seurat_obj[["Lineage"]] <- Seurat::CreateAssayObject(counts = barcode_mat)
 
 # also include the author-generated SPRING-embedding
 spring_embedding <- cbind(spring_1 = seurat_obj$SPRING.x,
@@ -74,14 +69,60 @@ seurat_obj[["SPRING"]] <- Seurat::CreateDimReducObject(embeddings = spring_embed
 
 # remove all the cells not in the trajectory
 seurat_obj <- subset(seurat_obj, trajectory == TRUE)
-seurat_obj <- subset(seurat_obj, features = Seurat::VariableFeatures(seurat_obj))
+
+# remove all other cells
+keep_vec <- rep(TRUE, ncol(seurat_obj))
+keep_vec[which(seurat_obj$Cell.type.annotation == "Erythroid")] <- FALSE
+seurat_obj$keep <- keep_vec
+seurat_obj <- subset(seurat_obj, keep == TRUE)
+
+#############
+
+time_celltype_df <- seurat_obj@meta.data[,c("Cell.type.annotation", "Time.point")]
+time_celltype_str <- apply(time_celltype_df, 1, function(x){paste0(x, collapse = "-")})
+time_celltype_str <- factor(time_celltype_str)
+seurat_obj$time_celltype <- time_celltype_str
+
+#############
+
+# assigning cells to a lineage
+mat <- SeuratObject::LayerData(seurat_obj, 
+                               layer = "counts", 
+                               assay = "Lineage")
+total_count <- Matrix::colSums(mat)
+n <- ncol(mat)
+lineage_idx <- lapply(1:n, function(i){
+  multiomeFate:::.nonzero_col(mat = mat, 
+                              col_idx = i, 
+                              bool_value = FALSE)
+})
+
+lineage_vec <- rep(NA, ncol(seurat_obj))
+names(lineage_vec) <- SeuratObject::Cells(seurat_obj)
+for(i in 1:n){
+  if(length(lineage_idx[[i]]) == 1){
+    lineage_vec[i] <- rownames(mat)[lineage_idx[[i]]]
+  }
+}
+seurat_obj$assigned_lineage <- lineage_vec
+
+# remove all the cells without a lineage
+keep_vec <- rep(TRUE, ncol(seurat_obj))
+keep_vec[which(is.na(seurat_obj$assigned_lineage))] <- FALSE
+seurat_obj$keep <- keep_vec
+seurat_obj <- subset(seurat_obj, keep == TRUE)
+
+###########
 
 mat <- SeuratObject::LayerData(object = seurat_obj, 
                                assay = "RNA", 
                                layer = "counts")
 mat[201:210,1:10]
 
-###########
+seurat_obj
+stopifnot(length(SeuratObject::Features(seurat_obj)) == 2000)
+stopifnot(!any(is.na(seurat_obj$assigned_lineage)))
+stopifnot(all(as.character(seurat_obj$Cell.type.annotation) %in% c("Undifferentiated", "Monocyte", "Neutrophil")))
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
