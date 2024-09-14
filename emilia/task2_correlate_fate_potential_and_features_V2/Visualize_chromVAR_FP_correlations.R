@@ -9,7 +9,7 @@ set.seed(10)
 # ==============================================================================
 # Read data
 # ==============================================================================
-load('~/Downloads/chromVAR_cor_vec.RData')
+load('/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task2_correlate_fate_potential_and_features_V2/chromVAR_cor_vec.RData')
 
 dabtram_d0_chromVAR_cor_vec <- chromVAR_cor_vec[['dabtram_d0_chromVAR_cor_vec']] 
 cocl2_d0_chromVAR_cor_vec <- chromVAR_cor_vec[['cocl2_d0_chromVAR_cor_vec']] 
@@ -57,4 +57,7 @@ ggpairs(d0_cor[, c('correlation.DABTRAM_d0', 'correlation.COCL2_d0', 'correlatio
 ggpairs(d10_cor[, c('correlation.DABTRAM_d10', 'correlation.COCL2_d10', 'correlation.CIS_d10')])
 
 
-
+# ==============================================================================
+# Save session info
+# ==============================================================================
+session_info <- devtools::session_info()
