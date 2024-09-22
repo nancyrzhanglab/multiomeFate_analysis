@@ -83,7 +83,7 @@ dim(t_test_results)
 # ==============================================================================
 
 save(date_of_run, session_info,
-     t_test_results, file = paste0(out_dir, 'differential_winner_loser_chromVAR_lineage_specific_TF_', treatment, '_t_test_results.RData'))
+     t_test_results, file = paste0(out_dir, 'differential_winner_loser_chromVAR_lineage_specific_adaptation_TF_', treatment, '_t_test_results.RData'))
 
 
 

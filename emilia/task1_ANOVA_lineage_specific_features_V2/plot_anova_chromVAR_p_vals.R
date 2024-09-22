@@ -4,49 +4,17 @@ library(stringr)
 library(ggplot2)
 
 # in_dir <- '/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task1_ANOVA_lineage_specific_features/'
-
-theme_Publication<- function(base_size=12, base_family="sans") {
-  library(grid)
-  library(ggthemes)
-  (theme_foundation(base_size=base_size, base_family=base_family)
-    + theme(plot.title = element_text(face = "bold",
-                                      size = rel(1.2), hjust = 0.5),
-            plot.subtitle = element_text(face = "bold", hjust = 0.5),
-            text = element_text(),
-            panel.background = element_rect(colour = NA),
-            plot.background = element_rect(colour = NA),
-            panel.border = element_rect(colour = NA),
-            axis.title = element_text(face = "bold"),
-            axis.title.y = element_text(angle=90,vjust =2),
-            axis.title.x = element_text(vjust = -0.2),
-            axis.text = element_text(),
-            axis.line.x = element_line(colour="black"),
-            axis.line.y = element_line(colour="black"),
-            axis.ticks = element_line(),
-            panel.grid.major = element_line(colour="white"),
-            panel.grid.minor = element_blank(),
-            legend.key = element_rect(colour = NA),
-            legend.position = "bottom",
-            legend.box.margin = margin(t = 0.1, r = 0.1, b = 0.1, l = 0.1, unit = "mm"),
-            legend.direction = "horizontal",
-            legend.key.size= unit(0.5, "cm"),
-            legend.spacing = unit(0, "cm"),
-            legend.title = element_text(face="italic"),
-            plot.margin=unit(c(0.2,0.2,0.2,0.2),"cm"),
-            strip.background=element_rect(colour="#F0F0F0",fill="#F0F0F0"),
-            strip.text = element_text(face="bold")
-    ))
-}
+in_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task1_ANOVA_lineage_specific_features_V2/'
 # ==============================================================================
 # Read data
 # ==============================================================================
-anova.day0 <- read.csv(paste0(in_dir, 'day0_SAVER_RNA_processed_ANOVA_pvals.csv'))
-anova.day10CIS <- read.csv(paste0(in_dir, 'day10_CIS_SAVER_RNA_processed_ANOVA_pvals.csv'))
-anova.day10COCL2 <- read.csv(paste0(in_dir, 'day10_COCL2_SAVER_RNA_processed_ANOVA_pvals.csv'))
-anova.day10DABTRAM <- read.csv(paste0(in_dir, 'day10_DABTRAM_SAVER_RNA_processed_ANOVA_pvals.csv'))
-anova.week5CIS <- read.csv(paste0(in_dir, 'week5_CIS_SAVER_RNA_processed_ANOVA_pvals.csv'))
-anova.week5COCL2 <- read.csv(paste0(in_dir, 'week5_COCL2_SAVER_RNA_processed_ANOVA_pvals.csv'))
-anova.week5DABTRAM <- read.csv(paste0(in_dir, 'week5_DABTRAM_SAVER_RNA_processed_ANOVA_pvals.csv'))
+anova.day0 <- read.csv(paste0(in_dir, 'day0_chromVAR_pvals.csv'))
+anova.day10CIS <- read.csv(paste0(in_dir, 'day10_CIS_chromVAR_pvals.csv'))
+anova.day10COCL2 <- read.csv(paste0(in_dir, 'day10_COCL2_chromVAR_pvals.csv'))
+anova.day10DABTRAM <- read.csv(paste0(in_dir, 'day10_DABTRAM_chromVAR_pvals.csv'))
+anova.week5CIS <- read.csv(paste0(in_dir, 'week5_CIS_chromVAR_pvals.csv'))
+anova.week5COCL2 <- read.csv(paste0(in_dir, 'week5_COCL2_chromVAR_pvals.csv'))
+anova.week5DABTRAM <- read.csv(paste0(in_dir, 'week5_DABTRAM_chromVAR_pvals.csv'))
 
 anova.day0$timepoint <- 'day0'
 anova.day0$treatment <- 'baseline'
@@ -102,6 +70,5 @@ p = ggplot(to_plot, aes(x = factor(dataset, levels = order), y = neg_log10_pval)
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5),
         legend.position = 'none')
 
-ggsave(paste0(in_dir, 'ANOVA_pvals_violin_plot.png'), p, width = 6, height = 4.5, dpi = 300)
-
+ggsave(paste0(in_dir, 'ANOVA_pvals_chromVAR_violin_plot.png'), p, width = 6, height = 4.5, dpi = 300)
 

@@ -52,10 +52,22 @@ d10_cor <- d10_cor |> select(-Row.names)
 # Plotting
 # ==============================================================================
 
-ggpairs(d0_cor[, c('correlation.DABTRAM_d0', 'correlation.COCL2_d0', 'correlation.CIS_d0')])
+ggpairs(d0_cor[, c('correlation.DABTRAM_d0', 'correlation.COCL2_d0', 'correlation.CIS_d0')],
+        mapping = aes(alpha = 0.7),
+        lower = list(continuous = wrap("points", color = "#9DBDFF")),
+        diag = list(continuous = wrap("densityDiag", fill = "#9DBDFF"))) +
+  theme_Publication()
 
-ggpairs(d10_cor[, c('correlation.DABTRAM_d10', 'correlation.COCL2_d10', 'correlation.CIS_d10')])
+ggsave('/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task2_correlate_fate_potential_and_features_V2/correlation_ATAC_chromVAR_FP_day0.png', 
+       width = 8, height = 8, dpi = 300)
 
+ggpairs(d10_cor[, c('correlation.DABTRAM_d10', 'correlation.COCL2_d10', 'correlation.CIS_d10')],
+        mapping = aes(alpha = 0.7),
+        lower = list(continuous = wrap("points", color = "#9DBDFF")),
+        diag = list(continuous = wrap("densityDiag", fill = "#9DBDFF"))) +
+  theme_Publication()
+ggsave('/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task2_correlate_fate_potential_and_features_V2/correlation_ATAC_chromVAR_FP_day10.png', 
+       width = 8, height = 8, dpi = 300)
 
 # ==============================================================================
 # Save session info

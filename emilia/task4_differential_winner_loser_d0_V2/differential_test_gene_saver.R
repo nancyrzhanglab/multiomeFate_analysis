@@ -86,7 +86,7 @@ dim(t_test_results)
 # ==============================================================================
 
 save(date_of_run, session_info,
-     t_test_results, file = paste0(out_dir, 'differential_winner_loser_saver_lineage_specific_gene_', treatment, '.RData'))
+     t_test_results, file = paste0(out_dir, 'differential_winner_loser_saver_lineage_specific_gene_', treatment, 't_test_results.RData'))
 
 
 
