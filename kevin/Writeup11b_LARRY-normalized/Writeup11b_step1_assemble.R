@@ -38,15 +38,14 @@ expression_matrix <- Seurat::ReadMtx(mtx = paste0(data_folder, "stateFate_inVitr
 colnames(expression_matrix) <- rowname_vec
 colsum_vec <- Matrix::colSums(expression_matrix)
 stopifnot(diff(range(colsum_vec)) <= 1e-4)
-expression_matrix <- expression_matrix * 1e6/colsum_vec[1]
-expression_matrix@x <- round(expression_matrix@x)
+# expression_matrix <- expression_matrix * 1e6/colsum_vec[1]
+# expression_matrix@x <- round(expression_matrix@x)
 
 # create the barcode matrix
 barcode_mat <- Matrix::readMM(paste0(data_folder, "stateFate_inVitro_clone_matrix.mtx.gz"))
 barcode_mat <- Matrix::t(barcode_mat)
 colnames(barcode_mat) <- rowname_vec
 rownames(barcode_mat) <- paste0("Lineage_", 1:nrow(barcode_mat))
-
 
 #########################
 

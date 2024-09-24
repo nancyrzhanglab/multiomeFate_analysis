@@ -81,4 +81,98 @@ for(kk in 1:length(file_vec)){
   
 }
 
+#################
+
+var_vec <- c(time_info = TRUE,
+             state_info = TRUE,
+             time_celltype = TRUE)
+
+pdf(paste0(plot_folder, "Writeup11_larry_umap-covariates.pdf"),
+    onefile = T, width = 6, height = 5)
+
+for(kk in 1:length(var_vec)){
+  plot1 <- Seurat::DimPlot(seurat_obj, 
+                           reduction = "python_X_emb",
+                           group.by = names(var_vec)[kk],
+                           raster = TRUE,
+                           label = var_vec[kk])
+  print(plot1)
+}
+
+dev.off()
+
+#################
+
+# Gini plots
+
+unique_lineages <- sort(unique(seurat_obj$assigned_lineage))
+
+treatment_vec <- unique(seurat_obj$time_celltype)
+lineage_idx_list <- lapply(unique_lineages, function(lineage){
+  which(seurat_obj$assigned_lineage == lineage)
+})
+
+pdf(paste0(plot_folder, "Writeup11_gini-index_by-time-celltype.pdf"),
+    onefile = T, width = 5, height = 5)
+
+for(treatment in treatment_vec){
+  # count
+  cell_treatment_idx <- which(seurat_obj$time_celltype == treatment)
+  
+  vec <- sapply(lineage_idx_list, function(lineage_idx){
+    length(intersect(cell_treatment_idx,
+                     lineage_idx))
+  })
+  
+  gini_val <- dineq::gini.wtd(vec)
+  
+  plot(x = seq(0, 1, length.out = length(vec)), 
+       y = cumsum(sort(vec, decreasing = FALSE))/sum(vec),
+       pch = 16,
+       asp = TRUE,
+       xlab = "Cumulative share of lineages (smallest to largest)",
+       ylab = "Cumulative share of cells",
+       main = paste0("Gini index for ", treatment, ": ", round(gini_val, 2)))
+  lines(c(0,1), 
+        c(0,1), 
+        col = "red",
+        lwd = 2, 
+        lty = 2)
+}
+
+dev.off()
+
+####
+
+treatment_vec <- sort(unique(seurat_obj$time_info))
+pdf(paste0(plot_folder, "Writeup11_gini-index_by-time.pdf"),
+    onefile = T, width = 5, height = 5)
+
+for(treatment in treatment_vec){
+  # count
+  cell_treatment_idx <- which(seurat_obj$time_info == treatment)
+  
+  vec <- sapply(lineage_idx_list, function(lineage_idx){
+    length(intersect(cell_treatment_idx,
+                     lineage_idx))
+  })
+  
+  gini_val <- dineq::gini.wtd(vec)
+  
+  plot(x = seq(0, 1, length.out = length(vec)), 
+       y = cumsum(sort(vec, decreasing = FALSE))/sum(vec),
+       pch = 16,
+       asp = TRUE,
+       xlab = "Cumulative share of lineages (smallest to largest)",
+       ylab = "Cumulative share of cells",
+       main = paste0("Gini index for ", treatment, ": ", round(gini_val, 2)))
+  lines(c(0,1), 
+        c(0,1), 
+        col = "red",
+        lwd = 2, 
+        lty = 2)
+}
+
+dev.off()
+
 print("Done! :)")
