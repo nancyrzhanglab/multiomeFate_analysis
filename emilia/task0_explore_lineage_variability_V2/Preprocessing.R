@@ -1,7 +1,6 @@
 rm(list=ls())
-# library(multiomeFate)
+library(multiomeFate)
 library(Seurat)
-# library(ggpubr)
 
 # source('/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/git/multiomeFate/R/data_loader.R')
 # =============================================================================
@@ -12,15 +11,12 @@ library(Seurat)
 # TREATMENT = args[2]
 TIME = 'day0' # 'week5', 'day10', or 'day0'
 TREATMENT = 'COCL2' # 'COCL2', 'DABTRAM', or 'CIS'
-# SAMPLE_NAME = paste0(TIME, '_', TREATMENT)
-SAMPLE_NAME = TIME
+SAMPLE_NAME = paste0(TIME, '_', TREATMENT)
+# SAMPLE_NAME = TIME
 
-# all_data = multiomeFate:::data_loader(which_files = c("saver"))
-load('~/Downloads/Writeup10a_data_empty.RData')
-load('~/Downloads/Writeup10a_data_saver.RData')
-all_data[['Saver']] <- all_data_saver
-# output_dir = "/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task0_explore_lineage_variability_V2/processed_data/"
-output_dir = "/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task0_explore_lineage_variability_V2/"
+all_data = multiomeFate:::data_loader(which_files = c("saver"))
+output_dir = "/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task0_explore_lineage_variability_V2/processed_data/"
+# output_dir = "/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task0_explore_lineage_variability_V2/"
 # =============================================================================
 # Wrangle data
 # =============================================================================
