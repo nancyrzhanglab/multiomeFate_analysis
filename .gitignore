@@ -1,0 +1,12 @@
+.ipynb_checkpoints
+*.ipynb_checkpoints*
+\*.ipynb_checkpoints\*
+Rplots.pdf
+\*Rplots.pdf
+*Rplots.pdf
+.RData
+*.RData
+\*.RData
+.Rhistory
+*.Rhistory
+\*.Rhistory
