@@ -3,7 +3,7 @@ library(Seurat)
 library(multiomeFate)
 
 out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/"
-plot_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/figures/kevin/Writeup10a/"
+plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/Writeup10a/"
 
 all_data <- multiomeFate:::data_loader(which_files = c("fasttopics", "fatepotential"))
 
@@ -76,9 +76,9 @@ for(kk in 1:length(file_vec)){
   
   
   tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
-  lineage_future_count <- tab_mat[names(lineage_imputed_count), day_later_full]
   lineage_imputed_count <- all_data@misc[[paste0("fatepotential_", file)]]$lineage_imputed_count
-  
+  lineage_future_count <- tab_mat[names(lineage_imputed_count), day_later_full]
+
   plot1 <- multiomeFate:::plot_lineageScatterplot(
     lineage_future_count = lineage_future_count,
     lineage_imputed_count = lineage_imputed_count,

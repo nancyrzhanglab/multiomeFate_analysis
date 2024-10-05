@@ -3,21 +3,21 @@ library(Seurat)
 library(multiomeFate)
 
 out_folder <- "~/project/Multiome_fate/out/kevin/Writeup13/"
-plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/"
+plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/Writeup13/"
 
 load(paste0(out_folder, "Writeup13_larry-dataset_step2_fasttopics.RData"))
 
 # construct the matrix of fate potentials
 
-time_early <- 4
-time_later <- 6
+time_early <- 2
+time_later <- 4
 
 treatment_vec <- as.character(sort(unique(seurat_object$time_celltype)))
 celltype_vec <- c("Monocyte", "Neutrophil", "Undifferentiated")
 day_early_vec <- treatment_vec[grep("^.*-4", treatment_vec)]
-day_early <- "4"
-day_later <- "6"
-treatment_vec <- treatment_vec[grep("^.*-6", treatment_vec)]
+day_early <- "2"
+day_later <- "4"
+treatment_vec <- treatment_vec[grep("^.*-4", treatment_vec)]
 
 cell_imputation_mat <- numeric(0)
 for(treatment in treatment_vec){
@@ -93,7 +93,7 @@ for(color_by in c("celltype", "dominant_fate")){
     }
     
     # create empty plot
-    pdf(file = paste0(plot_folder, "Writeup13_d46_simplex_color-", color_by_name, "_size-", size_by, "_new.pdf"),
+    pdf(file = paste0(plot_folder, "Writeup13_d", time_early, time_later, "_simplex_color-", color_by_name, "_size-", size_by, "_new.pdf"),
         width = 10, 
         height = 5, 
         onefile = TRUE)
