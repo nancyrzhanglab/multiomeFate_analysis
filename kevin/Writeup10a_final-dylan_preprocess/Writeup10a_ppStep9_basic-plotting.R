@@ -4,7 +4,7 @@ library(Signac)
 library(multiomeFate)
 
 out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup10a/"
-plot_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/figures/kevin/Writeup10a/"
+plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/Writeup10a/"
 
 #######
 
@@ -267,32 +267,54 @@ ggplot2::ggsave(filename = paste0(plot_folder, "Writeup10a_ppStep9_barplot-corre
 
 unique_lineages <- sort(unique(all_data$assigned_lineage))
 
-treatment_vec <- unique(all_data$dataset)
 lineage_idx_list <- lapply(unique_lineages, function(lineage){
   which(all_data$assigned_lineage == lineage)
 })
 
+dataset_colors <- all_data@misc$dataset_colors
+
+treatment_list <- list(CIS = c("day0", "day10_CIS", "week5_CIS"),
+                       COCL2 = c("day0", "day10_COCL2", "week5_COCL2"),
+                       DABTRAM = c("day0", "day10_DABTRAM", "week5_DABTRAM"))
+
 pdf(paste0(plot_folder, "Writeup10a_gini-index.pdf"),
     onefile = T, width = 5, height = 5)
 
-for(treatment in treatment_vec){
-  # count
-  cell_treatment_idx <- which(all_data$dataset == treatment)
+for(kk in 1:length(treatment_list)){
+  print(paste0("Working on: ", names(treatment_list)[kk]))
+  treatment_vec <- treatment_list[[kk]]
   
-  vec <- sapply(lineage_idx_list, function(lineage_idx){
-    length(intersect(cell_treatment_idx,
-                     lineage_idx))
+  # count
+  cell_treatment_idx_list <- lapply(treatment_vec, function(treatment){
+    which(all_data$dataset == treatment)
   })
   
-  gini_val <- dineq::gini.wtd(vec)
+  vec_list <- lapply(cell_treatment_idx_list, function(cell_treatment_idx){
+    sapply(lineage_idx_list, function(lineage_idx){
+      length(intersect(cell_treatment_idx,
+                       lineage_idx))
+    })
+  })
   
-  plot(x = seq(0, 1, length.out = length(vec)), 
-       y = cumsum(sort(vec, decreasing = FALSE))/sum(vec),
-       pch = 16,
+  gini_vec <- sapply(vec_list, function(vec){
+    dineq::gini.wtd(vec)
+  })
+  
+  plot(NA,
+       xlim = c(0,1),
+       ylim = c(0,1),
        asp = TRUE,
        xlab = "Cumulative share of lineages (smallest to largest)",
        ylab = "Cumulative share of cells",
-       main = paste0("Gini index for ", treatment, ": ", round(gini_val, 2)))
+       main = paste0("Gini index for ", names(treatment_list)[kk], ": ",
+                     paste0(round(gini_vec, 2), collapse = ", ")))
+  for(i in 1:length(treatment_vec)){
+    lines(x = seq(0, 1, length.out = length(vec_list[[i]])), 
+          y = cumsum(sort(vec_list[[i]], decreasing = FALSE))/sum(vec_list[[i]]),
+          col = dataset_colors[treatment_vec[i]],
+          lwd = 3)
+  }
+  
   lines(c(0,1), 
         c(0,1), 
         col = "red",
@@ -323,5 +345,44 @@ graphics::hist(nonzero_val,
                main = "Multiple lineage barcodes are detected in a cell")
 graphics.off()
 
+#######################################
+#######################################
+#######################################
 
+all_data <- multiomeFate:::data_loader(which_files = c("lineage"))
+
+set.seed(10)
+tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
+tab_mat <- log10(tab_mat+1)
+tab_mat_jittered <- tab_mat + matrix(
+  stats::runif(prod(dim(tab_mat)), min = -0.05, max = 0.05),
+  nrow = nrow(tab_mat),
+  ncol = ncol(tab_mat)
+)
+tab_mat_jittered <- pmax(tab_mat_jittered, 0)
+max_val <- max(tab_mat) + 0.05
+
+k <- ncol(tab_mat)
+pdf(paste0(plot_folder, "Writeup10a_lineage-size_separate.pdf"),
+    onefile = T, width = 5, height = 5)
+for(i in 1:(k-1)){
+  for(j in (i+1):k){
+    x_vec <- tab_mat_jittered[,i]
+    y_vec <- tab_mat_jittered[,j]
+    
+    plot(x_vec,
+         y_vec,
+         xlab = paste0("Size of ", colnames(tab_mat)[i], " (Log10+1, jittered)"),
+         ylab = paste0("Size of ", colnames(tab_mat)[j], " (Log10+1, jittered)"),
+         main = paste0("Between ", colnames(tab_mat)[i], " and ",
+                       colnames(tab_mat)[j], "\n(Cor: ",
+                       round(stats::cor(tab_mat[,i], tab_mat[,j]), 2), ")"),
+         xlim = c(0, max_val),
+         ylim = c(0, max_val),
+         asp = TRUE,
+         pch = 16,
+         col = rgb(0.5, 0.5, 0.5, 0.5))
+  }
+}
+graphics.off()
 
