@@ -19,7 +19,7 @@ coefficient_vec <- rep(0, ncol(cell_features))
 names(coefficient_vec) <- colnames(cell_features)
 coefficient_vec[1:5] <- seq(0.5, 0.1, length.out = 5)
 
-.compute_mean_total_cells(cell_features, coefficient_intercept, coefficient_vec)
+.compute_mean_total_cells(cell_features, coefficient_intercept, coefficient_vec, return_sum = TRUE)
 
 #########
 
@@ -42,6 +42,12 @@ filename <- paste0(plot_folder, "lineage-mean-variance.png")
                     simulation_res = simulation_res)
 
 ##################
+
+# required ingredients:
+# cell_features
+# cell_lineage (from simulation_res$lineage_assignment)
+# lineage_future_count (from simulation_res$lineage_future_size)
+# tab_mat (from simulation_res$lineage_assignment and lineage_future_count)
 
 # try out our fate potential method
 cell_lineage <- as.character(simulation_res$lineage_assignment)
