@@ -62,7 +62,7 @@
     "\nCorr:", round(stats::cor(fatepotential, fatepotential_true), 2))
   )
   plot1 <- plot1 + ggplot2::xlab("True fate potential (Log10)") + ggplot2::ylab("Predicted fate potential (Log10)")
-  plot1 <- plot1 + Seurat::NoLegend() + ggplot2::coord_fixed()
+  plot1 <- plot1 + Seurat::NoLegend() 
   
   plot1
 }
