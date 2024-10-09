@@ -1,5 +1,9 @@
 .form_simulation_seurat_fate <- function(final_fit,
                                          simulation_res){
+  stopifnot(length(names(simulation_res$lineage_assignment)) > 0,
+            length(names(final_fit$cell_imputed_score)) > 0,
+            all(names(final_fit$cell_imputed_score) == names(simulation_res$lineage_assignment)))
+  
   metadata <- data.frame(assigned_lineage = simulation_res$lineage_assignment,
                          fatepotential = final_fit$cell_imputed_score)
   rownames(metadata) <- rownames(simulation_res$embedding_mat)
