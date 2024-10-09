@@ -8,7 +8,7 @@
   cell_features <- cbind(1, simulation_res$embedding_mat)
   true_coefficient_vec <- c(simulation_res$coefficient_intercept, simulation_res$coefficient_vec)
   names(true_coefficient_vec) <- c("Intercept", colnames(simulation_res$embedding_mat))
-  fatepotential_true <- as.numeric(cell_features %*% true_coefficient_vec)
+  fatepotential_true <- as.numeric(log10(exp(cell_features %*% true_coefficient_vec)))
   names(fatepotential_true) <- rownames(cell_features)
   
   metadata <- data.frame(assigned_lineage = simulation_res$lineage_assignment,
@@ -62,7 +62,7 @@
     "\nCorr:", round(stats::cor(fatepotential, fatepotential_true), 2))
   )
   plot1 <- plot1 + ggplot2::xlab("True fate potential (Log10)") + ggplot2::ylab("Predicted fate potential (Log10)")
-  plot1 <- plot1 + Seurat::NoLegend() 
+  plot1 <- plot1 + Seurat::NoLegend() + ggplot2::coord_fixed()
   
   plot1
 }
