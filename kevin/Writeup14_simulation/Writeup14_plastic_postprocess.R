@@ -11,17 +11,6 @@ source(paste0(func_folder, "func_seurat.R"))
 
 load(paste0(out_folder, "simulation.RData"))
 
-########
-# quirky bug just for plasticity....
-source(paste0(func_folder, "func.R"))
-all_data <- multiomeFate:::data_loader(which_files = "fasttopics")
-set.seed(10)
-rna_mat <- all_data[["fasttopic.COCL2"]]@cell.embeddings
-cell_features <- .preprocess_rna(rna_mat, "day10_COCL2")
-simulation_res$embedding_mat <- cell_features
-simulation_res$coefficient_vec <- simulation_res$embedding_coefficient_vec
-########
-
 all_data <- .form_simulation_seurat_fate(final_fit = final_fit,
                                          simulation_res = simulation_res)
 
