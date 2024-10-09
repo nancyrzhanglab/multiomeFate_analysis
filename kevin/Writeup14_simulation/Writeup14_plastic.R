@@ -5,6 +5,10 @@ library(multiomeFate)
 
 out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup14/Writeup14_plastic-setting_"
 plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/Writeup14/Writeup14_plastic-setting_"
+func_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/kevin/Writeup14_simulation/"
+
+source(paste0(func_folder, "func.R"))
+source(paste0(func_folder, "func_priming.R"))
 
 #######
 
@@ -89,3 +93,4 @@ save(fit_res, final_fit, simulation_res,
      date_of_run, session_info,
      file = paste0(out_folder, "simulation.RData"))
 
+print("Done! :)")
