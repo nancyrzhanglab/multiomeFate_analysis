@@ -42,9 +42,24 @@ lineage_future_count <- lineage_future_count[names(lineage_imputed_count)]
 plot1 <- multiomeFate:::plot_lineageScatterplot(
   lineage_future_count = lineage_future_count,
   lineage_imputed_count = lineage_imputed_count,
-  title = "Growth potential, (Log-scale)"
+  title = "Lineage fate potential, (Log-scale)"
 )
 
 ggplot2::ggsave(filename = paste0(plot_folder, "fatepotential-lineage_prediction.png"),
+                plot1, device = "png", width = 10, height = 10, units = "in")
+
+
+#########
+
+fatepotential <- all_data$fatepotential
+fatepotential_true <- all_data$fatepotential_true
+
+plot1 <-.plot_cellFateScatterplot(
+  fatepotential = fatepotential,
+  fatepotential_true = fatepotential_true,
+  title = "Cell fate potential, (Log-scale)"
+)
+
+ggplot2::ggsave(filename = paste0(plot_folder, "fatepotential-cell_prediction.png"),
                 plot1, device = "png", width = 10, height = 10, units = "in")
 

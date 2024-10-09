@@ -56,6 +56,7 @@
   
   plot1 <- ggplot2::ggplot(df, ggplot2::aes(x = fatepotential_true, 
                                             y = fatepotential))
+  plot1 <- plot1 + ggplot2::geom_point()
   plot1 <- plot1 + ggplot2::ggtitle(paste0(
     title,
     "\nCorr:", round(stats::cor(fatepotential, fatepotential_true), 2))
