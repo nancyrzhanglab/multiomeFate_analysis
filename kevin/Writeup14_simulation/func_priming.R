@@ -26,7 +26,6 @@
     num_lineages,
     progenies_vec
   )
-  names(lineage_assignment) <- rownames(embedding_mat)
   
   # try reordering the lineages, which the goal of: correlation of range is non-positive, and maximize correlation of median
   for(round in 1:num_rounds){
@@ -68,6 +67,8 @@
   
   # finalize
   lineage_assignment <- factor(lineage_assignment)
+  names(lineage_assignment) <- rownames(embedding_mat)
+  
   lineage_future_size <- sapply(levels(lineage_assignment), function(lev) {
     idx <- which(lineage_assignment == lev)
     round(sum(progenies_vec[idx]))
