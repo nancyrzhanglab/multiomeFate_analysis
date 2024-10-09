@@ -8,6 +8,7 @@
                                      num_trials = 20,
                                      percentage_randomize = 0.05,
                                      verbose = 0){
+  stopifnot(length(rownames(embedding_mat)) > 0)
   n <- nrow(embedding_mat)
   
   progenies_vec <- .compute_mean_total_cells(
@@ -25,6 +26,7 @@
     num_lineages,
     progenies_vec
   )
+  names(lineage_assignment) <- rownames(embedding_mat)
   
   # try reordering the lineages, which the goal of: correlation of range is non-positive, and maximize correlation of median
   for(round in 1:num_rounds){
