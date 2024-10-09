@@ -3,8 +3,11 @@ library(Seurat)
 library(Signac)
 library(multiomeFate)
 
-out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup14/Writeup14_plastic-setting_"
+out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup14/Writeup14_priming-setting_"
 plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/Writeup14/Writeup14_priming-setting_"
+
+source("func.R")
+source("func_priming.R")
 
 #######
 
@@ -17,7 +20,7 @@ cell_features <- .preprocess_rna(rna_mat, "day10_COCL2")
 set.seed(10)
 tmp <- .search_for_priming_parameters(cell_features,
                                       min_cells = 6000,
-                                      min_maximum = 10,
+                                      min_maximum = 0,
                                       verbose = 1)
 coefficient_intercept <- tmp$coefficient_intercept
 coefficient_vec <- tmp$coefficient_vec

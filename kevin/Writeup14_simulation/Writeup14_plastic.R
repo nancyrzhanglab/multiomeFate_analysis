@@ -63,7 +63,7 @@ colnames(tab_mat) <- c("now", "future")
 # start cross validation
 
 set.seed(10)
-fit_res_pca <- multiomeFate:::lineage_cv(
+fit_res <- multiomeFate:::lineage_cv(
   cell_features = cell_features,
   cell_lineage = cell_lineage,
   future_timepoint = "future",
@@ -75,17 +75,17 @@ fit_res_pca <- multiomeFate:::lineage_cv(
   verbose = 2
 )
 
-final_fit_pca <- multiomeFate:::lineage_cv_finalize(
+final_fit <- multiomeFate:::lineage_cv_finalize(
   cell_features = cell_features,
   cell_lineage = cell_lineage,
-  fit_res = fit_res_pca,
+  fit_res = fit_res,
   lineage_future_count = lineage_future_count
 )
 
 date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 
-save(fit_res_pca, final_fit_pca, simulation_res,
+save(fit_res, final_fit, simulation_res,
      date_of_run, session_info,
      file = paste0(out_folder, "simulation.RData"))
 

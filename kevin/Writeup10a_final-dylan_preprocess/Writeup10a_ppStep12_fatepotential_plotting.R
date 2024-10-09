@@ -74,7 +74,6 @@ for(kk in 1:length(file_vec)){
   
   print("Plotting lineage scatterplot")
   
-  
   tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
   lineage_imputed_count <- all_data@misc[[paste0("fatepotential_", file)]]$lineage_imputed_count
   lineage_future_count <- tab_mat[names(lineage_imputed_count), day_later_full]

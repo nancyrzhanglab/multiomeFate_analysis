@@ -92,7 +92,7 @@
                                 num_lineages,
                                 progenies_vec){
   tmp <- rep(lineage_names, each = ceiling(n/num_lineages))[1:n]
-  tmp[order(progenies_vec, decreasing = FALSE)]
+  tmp[rank(progenies_vec)]
 }
 
 .evaluate_lineage_assignment_priming <- function(lineage_assignment,
@@ -108,7 +108,7 @@
   
   if(diff(range(size_vec)) < min_range_percentage*max(size_vec)) return(NA)
   
-  # if(range_cor > 0) return(NA)
+  if(range_cor > 0) return(NA)
   return(median_cor)
 }
 
