@@ -20,7 +20,7 @@ cell_features <- .preprocess_rna(rna_mat, "day10_COCL2")
 
 set.seed(10)
 tmp <- .search_for_priming_parameters(cell_features,
-                                      min_cells = 6000,
+                                      min_cells = 5000,
                                       min_maximum = 0,
                                       verbose = 1)
 coefficient_intercept <- tmp$coefficient_intercept
@@ -41,6 +41,9 @@ simulation_res <- .assign_lineages_priming(
   num_rounds = 50,
   verbose = 1
 )
+
+num_cells <- sum(simulation_res$lineage_future_size)
+stopifnot(num_cells < length(which(all_data$dataset == "week5_COCL2")))
 
 filename <- paste0(plot_folder, "lineage-mean-variance.png")
 .plot_mean_variance(filename = filename,

@@ -18,12 +18,10 @@ set.seed(10)
 rna_mat <- all_data[["fasttopic.COCL2"]]@cell.embeddings
 cell_features <- .preprocess_rna(rna_mat, "day10_COCL2")
 
-coefficient_intercept <- -1.5
+coefficient_intercept <- -1.1
 coefficient_vec <- rep(0, ncol(cell_features))
 names(coefficient_vec) <- colnames(cell_features)
 coefficient_vec[1:5] <- seq(0.5, 0.1, length.out = 5)
-
-.compute_mean_total_cells(cell_features, coefficient_intercept, coefficient_vec, return_sum = TRUE)
 
 #########
 
@@ -40,6 +38,9 @@ simulation_res <- multiomeFate:::generate_simulation_plastic(
   lineage_sd_spread = NA,
   verbose = 3
 )
+
+num_cells <- sum(simulation_res$lineage_future_size)
+stopifnot(num_cells < length(which(all_data$dataset == "week5_COCL2")))
 
 filename <- paste0(plot_folder, "lineage-mean-variance.png")
 .plot_mean_variance(filename = filename,

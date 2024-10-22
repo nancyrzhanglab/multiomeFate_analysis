@@ -46,7 +46,7 @@ plot1 <- multiomeFate:::plot_lineageScatterplot(
 )
 
 ggplot2::ggsave(filename = paste0(plot_folder, "fatepotential-lineage_prediction.png"),
-                plot1, device = "png", width = 10, height = 10, units = "in")
+                plot1, device = "png", width = 5, height = 5, units = "in")
 
 
 #########
@@ -61,5 +61,6 @@ plot1 <-.plot_cellFateScatterplot(
 )
 
 ggplot2::ggsave(filename = paste0(plot_folder, "fatepotential-cell_prediction.png"),
-                plot1, device = "png", width = 10, height = 10, units = "in")
+                plot1, device = "png", width = 5, height = 5, units = "in")
 
+##########
