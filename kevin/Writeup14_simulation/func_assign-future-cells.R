@@ -1,6 +1,6 @@
 .assign_future_cells <- function(seurat_obj,
-                                 future_ident,
-                                 ident,
+                                 future_ident, # the varible name inside ident
+                                 ident, # the column name in metadata
                                  lineage_future_size,
                                  lineage_variable){
   stopifnot(ident %in% colnames(seurat_obj@meta.data),
@@ -10,11 +10,14 @@
   
   total_future_cells <- sum(lineage_future_size)
   current_future_cells <- length(which(seurat_obj@meta.data[,ident] == future_ident))
+  stopifnot(total_future_cells <= current_future_cells)
   
-  seurat_obj <- .throwing_out_cells(seurat_obj,
-                                    future_ident,
-                                    ident,
-                                    lineage_future_size)
+  if(total_future_cells < current_future_cells){
+    seurat_obj <- .throwing_out_cells(seurat_obj,
+                                      future_ident,
+                                      ident,
+                                      lineage_future_size)
+  }
   
   # now assign cells
   seurat_obj <- .assigning_cells_helper(seurat_obj,
