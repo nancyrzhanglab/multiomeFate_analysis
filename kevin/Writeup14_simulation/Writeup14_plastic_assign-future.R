@@ -37,9 +37,10 @@ simulation_data <- .form_simulation_seurat_fate(final_fit = final_fit,
                                                 simulation_res = simulation_res)
 
 # subset only "day10_COCL2" and "week5_COCL2"
-lineage_vec <- all_data$assigned_lineage
-lineage_vec[Seurat::Cells(simulation_data)] <- simulation_data$assigned_lineage
-simulation_data$assigned_lineage <- lineage_vec
+lineage_vec <- rep(NA, length(Seurat::Cells(all_data)))
+names(lineage_vec) <- Seurat::Cells(all_data)
+lineage_vec[Seurat::Cells(simulation_data)] <- as.character(simulation_data$assigned_lineage)
+all_data$assigned_lineage <- lineage_vec
 
 set.seed(10)
 all_data <- .assign_future_cells(
@@ -49,8 +50,29 @@ all_data <- .assign_future_cells(
   lineage_future_size = simulation_res$lineage_future_size,
   lineage_variable = "assigned_lineage"
 )
+fatepotential_true <- rep(NA, length(Seurat::Cells(all_data)))
+names(fatepotential_true) <- Seurat::Cells(all_data)
+fatepotential_true[Seurat::Cells(simulation_data)] <- simulation_data$fatepotential_true
+all_data$fatepotential_true <- fatepotential_true
 
 tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
-sum(abs(sort(tab_mat[,2])-sort(simulation_res$lineage_future_size)))
+sum(abs(tab_mat[names(simulation_res$lineage_future_size),"week5_COCL2"])-sort(simulation_res$lineage_future_size))
 
+all_data
+table(all_data$dataset)
+tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
+head(tab_mat)
+quantile(tab_mat[,"day10_COCL2"])
+quantile(tab_mat[,"week5_COCL2"])
+length(all_data$assigned_lineage)
+head(all_data$fatepotential_true)
+
+date_of_run <- Sys.time()
+session_info <- devtools::session_info()
+
+save(
+  all_data,
+  date_of_run, session_info,
+  file = paste0(out_folder, "seurat_CoSpar_prepared.RData")
+)
 
