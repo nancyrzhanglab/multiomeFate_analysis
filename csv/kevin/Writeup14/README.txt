@@ -1,5 +1,8 @@
 - sijia_simulation_priming_cospar_obs.csv
 - sijia_simulation_priming.html
+- simulation_plastic_cospar_obs.csv
+- simulation_plastic.html
+- simulation_convert.R <- This is how the data was converted from R to Python
 From Sijia on 10/31/2024:
 Hi 
 @Kevin
