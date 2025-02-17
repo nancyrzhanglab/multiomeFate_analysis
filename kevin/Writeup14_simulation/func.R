@@ -33,6 +33,7 @@
                                            num_fixed = 20,
                                            num_trials = 40,
                                            range_vec = c(-2, 2),
+                                           upper_quantile_num_progenies = 2,
                                            verbose = 0){
   p <- ncol(cell_features)
   
@@ -51,6 +52,7 @@
                                                   j = 0,
                                                   min_cells = min_cells,
                                                   min_maximum = min_maximum,
+                                                  upper_quantile_num_progenies = upper_quantile_num_progenies,
                                                   vec_try = vec_try)
     
     # now for the coefficients
@@ -62,6 +64,7 @@
                                                  j = j,
                                                  min_cells = min_cells,
                                                  min_maximum = min_maximum,
+                                                 upper_quantile_num_progenies = upper_quantile_num_progenies,
                                                  vec_try = vec_try)
     }
   }
@@ -81,6 +84,7 @@
                                      j,
                                      min_cells,
                                      min_maximum,
+                                     upper_quantile_num_progenies,
                                      vec_try){
   obj_vec <- sapply(vec_try, function(x){
     coefficient_vec <- current_vec
@@ -97,6 +101,8 @@
                                            return_sum = FALSE)
     if(sum(num_cells) < min_cells) return(NA)
     if(max(num_cells) < min_maximum) return(NA)
+    if(stats::quantile(num_cells, prob = 0.9) < upper_quantile_num_progenies) return(NA)
+    
     .evaluate_even_spread(num_bins = 4,
                           vec = num_cells)
   })
