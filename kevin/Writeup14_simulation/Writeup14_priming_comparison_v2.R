@@ -118,8 +118,9 @@ wilcox_results <- sapply(1:p, function(j){
     p.value = tmp$p.value)
 })
 wilcox_results <- t(wilcox_results)
-gene_df$est_logfc <- wilcox_results[,"logfc"]
-gene_df$est_p.value <- wilcox_results[,"p.value"]
+rownames(wilcox_results) <- colnames(denoised_mat)
+gene_df$est_logfc <- wilcox_results[rownames(gene_df),"logfc"]
+gene_df$est_p.value <- wilcox_results[rownames(gene_df),"p.value"]
 gene_df$est_p.value.adj <- stats::p.adjust(gene_df$est_p.value, method = "BH")
 tmp <- Ckmeans.1d.dp::Ckmeans.1d.dp(
   x = abs(gene_df$est_logfc),
@@ -229,8 +230,9 @@ wilcox_results <- sapply(1:p, function(j){
     p.value = tmp$p.value)
 })
 wilcox_results <- t(wilcox_results)
-gene_df$naive_logfc <- wilcox_results[,"logfc"]
-gene_df$naive_p.value <- wilcox_results[,"p.value"]
+rownames(wilcox_results) <- colnames(denoised_mat)
+gene_df$naive_logfc <- wilcox_results[rownames(gene_df),"logfc"]
+gene_df$naive_p.value <- wilcox_results[rownames(gene_df),"p.value"]
 gene_df$naive_p.value.adj <- stats::p.adjust(gene_df$naive_p.value, method = "BH")
 tmp <- Ckmeans.1d.dp::Ckmeans.1d.dp(
   x = abs(gene_df$naive_logfc),

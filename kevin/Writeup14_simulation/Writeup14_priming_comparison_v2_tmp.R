@@ -82,23 +82,23 @@ rug(abs(gene_df$true_logfc)[which(true_gene_vec)], col = 2, lwd = 2)
 
 ##########
 
-cluster_res <- Ckmeans.1d.dp::Ckmeans.1d.dp(
-  x = log10(simulation_data@misc[["lineage_observed_count"]]+1),
-  k = 4
-)
-
-tmp <- log10(simulation_data@misc[["lineage_observed_count"]]+1)
-hist(tmp)
-rug(tmp[which(cluster_res$cluster == which.max(cluster_res$centers))], col = 2, lwd = 2)
+# cluster_res <- Ckmeans.1d.dp::Ckmeans.1d.dp(
+#   x = log10(simulation_data@misc[["lineage_observed_count"]]+1),
+#   k = 4
+# )
+# 
+# tmp <- log10(simulation_data@misc[["lineage_observed_count"]]+1)
+# hist(tmp)
+# rug(tmp[which(cluster_res$cluster == which.max(cluster_res$centers))], col = 2, lwd = 2)
 
 # do a DE analysis between the winner lineages vs loser lineages
 lineage_names <- names(simulation_data@misc[["lineage_observed_count"]])
 winner_lineages <- lineage_names[which(cluster_res$cluster == which.max(cluster_res$centers))]
 loser_lineages <- lineage_names[which(cluster_res$cluster == which.min(cluster_res$centers))]
+
 winner_cells <- which(simulation_data$assigned_lineage %in% winner_lineages)
 loser_cells <- which(simulation_data$assigned_lineage %in% loser_lineages)
-naive_cell_labels <- rep("Loser", length(simulation_data$assigned_lineage))
-naive_cell_labels[winner_cells] <- "Winner"
+
 wilcox_results <- sapply(1:p, function(j){
   tmp <- stats::wilcox.test(
     x = denoised_mat[winner_cells,j],
@@ -110,9 +110,11 @@ wilcox_results <- sapply(1:p, function(j){
     p.value = tmp$p.value)
 })
 wilcox_results <- t(wilcox_results)
-gene_df$naive_logfc <- wilcox_results[,"logfc"]
-gene_df$naive_p.value <- wilcox_results[,"p.value"]
+rownames(wilcox_results) <- colnames(denoised_mat)
+gene_df$naive_logfc <- wilcox_results[rownames(gene_df),"logfc"]
+gene_df$naive_p.value <- wilcox_results[rownames(gene_df),"p.value"]
 gene_df$naive_p.value.adj <- stats::p.adjust(gene_df$naive_p.value, method = "BH")
+
 tmp <- Ckmeans.1d.dp::Ckmeans.1d.dp(
   x = abs(gene_df$naive_logfc),
   k = 2
