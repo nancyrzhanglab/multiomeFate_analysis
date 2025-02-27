@@ -1,20 +1,18 @@
 rm(list=ls())
 library(Seurat)
-library(Signac)
 library(multiomeFate)
 library(ggplot2)
 library(Ckmeans.1d.dp)
 
 out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup14/Writeup14_priming-setting_"
-plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/Writeup14/Writeup14_priming-setting_"
+plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/Writeup14/Writeup14_priming_v2-setting_"
 func_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/kevin/Writeup14_simulation/"
 
 source(paste0(func_folder, "func_seurat.R"))
 
 all_data <- multiomeFate:::data_loader(which_files = "fasttopics")
-# save(all_data, file = paste0(out_folder, "all_data_fasttopics.RData"))
 
-load(paste0(out_folder, "simulation.RData"))
+load(paste0(out_folder, "simulation_v2.RData"))
 names(simulation_res$lineage_assignment) <- rownames(simulation_res$embedding_mat)
 simulation_data <- .form_simulation_seurat_fate(final_fit = final_fit,
                                                 simulation_res = simulation_res)
