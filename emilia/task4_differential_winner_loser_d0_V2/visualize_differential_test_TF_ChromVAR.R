@@ -34,6 +34,16 @@ theme_Publication<- function(base_size=12, base_family="sans") {
             strip.text = element_text(face="bold")
     ))
 }
+
+tfs <- diff_res_dabtram$feature
+jun <- tfs[grepl('JUN', tfs)]
+fos <- tfs[grepl('FOS', tfs)]
+tead <- tfs[grepl('TEAD', tfs)]
+snai <- tfs[grepl('SNAI', tfs)]
+sox10 <- tfs[grepl('SOX10', tfs)]
+mitf <- tfs[grepl('MITF', tfs)]
+
+tf_of_interest <- c(jun, fos, tead, snai, sox10, mitf)
 # ==============================================================================
 # Read data
 # ==============================================================================
@@ -79,22 +89,25 @@ diff_res_cis <- wrangle_data(diff_res_cis)
 # Volcano plot for DABTRAM
 diff_res_dabtram$neg_log10_p_val <- ifelse(diff_res_dabtram$neg_log10_p_val > 100, 100, diff_res_dabtram$neg_log10_p_val)
 
-up_10_dabtram <- head(diff_res_dabtram, 10)
-bottom_10_dabtram <- tail(diff_res_dabtram, 10)
+# up_10_dabtram <- head(diff_res_dabtram, 10)
+# bottom_10_dabtram <- tail(diff_res_dabtram, 10)
+tf_of_interest_dabtram <- diff_res_dabtram[diff_res_dabtram$feature %in% tf_of_interest,]
 thres_dabtram <- min(diff_res_dabtram[diff_res_dabtram$p_adj < 0.05,]$neg_log10_p_val)
 
 ggplot(diff_res_dabtram, aes(x = fold_change, y = neg_log10_p_val)) +
   geom_point() +
-  geom_point(data = up_10_dabtram, aes(x = fold_change, y = neg_log10_p_val), color = 'red') +
-  geom_point(data = bottom_10_dabtram, aes(x = fold_change, y = neg_log10_p_val), color = 'blue') +
-  ggrepel::geom_text_repel(data = up_10_dabtram, aes(label = feature), color = 'red', nudge_x = 0.2, nudge_y = 0.5) +
-  ggrepel::geom_text_repel(data = bottom_10_dabtram, aes(label = feature), color = 'blue',nudge_x = -0.2,  nudge_y = 0.5, max.overlaps = 50) +
+  # geom_point(data = up_10_dabtram, aes(x = fold_change, y = neg_log10_p_val), color = 'red') +
+  # geom_point(data = bottom_10_dabtram, aes(x = fold_change, y = neg_log10_p_val), color = 'blue') +
+  geom_point(data = tf_of_interest_dabtram, aes(x = fold_change, y = neg_log10_p_val), color = 'red') +
+  ggrepel::geom_text_repel(data = tf_of_interest_dabtram, aes(label = feature), color = 'red', nudge_x = 0.2, nudge_y = 0.5) +
+  # ggrepel::geom_text_repel(data = up_10_dabtram, aes(label = feature), color = 'red', nudge_x = 0.2, nudge_y = 0.5) +
+  # ggrepel::geom_text_repel(data = bottom_10_dabtram, aes(label = feature), color = 'blue',nudge_x = -0.2,  nudge_y = 0.5, max.overlaps = 50) +
   geom_hline(yintercept = thres_dabtram, linetype = 'dashed', color = 'gray') +
   labs(x = 'diff (winner - loser)', y = '-log10 p-value', title = 'day 0 DABTRAM') +
   xlim(-3, 3) +
   theme_Publication()
 
-ggsave(paste0(in_dir, 'differential_winner_loser_saver_lineage_specific_adaptation_TF_DABTRAM_volcano_plot.png'),dpi = 300, width = 6, height = 6)
+# ggsave(paste0(in_dir, 'differential_winner_loser_saver_lineage_specific_adaptation_TF_DABTRAM_volcano_plot.png'),dpi = 300, width = 6, height = 6)
 
 # Volcano plot for COCL2
 diff_res_cocl2$neg_log10_p_val <- ifelse(diff_res_cocl2$neg_log10_p_val > 100, 100, diff_res_cocl2$neg_log10_p_val)
