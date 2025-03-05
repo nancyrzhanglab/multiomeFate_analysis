@@ -81,20 +81,10 @@ hist(abs(gene_df$true_logfc), breaks = 25)
 rug(abs(gene_df$true_logfc)[which(true_gene_vec)], col = 2, lwd = 2)
 
 ##########
-
-# cluster_res <- Ckmeans.1d.dp::Ckmeans.1d.dp(
-#   x = log10(simulation_data@misc[["lineage_observed_count"]]+1),
-#   k = 4
-# )
-# 
-# tmp <- log10(simulation_data@misc[["lineage_observed_count"]]+1)
-# hist(tmp)
-# rug(tmp[which(cluster_res$cluster == which.max(cluster_res$centers))], col = 2, lwd = 2)
-
 # do a DE analysis between the winner lineages vs loser lineages
-lineage_names <- names(simulation_data@misc[["lineage_observed_count"]])
-winner_lineages <- lineage_names[which(cluster_res$cluster == which.max(cluster_res$centers))]
-loser_lineages <- lineage_names[which(cluster_res$cluster == which.min(cluster_res$centers))]
+tmp <- log10(simulation_data@misc[["lineage_observed_count"]]+1)
+winner_lineages <- names(sort(tmp, decreasing = TRUE)[1:10])
+loser_lineages <- setdiff(names(tmp), winner_lineages)
 
 winner_cells <- which(simulation_data$assigned_lineage %in% winner_lineages)
 loser_cells <- which(simulation_data$assigned_lineage %in% loser_lineages)
