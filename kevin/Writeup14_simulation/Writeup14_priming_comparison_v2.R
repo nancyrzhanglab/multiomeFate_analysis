@@ -144,6 +144,7 @@ ggsave(plot_1,
        width = 5, height = 5, units = "in")
 
 ##########
+
 # do a DE analysis between the winner lineages vs loser lineages
 tmp <- log10(simulation_data@misc[["lineage_observed_count"]]+1)
 winner_lineages <- names(sort(tmp, decreasing = TRUE)[1:10])
