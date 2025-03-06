@@ -23,7 +23,7 @@ all_data[["ft.CIS.umap"]] <- NULL
 all_data[["fasttopic.DABTRAM"]] <- NULL
 all_data[["ft.DABTRAM.umap"]] <- NULL
 
-load(paste0(out_folder, "simulation.RData"))
+load(paste0(out_folder, "simulation_v2.RData"))
 
 # count how many future cells there's supposed to be
 total_future_cells <- sum(simulation_res$lineage_future_size)
@@ -73,6 +73,6 @@ session_info <- devtools::session_info()
 save(
   all_data,
   date_of_run, session_info,
-  file = paste0(out_folder, "seurat_CoSpar_prepared.RData")
+  file = paste0(out_folder, "v2_seurat_CoSpar_prepared.RData")
 )
 
