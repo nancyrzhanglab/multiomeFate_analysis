@@ -190,5 +190,5 @@ plot1 <- plot1 + theme_minimal() +
   ) +
   guides(color = "none") + Seurat::NoLegend()
 ggplot2::ggsave(plot1, filename = paste0(plot_folder, "day6_lineage_size_cleaned.png"),
-                height = 4, width = 3)
+                height = 4, width = 1)
 
