@@ -19,10 +19,11 @@ write.csv(feature_mat, file ="priming-setting_v2_embeddings.csv",row.names = TRU
 
 # write tables
 table_mat <- table(all_data@meta.data$assigned_lineage,all_data@meta.data$dataset)
-quantile(table_mat[,"week5_COCL2"])
+cutoff <- sort(table_mat[,"week5_COCL2"], decreasing = TRUE)[10]
 table_mat <- as.data.frame(table_mat)
 table_mat$factor_lineage <- as.character("High")
-table_mat[table_mat$Freq <= 107,]$factor_lineage <- c("Low")
+table_mat[table_mat$Freq >= cutoff,]$factor_lineage <- c("Low")
+
 table_mat[table_mat$Var2 == c("day10_COCL2"),]$factor_lineage <- c("day10")
 table_mat <- subset(table_mat, table_mat$Var2 == c("week5_COCL2"))
 metadata <- all_data@meta.data
@@ -30,7 +31,7 @@ colnames(table_mat) <- c("assigned_lineage","dataset","Freq","factor_lineage")
 metadata <- merge(metadata,table_mat[,c("assigned_lineage","factor_lineage")],by="assigned_lineage")
 metadata[metadata$dataset==c("day10_COCL2"),]$factor_lineage <- c("day10")
 row.names(metadata) <- row.names(all_data@meta.data)
-write.csv(metadata,"priming-setting_v2_meta.csv",row.names=T,quote=F)
+write.csv(metadata, "priming-setting_v2_meta.csv",row.names=T,quote=F)
 
 # convert entire dataset into h5ad
 all_data[["Saver"]] <- as(object = all_data[["Saver"]], Class = "Assay")

@@ -8,15 +8,15 @@ library(Ckmeans.1d.dp)
 # out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup14/Writeup14_priming-setting_"
 # plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/Writeup14/Writeup14_priming_v2-setting_"
 # func_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/kevin/Writeup14_simulation/"
-# all_data <- multiomeFate:::data_loader(which_files = "fasttopics")
 # load(paste0(out_folder, "simulation_v2.RData"))
+# load(paste0(out_folder, "v2_seurat_CoSpar_prepared.RData"))
 
 # version locally
 out_folder <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup14/Writeup14_priming-setting_"
 plot_folder <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/git/multiomeFate_analysis/fig/kevin/Writeup14/tmp_Writeup14_priming-setting_"
 func_folder <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/git/multiomeFate_analysis/kevin/Writeup14_simulation/"
 load(paste0(out_folder, "simulation_v2.RData"))
-load(paste0(out_folder, "all_data_fasttopics.RData"))
+load(paste0(out_folder, "v2_seurat_CoSpar_prepared.RData"))
 
 ####
 
@@ -26,6 +26,8 @@ simulation_data <- .form_simulation_seurat_fate(final_fit = final_fit,
                                                 simulation_res = simulation_res)
 
 ################
+tab_mat <- table(all_data$assigned_lineage, all_data$dataset)
+tab_mat <- tab_mat[order(tab_mat[,"week5_COCL2"], decreasing = TRUE),]
 
 # compute the "denoised" gene expression profiles
 all_data <- subset(all_data, dataset == "day10_COCL2")
@@ -148,6 +150,7 @@ ggsave(plot_1,
 # do a DE analysis between the winner lineages vs loser lineages
 tmp <- log10(simulation_data@misc[["lineage_observed_count"]]+1)
 winner_lineages <- names(sort(tmp, decreasing = TRUE)[1:10])
+tab_mat[winner_lineages,] # verify the sizes
 loser_lineages <- setdiff(names(tmp), winner_lineages)
 
 winner_cells <- which(simulation_data$assigned_lineage %in% winner_lineages)
