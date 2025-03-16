@@ -5,19 +5,19 @@ library(ggplot2)
 library(Ckmeans.1d.dp)
 
 # version on HPC3
-# out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup14/Writeup14_priming-setting_"
-# plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/Writeup14/Writeup14_priming_v2-setting_"
+# out_folder <- "/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup14/Writeup14_plastic-setting_"
+# plot_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/fig/kevin/Writeup14/Writeup14_plastic-setting_"
 # func_folder <- "~/project/Multiome_fate/git/multiomeFate_analysis_kevin/kevin/Writeup14_simulation/"
 # load(paste0(out_folder, "simulation_v2.RData"))
 # load(paste0(out_folder, "v2_seurat_CoSpar_prepared.RData"))
 
 # version locally
-out_folder <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup14/Writeup14_priming-setting_"
-plot_folder <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/git/multiomeFate_analysis/fig/kevin/Writeup17b/Writeup17b_priming_"
-
+out_folder <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup14/Writeup14_plastic-setting_"
+plot_folder <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/git/multiomeFate_analysis/fig/kevin/Writeup17b/Writeup17b_plastic-setting_"
 func_folder <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/git/multiomeFate_analysis/kevin/Writeup14_simulation/"
-load(paste0(out_folder, "simulation_v2.RData"))
-load(paste0(out_folder, "v2_seurat_CoSpar_prepared.RData"))
+
+load(paste0(out_folder, "simulation.RData"))
+load(paste0(out_folder, "seurat_CoSpar_prepared.RData"))
 
 source("/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/git/multiomeFate_analysis/kevin/Writeup17b_simulation-plots/plot_signed_logpvalue.R")
 source("/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/git/multiomeFate_analysis/kevin/Writeup17b_simulation-plots/multtest_correction.R")
@@ -69,7 +69,7 @@ gene_df$Gene <- rownames(gene_df)
 
 # do a DE analysis between the winner lineages vs loser lineages
 tmp <- log10(simulation_data@misc[["lineage_observed_count"]]+1)
-winner_lineages <- names(sort(tmp, decreasing = TRUE)[1:10])
+winner_lineages <- names(sort(tmp, decreasing = TRUE)[1:15])
 tab_mat[winner_lineages,] # verify the sizes
 loser_lineages <- setdiff(names(tmp), winner_lineages)
 

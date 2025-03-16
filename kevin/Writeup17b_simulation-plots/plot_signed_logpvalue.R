@@ -1,7 +1,10 @@
 .plot_signed_logpvalue <- function(df, 
                                    method1, 
                                    method2,
-                                   bool_capped = TRUE){
+                                   bool_capped = TRUE,
+                                   bool_fixed_ratio = FALSE,
+                                   bool_names = TRUE,
+                                   pvalue_cutoff = 0.05){
   rownames(df) <- df$Gene
   
   # remove any genes not in both methods
@@ -24,12 +27,12 @@
   x_val <- x_sign * -log10(x_pval)
   names(x_val) <- df$Gene
   x_pval_adj <- stats::p.adjust(x_pval, method = "BH")
-  if(length(which(x_pval_adj <= 0.05)) >= 1){
-    x_fdrcutoff <- -log10(min(x_pval[which(x_pval_adj > 0.05)]))
+  if(length(which(x_pval_adj <= pvalue_cutoff)) >= 1){
+    x_fdrcutoff <- -log10(min(x_pval[which(x_pval_adj > pvalue_cutoff)]))
   } else {
     x_fdrcutoff <- 2*max(abs(x_val))
   }
-  x_genes <- names(x_pval_adj)[which(x_pval_adj <= 0.05)]
+  x_genes <- names(x_pval_adj)[which(x_pval_adj <= pvalue_cutoff)]
   
   y_lfc <- df[,paste0(method2, "_logFC")]
   y_sign <- sign(y_lfc)
@@ -38,12 +41,12 @@
   y_val <- y_sign * -log10(y_pval)
   names(y_val) <- df$Gene
   y_pval_adj <- stats::p.adjust(y_pval, method = "BH")
-  if(length(which(y_pval_adj <= 0.05)) >= 1){
-    y_fdrcutoff <- -log10(min(y_pval[which(y_pval_adj > 0.05)]))
+  if(length(which(y_pval_adj <= pvalue_cutoff)) >= 1){
+    y_fdrcutoff <- -log10(min(y_pval[which(y_pval_adj > pvalue_cutoff)]))
   } else {
     y_fdrcutoff <- 2*max(abs(y_val))
   }
-  y_genes <- names(y_pval_adj)[which(y_pval_adj <= 0.05)]
+  y_genes <- names(y_pval_adj)[which(y_pval_adj <= pvalue_cutoff)]
   
   # compute plotting ingredients
   idx <- intersect(which(!is.na(x_val)), which(!is.na(y_val)))
@@ -113,7 +116,6 @@
                          intercept = 0, 
                          color = "coral", 
                          linewidth = 1) +
-    ggrepel::geom_text_repel(size = 2, colour = "black") +
     ggplot2::xlim(x_limit) + 
     ggplot2::ylim(y_limit) +  
     ggplot2::scale_x_continuous(limits = x_limit, expand = c(0, 0)) +  # Set exact x-limits without expansion
@@ -130,4 +132,13 @@
       axis.title.y = ggplot2::element_text(size = 10)       # Smaller y-axis label text size
     ) +
     Seurat::NoLegend()
+  
+  if(bool_fixed_ratio){
+    plot1 <- plot1 + ggplot2::coord_fixed(ratio = 1)
+  }
+  if(bool_names){
+    plot1 <- plot1 + ggrepel::geom_text_repel(size = 2, colour = "black")
+  }
+  
+  return(plot1)
 }
