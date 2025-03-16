@@ -42,7 +42,7 @@ df <- multiomeFate:::compute_entropy(cell_imputation_mat = cell_imputation_mat,
                                      variable_celltype = "Cell.type.annotation",
                                      variable_lineage = "assigned_lineage",
                                      variable_timepoint = "Time.point")
-color_palette <- c("blue3", "coral2", "gray50")
+color_palette <- c("#A6CEE3", "#FCA5A5", "#A9A9A9")
 names(color_palette) <- paste0(c("Monocyte", "Neutrophil", "Undifferentiated"))
 
 color_by_name <- ifelse(color_by == "celltype", "celltype", "dominantFate")
@@ -81,7 +81,7 @@ graphics.off()
 
 ##########
 
-df$celltype <- factor(df$celltype, levels = c("Undifferentiated", "Monocyte", "Neutrophil"))
+df$celltype <- factor(df$celltype, levels = c("Monocyte", "Neutrophil", "Undifferentiated"))
 
 plot1 <- ggtern::ggtern(df, aes(x = Monocyte, y = Neutrophil, z = Undifferentiated, 
                                 color = celltype)) +

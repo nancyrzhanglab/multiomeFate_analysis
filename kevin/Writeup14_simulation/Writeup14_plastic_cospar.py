@@ -5,20 +5,20 @@ import anndata as ad
 import scanpy as sc
 import numpy as np
 
-cs_input = sc.read_h5ad("/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/Writeup14_priming-setting_seurat_CoSpar_prepared.h5ad")
-pca_dat = pd.read_csv("/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/priming-setting_embeddings.csv",index_col=0)
+cs_input = sc.read_h5ad("/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/Writeup14_plastic-setting_seurat_CoSpar_prepared.h5ad")
+pca_dat = pd.read_csv("/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/plastic-setting_embeddings.csv",index_col=0)
 
 cs.logging.print_version()
 cs.settings.verbosity = 2
-cs.settings.data_path = "simulation_data_priming"  # A relative path to save data. If not existed before, create a new one.
-cs.settings.figure_path = "simulation_data_priming_figure"  # A relative path to save figures. If not existed before, create a new one.
+cs.settings.data_path = "simulation_data_plastic"  # A relative path to save data. If not existed before, create a new one.
+cs.settings.figure_path = "simulation_data_plastic_figure"  # A relative path to save figures. If not existed before, create a new one.
 
 cs_input
 cs_input.obs["ident"]
 
 pca_dat
 
-scale_dat = pd.read_csv("/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/priming-setting_scale_data.csv",index_col=0)
+scale_dat = pd.read_csv("/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/plastic-setting_scale_data.csv",index_col=0)
 scale_dat.shape
 scale_dat
 scale_dat.index
@@ -35,7 +35,7 @@ clone_data = pd.get_dummies(data =adata.obs[["cellID","assigned_lineage"]], dtyp
 clone_data =clone_data.set_index('cellID')
 clone_data
 
-meta = pd.read_csv("/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/priming-setting_meta.csv",index_col=0)
+meta = pd.read_csv("/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/plastic-setting_meta.csv",index_col=0)
 meta
 
 adata.obs = meta
@@ -91,4 +91,4 @@ cs.tl.fate_bias(
 )
 
 adata
-adata.obs.to_csv('/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/simulation_priming_cospar_obs_v2.csv')
+adata.obs.to_csv('/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/simulation_plastic_cospar_obs.csv')

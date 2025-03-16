@@ -6,20 +6,20 @@ library(SeuratDisk)
 library(zellkonverter)
 
 # start of Sijia's code
-setwd("/home/stat/nzh/team/kevinl1/nzhanglab/project/Multiome_fate/out/kevin/Writeup14/")
+setwd("/home/stat/nzh/team/kevinl1/project/Multiome_fate/out/kevin/Writeup14/")
 
 # write scale data
-load("Writeup14_priming-setting_v2_seurat_CoSpar_prepared.RData")
+load("Writeup14_plastic-setting_seurat_CoSpar_prepared.RData")
 scale.data <- all_data@assays$RNA$scale.data 
-write.csv(scale.data, file ="priming-setting_v2_scale_data.csv", row.names = TRUE, quote = FALSE)
+write.csv(scale.data, file ="plastic-setting_scale_data.csv", row.names = TRUE, quote = FALSE)
 
 # write embedding
 feature_mat <- all_data[["fasttopic.COCL2"]]@cell.embeddings
-write.csv(feature_mat, file ="priming-setting_v2_embeddings.csv", row.names = TRUE, quote = FALSE)
+write.csv(feature_mat, file ="plastic-setting_embeddings.csv", row.names = TRUE, quote = FALSE)
 
 # write tables
 table_mat <- table(all_data@meta.data$assigned_lineage,all_data@meta.data$dataset)
-cutoff <- sort(table_mat[,"week5_COCL2"], decreasing = TRUE)[10]
+cutoff <- sort(table_mat[,"week5_COCL2"], decreasing = TRUE)[15]
 high_lineage_names <- names(table_mat[which(table_mat[,"week5_COCL2"] >= cutoff),"week5_COCL2"])
 table_mat <- as.data.frame(table_mat)
 table_mat$factor_lineage <- as.character("Low")
@@ -38,5 +38,5 @@ write.csv(metadata, "priming-setting_v2_meta.csv", row.names = TRUE, quote = FAL
 all_data[["Saver"]] <- as(object = all_data[["Saver"]], Class = "Assay")
 all_data_sce <- as.SingleCellExperiment(all_data)
 out_path <- tempfile(pattern = ".h5ad")
-zellkonverter::writeH5AD(all_data_sce, file = "Writeup14_priming-setting_v2_seurat_CoSpar_prepared.h5ad")
+zellkonverter::writeH5AD(all_data_sce, file = "Writeup14_plastic-setting_seurat_CoSpar_prepared.h5ad")
 
