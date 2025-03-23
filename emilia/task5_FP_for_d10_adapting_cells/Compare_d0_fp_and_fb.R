@@ -10,7 +10,7 @@ data_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/
 out_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task5_FP_for_d10_adapting_cells/'
 
 remove_unassigned_cells <- TRUE
-treatment <- 'CIS'
+treatment <- 'DABTRAM'
 
 theme_Publication<- function(base_size=12, base_family="sans") {
   library(grid)
@@ -163,18 +163,20 @@ df$adapting_cell_count <- 10**df$adaptingFP
 df$frac_adapting <- df$adapting_cell_count / df$imputed_cell_count * 100
 df$frac_adapting <- ifelse(df$frac_adapting > 100, 100, df$frac_adapting)
 
-df <- df[order(df$adaptingFP, decreasing = T),]
+df <- df[order(df$frac_adapting, decreasing = F),]
 ggplot(df, aes(x = fatepotential_d0_d10, y = bias)) +
-  geom_point(aes(fill = adapting_cell_count, size = adapting_cell_count),  shape = 21, color = 'darkgray') +
+  geom_point(aes(fill = adapting_cell_count, size = adapting_cell_count),  shape = 21, color = '#888888', stroke = 0.5) +
   geom_vline(xintercept = 0, linetype = 'dashed') +
-  # geom_hline(yintercept = 50, linetype = 'dashed') +
+  geom_hline(yintercept = 0.5, linetype = 'dashed') +
   scale_fill_gradient(low = "#DCDCDC", high = "#7C00FE") +
   # scale_size_continuous(breaks = c(0, 0.1, 0.2, 0.5)) +
-  scale_size(range = c(0, 3)) +
+  scale_size(range = c(0, 5)) +
   labs(title = treatment,
-       y = '% of Adapting progeny',
-       x = 'Fate potential from d0 to d10') +
-  theme_Publication(base_size = 16)
+       y = 'Day0 fate bias to Day10-adapting',
+       x = 'Fate potential from Day0 to Day10') +
+  theme_Publication()
+
+ggsave(paste0(figure_dir, 'adapting_bias_thres_0_vs_fp_d0_d10_DABTRAM.pdf'), width = 5, height = 3.5)
 
 lineage.size <- df %>% 
   group_by(assigned_lineage) %>% 

@@ -13,7 +13,7 @@ data_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/
 ref_dir <- '~/Downloads/'
 out_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/'
 result_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task2_correlate_fate_potential_and_features_V2/'
-
+remove_unassigned_cells <- TRUE
 # ==============================================================================
 # Read data general
 # ==============================================================================
@@ -24,6 +24,17 @@ load(paste0(data_dir, 'Writeup10a_data_saver.RData'))
 
 all_data@misc <- all_data_fatepotential
 all_data[["Saver"]] <- all_data_saver
+
+# remove cells with no lineage
+if(remove_unassigned_cells) {
+  print("Removing cells with no assigned lineage")
+  all_data$keep <- !is.na(all_data$assigned_lineage)
+  if(any(!all_data$keep)){
+    print(paste0("There are ", length(which(!all_data$keep)), " cells being removed"))
+    all_data <- subset(all_data, keep == TRUE)
+  }
+}
+
 
 gavish.mp <- read_csv(paste0(ref_dir, 'Gavish_Malignant_Meta_Programs.csv'))
 isg_rs <- read_table('/Users/emiliac/Dropbox/Epi Evolution Paper/Data/Gavish Clinical Analysis/Resources/ISG.RS.txt', col_names = F)
@@ -67,8 +78,13 @@ scores <- ScoreSignatures_UCell(all_data@assays[["Saver"]]@data,
                                            list(mitf_program), 
                                            list(axl_program)))
 
+scores <- ScoreSignatures_UCell(all_data@assays[["Saver"]]@data, 
+                                features=c(gavish.mp.list))
+
 colnames(scores) <- c(names(gavish.mp.list), 'ISG.RS', 'ISG.Mem', 'MITF_Program', 'AXL_Program')
 scores.df <- as.data.frame(scores) 
+
+write.csv(scores.df, paste0(result_dir, 'GavishMP_UCell_scores.csv'))
 
 # ==============================================================================
 # Compare with fate potentials

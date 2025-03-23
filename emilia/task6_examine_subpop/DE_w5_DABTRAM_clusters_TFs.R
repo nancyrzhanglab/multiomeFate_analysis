@@ -96,8 +96,9 @@ ggplot(df, aes(x = difference, y = log10pval)) +
              color = "gray", linewidth=2) 
 
 
-x_vec <- tf_mat['STAT1::STAT2', rownames(metadat.week5_DABTRAM.clust0)]
-y_vec <- tf_mat['STAT1::STAT2', rownames(metadat.week5_DABTRAM.clust3)]
+tf_mat <- as.matrix(all_data.week5_DABTRAM[["chromVar.week5_DABTRAM"]]@data)
+x_vec <- tf_mat['FOSL2', rownames(metadat.week5_DABTRAM.clust0)]
+y_vec <- tf_mat['FOSL2', rownames(metadat.week5_DABTRAM.clust3)]
 
 df2 <- data.frame(x = x_vec)
 df2$group <- 'clust0'

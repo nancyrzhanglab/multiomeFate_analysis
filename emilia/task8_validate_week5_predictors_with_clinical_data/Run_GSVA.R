@@ -528,9 +528,22 @@ p3.ISGmem <- ggplot(cp.dat, aes(x=relapse.risk.hi, y=ISGmem)) +
 
 ggarrange(
   ggarrange(
-    p1.ISGmem, p3.ISGmem, labels = c("A", "B"), widths = c(0.5, 1),
+    p1.ISGmem, p3.ISGmem, labels = c("A", "B"), widths = c(0.6, 1),
     common.legend = TRUE, legend = "bottom"), 
   p2.ISGmem, labels = c("", "C"), ncol = 1)
+
+
+ggarrange(
+  p1.ISGmem, p3.ISGmem, labels = c("A", "B"), widths = c(0.6, 1),
+  common.legend = TRUE, legend = "bottom")
+
+cp.dat.pCR <- cp.dat[cp.dat$pathologic_response_pcr_rd == 'pCR', ]
+cp.dat.pCR.relapse.hi <- cp.dat.pCR[cp.dat.pCR$relapse.risk.hi == 'High', ]
+cp.dat.pCR.relapse.lo <- cp.dat.pCR[cp.dat.pCR$relapse.risk.hi == 'Low', ]
+wilcox.test(cp.dat.pCR.relapse.hi$ISGmem, cp.dat.pCR.relapse.lo$ISGmem)
+wilcox.test(cp.dat$ISGmem ~ cp.dat$pathologic_response_pcr_rd)
+
+
 
 
 

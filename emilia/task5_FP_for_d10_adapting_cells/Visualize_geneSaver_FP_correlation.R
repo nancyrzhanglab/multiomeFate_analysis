@@ -76,6 +76,8 @@ keygenes <- list(
                "GDF15", "HIST1H1B"))
 )
 keygenes.list <- unlist(keygenes)
+
+res_genes <- c("WNT5A", "AXL", "EGFR", "PDGFRB", "JUN", "NGFR", "PCNA")
 # =============================================================================
 # Wrangle
 # =============================================================================
@@ -220,6 +222,56 @@ ggplot(comp_df, aes(x = order.CIS, y = cor.CIS)) +
        x = 'Rank', y = 'Correlation') +
   theme_Publication()
 ggsave(paste0(out_dir, 'correlation_CIS.pdf'), width = 6, height = 4)
+
+
+
+
+# DABTRAM day0
+comp_df <- comp_df %>% arrange(cor.DATBRAM)
+comp_df$order.DABTRAM <- 1:nrow(comp_df)
+p1 <- ggplot(comp_df, aes(x = order.DABTRAM, y = cor.DATBRAM)) +
+  geom_point(size = 1, color = '#ffdbc9') +
+  geom_point(data = comp_df[comp_df$gene %in% res_genes, ], color = 'red') +
+  ggrepel::geom_text_repel(data = subset(comp_df, gene %in% res_genes), 
+                           aes(label = gene)) +
+  geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
+  ylim(-1, 1) +
+  theme_Publication() +
+  labs(ylab = 'Correlation', xlab = 'Gene rank')
+
+# COCL2 day0
+comp_df <- comp_df %>% arrange(cor.COCL2)
+comp_df$order.COCL2 <- 1:nrow(comp_df)
+p2 <- ggplot(comp_df, aes(x = order.COCL2, y = cor.COCL2)) +
+  geom_point(size = 1, color = '#ffdbc9') +
+  geom_point(data = comp_df[comp_df$gene %in% res_genes, ], color = 'red') +
+  ggrepel::geom_text_repel(data = subset(comp_df, gene %in% res_genes), 
+                           aes(label = gene)) +
+  geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
+  ylim(-1, 1) +
+  theme_Publication() +
+  labs(ylab = 'Correlation', xlab = 'Gene rank')
+
+# CIS day0
+comp_df <- comp_df %>% arrange(cor.CIS)
+comp_df$order.CIS <- 1:nrow(comp_df)
+p3 <- ggplot(comp_df, aes(x = order.CIS, y = cor.CIS)) +
+  geom_point(size = 1, color = '#ffdbc9') +
+  geom_point(data = comp_df[comp_df$gene %in% res_genes, ], color = 'red') +
+  ggrepel::geom_text_repel(data = subset(comp_df, gene %in% res_genes), 
+                           aes(label = gene)) +
+  geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
+  ylim(-1, 1) +
+  theme_Publication() +
+  labs(ylab = 'Correlation', xlab = 'Gene rank')
+
+p4 <- grid.arrange(p1, p2, p3, ncol = 3)
+ggsave(filename = paste0(figure_dir, 'Fig6.D0.RNA.pdf'), p4, width = 8, height = 2.5)
+
+
+
+
+
 
 
 # DABTRAM

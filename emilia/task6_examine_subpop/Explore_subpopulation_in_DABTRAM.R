@@ -5,6 +5,13 @@ library(ggplot2)
 library(GGally)
 
 remove_unassigned_cells <- TRUE
+dataset_colors <- c(day0 = "gray",
+                    day10_CIS = "#FBD08C",
+                    day10_COCL2 = "#6DC49C",
+                    day10_DABTRAM = "#9D85BE",
+                    week5_CIS = "#C96D29",
+                    week5_COCL2 = "#0F8241",
+                    week5_DABTRAM = "#623594")
 # =============================================================================
 # reading data
 # =============================================================================
@@ -35,7 +42,7 @@ if(remove_unassigned_cells) {
 all_data.day10_DABTRAM <- subset(all_data, dataset == "day10_DABTRAM")
 
 
-cv.day10_DABTRAM <- as.data.frame(t(all_data.day10_DABTRAM@assays[["chromVar.day10_DABTRAM"]]@data))
+cv.day10_DABTRAM <- as.data.frame(t(as.matrix(all_data.day10_DABTRAM@assays[["chromVar.day10_DABTRAM"]]@data)))
 
 tfs <- colnames(cv.day10_DABTRAM)
 tfs_of_interest <- tfs[grepl("JUN", tfs)]
@@ -50,7 +57,7 @@ ggpairs(cv.day10_DABTRAM.toplot)
 # week5
 all_data.week5_DABTRAM <- subset(all_data, dataset == "week5_DABTRAM")
 
-cv.week5_DABTRAM <- as.data.frame(t(all_data.week5_DABTRAM@assays[["chromVar.week5_DABTRAM"]]@data))
+cv.week5_DABTRAM <- as.data.frame(t(as.matrix(all_data.week5_DABTRAM@assays[["chromVar.week5_DABTRAM"]]@data)))
 
 
 tfs_of_interest <- c('JUN', 'FOS::JUN', 'STAT1')

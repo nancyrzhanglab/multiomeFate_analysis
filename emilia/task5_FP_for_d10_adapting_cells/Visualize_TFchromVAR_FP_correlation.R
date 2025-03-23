@@ -17,10 +17,13 @@ theme_Publication<- function(base_size=12, base_family="sans") {
             text = element_text(),
             panel.background = element_rect(colour = NA),
             plot.background = element_rect(colour = NA),
+            panel.border = element_rect(colour = NA),
             axis.title = element_text(face = "bold"),
             axis.title.y = element_text(angle=90,vjust =2),
             axis.title.x = element_text(vjust = -0.2),
             axis.text = element_text(),
+            axis.line.x = element_line(colour="black"),
+            axis.line.y = element_line(colour="black"),
             axis.ticks = element_line(),
             panel.grid.major = element_line(colour="white"),
             panel.grid.minor = element_blank(),
@@ -69,7 +72,10 @@ ggpairs(comp_df[, c('cor.DATBRAM', 'cor.COCL2', 'cor.CIS')],
         lower = list(continuous = 'points'))
 
 tfs <- comp_df$TF
-tfs_toplot <- tfs[grepl('JUN', tfs) | grepl('FOS', tfs) | grepl('SOX10', tfs) | grepl('MITF', tfs) | grepl('TEAD', tfs) ]
+# tfs_toplot <- tfs[grepl('JUN', tfs) | grepl('FOS', tfs) | grepl('SOX10', tfs) | grepl('MITF', tfs) | grepl('TEAD', tfs) ]
+# tfs_toplot <- tfs_toplot[!grepl('(var.2)', tfs_toplot)]
+
+tfs_toplot <- tfs[grepl('JUN', tfs) | grepl('FOS', tfs) | grepl('SOX10', tfs) | grepl('MITF', tfs) | grepl('TEAD', tfs) | grepl('STAT', tfs) | grepl('IRF3', tfs) ]
 tfs_toplot <- tfs_toplot[!grepl('(var.2)', tfs_toplot)]
 
 # =============================================================================
@@ -153,3 +159,45 @@ p3 <- ggplot(comp_df, aes(x = cor.CIS)) +
 p4 <- grid.arrange(p1, p2, p3, ncol = 1)
 
 ggsave(paste0(out_dir, 'TFchromVAR_correlation_density.pdf'), plot = p4, width = 6, height = 4)
+
+
+# DABTRAM day0
+comp_df <- comp_df %>% arrange(cor.DATBRAM)
+comp_df$order.DABTRAM <- 1:nrow(comp_df)
+p1.TF <- ggplot(comp_df, aes(x = order.DABTRAM, y = cor.DATBRAM)) +
+  geom_point(size = 1, color = '#B5DFB7') +
+  geom_point(data = comp_df[comp_df$TF %in% tfs_toplot, ], color = 'red') +
+  ggrepel::geom_text_repel(data = subset(comp_df, TF %in% tfs_toplot), 
+                           aes(label = TF)) +
+  ylim(-1, 1) +
+  theme_Publication() +
+  labs(ylab = 'Correlation', xlab = 'TF rank')
+
+
+# COCL2 day0
+comp_df <- comp_df %>% arrange(cor.COCL2)
+comp_df$order.COCL2 <- 1:nrow(comp_df)
+p2.TF <- ggplot(comp_df, aes(x = order.COCL2, y = cor.COCL2)) +
+  geom_point(size = 1, color = '#B5DFB7') +
+  geom_point(data = comp_df[comp_df$TF %in% tfs_toplot, ], color = 'red') +
+  ggrepel::geom_text_repel(data = subset(comp_df, TF %in% tfs_toplot), 
+                           aes(label = TF)) +
+  ylim(-1, 1) +
+  theme_Publication() +
+  labs(ylab = 'Correlation', xlab = 'TF rank')
+
+# CIS day0
+comp_df <- comp_df %>% arrange(cor.CIS)
+comp_df$order.CIS <- 1:nrow(comp_df)
+p3.TF <- ggplot(comp_df, aes(x = order.CIS, y = cor.CIS)) +
+  geom_point(size = 1, color = '#B5DFB7') +
+  geom_point(data = comp_df[comp_df$TF %in% tfs_toplot, ], color = 'red') +
+  ggrepel::geom_text_repel(data = subset(comp_df, TF %in% tfs_toplot), 
+                           aes(label = TF)) +
+  ylim(-1, 1) +
+  theme_Publication() +
+  labs(ylab = 'Correlation', xlab = 'TF rank')
+
+p4.TF <- grid.arrange(p1.TF, p2.TF, p3.TF, ncol = 3)
+ggsave(filename = paste0(figure_dir, 'Fig6C.D0.TF.pdf'), p4.TF, width = 8, height = 2.5)
+
