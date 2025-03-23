@@ -8,9 +8,13 @@ library(ggplot2)
 library(ggpubr)
 library(gridExtra)
 
-data_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/'
+# data_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/'
+# results_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task2_correlate_fate_potential_and_features_V2/'
 ref_dir <- '/Users/emiliac/Dropbox/Thesis/resources/Signatures/'
 figure_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/figures/MultiomeFate_V3/Fig2/'
+
+data_dir <- '/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/kevin/Writeup10a/'
+results_dir <- '/home/mnt/weka/nzh/team/emiliac/nzhanglab/project/Multiome_fate/out/emilia/task2_correlate_fate_potential_and_features_V2/'
 
 theme_Publication<- function(base_size=12, base_family="sans") {
   library(grid)
@@ -91,9 +95,12 @@ scores <- ScoreSignatures_UCell(all_data@assays[["Saver"]]@data,
 
 colnames(scores) <- c('MITF_Program', 'AXL_Program')
 
+# write.csv(scores, paste0(results_dir, 'MITF_AXL_UCell_scores.csv'))
 # ==============================================================================
 # Plot UCell scores
 # ==============================================================================
+
+scores <- read.csv(paste0(results_dir, 'MITF_AXL_UCell_scores.csv'), row.names = 1)
 scores.df <- as.data.frame(scores)
 scores.df$cell_barcode <- rownames(scores.df)
 
