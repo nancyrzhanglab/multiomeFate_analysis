@@ -170,5 +170,32 @@ jaccard_vec <- sapply(2:4, function(i){
   numerator/denominator
 })
 names(jaccard_vec) <- names(gene_list)[2:4]
-jaccard_vec
 
+######
+
+df <- data.frame(Method = factor(names(jaccard_vec), levels = c("naive", "cospar", "cypher")),
+                 Jaccard = jaccard_vec)
+df
+
+# Define colors
+colors <- c("naive" = "#EF9A29", "cospar" = "#D386EF", "cypher" = "#60D862")
+
+# Create the barplot
+plot1 <- ggplot(df, aes(x = Method, y = Jaccard, fill = Method)) +
+  geom_bar(stat = "identity", width = 0.6, color = "black") +  # Black border for clarity
+  scale_fill_manual(values = colors) +
+  labs(y = "Jaccard index of DE genes", x = NULL) +
+  theme_minimal(base_size = 16) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = 14, face = "bold", color = "black"),
+    axis.text.y = element_text(size = 14, color = "black"),
+    axis.title.y = element_text(size = 16, face = "bold"),
+    panel.grid.major.x = element_blank(),  # Remove major vertical grid lines
+    panel.grid.minor = element_blank(),    # Remove minor grid lines
+    panel.grid.major.y = element_line(color = "gray80", linetype = "dashed"),
+    axis.ticks.length = unit(0.3, "cm")
+  ) 
+ggsave(plot1, 
+       file = paste0(plot_folder, "barplot_cleaned.png"),
+       width = 4, height = 3, units = "in")

@@ -73,10 +73,28 @@ plot1 <- plot1 + ggplot2::stat_summary(fun = median, geom = "crossbar",
 ggplot2::ggsave(filename = paste0(plot_folder, "fatepotential_true-violinplot.png"),
                 plot1, device = "png", width = 6, height = 3, units = "in")
 
+################
+
+plot1 <- ggplot2::ggplot(df, ggplot2::aes(x = lineage, y = imputed_count, fill = lineage)) +
+  geom_violin(trim = TRUE, scale = "width", color = "black") +  # Black border for clarity
+  scale_fill_manual(values = col_vec) +
+  stat_summary(fun = median, geom = "crossbar", width = 0.75, color = "#633895") +  # Median line
+  scale_x_discrete(limits = lineage_labels, guide = guide_axis(angle = 45)) +  # Rotated x-axis labels
+  labs(y = NULL, x = NULL) +  # No axis titles
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(color = "black"),
+    axis.text.y = element_text(color = "black"),
+    panel.grid.major.x = element_blank(),  # Remove vertical grid lines
+    panel.grid.minor = element_blank(),    # Remove minor grid lines
+    panel.grid.major.y = element_line(color = "gray80", linetype = "dashed")
+  ) +
+  coord_cartesian(ylim = c(-0.22, 0.3))  # Keep y-axis range
 
 plot1 <- plot1 + ggplot2::labs(y = NULL) + ggplot2::theme(axis.title = ggplot2::element_blank()) 
 
 ggplot2::ggsave(filename = paste0(plot_folder, "fatepotential_true-violinplot_cleaned.png"),
-                plot1, device = "png", width = 5, height = 1.5, units = "in")
+                plot1, device = "png", width = 4, height = 1.5, units = "in", 
+                dpi = 450)
 
-# 0D8242
