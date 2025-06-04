@@ -31,14 +31,47 @@ theme_Publication<- function(base_size=12, base_family="sans") {
             panel.grid.major = element_line(colour="white"),
             panel.grid.minor = element_blank(),
             legend.key = element_rect(colour = NA),
-            legend.position = "bottom",
+            legend.position = "right",
             legend.box.margin = margin(t = 0.1, r = 0.1, b = 0.1, l = 0.1, unit = "mm"),
-            legend.direction = "horizontal",
+            legend.direction = "vertical",
             legend.key.size= unit(0.5, "cm"),
             legend.spacing = unit(0, "cm"),
             legend.title = element_text(face="italic"),
             plot.margin=unit(c(0.2,0.2,0.2,0.2),"cm"),
             strip.background=element_rect(colour="#F0F0F0",fill="#F0F0F0"),
+            strip.text = element_text(face="bold")
+    ))
+}
+
+theme_Clean<- function(base_size=14, base_family="sans") {
+  library(grid)
+  library(ggthemes)
+  (theme_foundation(base_size=base_size, base_family=base_family)
+    + theme(plot.title = element_text(face = "bold",
+                                      size = rel(1.2), hjust = 0.5),
+            plot.subtitle = element_text(face = "bold", hjust = 0.5),
+            text = element_text(),
+            plot.background = element_blank(),
+            panel.border = element_rect(colour = NA),
+            axis.title = element_text(face = "bold"),
+            axis.title.y = element_text(angle=90,vjust =2),
+            axis.title.x = element_text(vjust = -0.2),
+            axis.line.x = element_line(colour="black"),
+            axis.line.y = element_line(colour="black"),
+            axis.ticks = element_line(),
+            axis.text = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            legend.key = element_rect(colour = NA),
+            legend.position = "right",
+            legend.box.margin = margin(t = 0.1, r = 0.1, b = 0.1, l = 0.1, unit = "mm"),
+            legend.direction = "vertical",
+            legend.key.size= unit(0.5, "cm"),
+            legend.spacing = unit(0, "cm"),
+            legend.title = element_text(face="italic"),
+            plot.margin=unit(c(0.2,0.2,0.2,0.2),"cm"),
+            strip.background=element_rect(colour=NA,fill=NA),
+            panel.background = element_blank(),
             strip.text = element_text(face="bold")
     ))
 }
@@ -149,16 +182,37 @@ p2
 
 p3 <- ggarrange(p2, p1, ncol = 1)
 
-ggsave(paste0(figure_dir, 'scatter_plot_lin_var_growth_potential_sd_DABTRAM_COCL2.pdf'), p3, width = 4, height = 8.5)
+ggsave(paste0(figure_dir, 'scatter_plot_lin_var_growth_potential_sd_DABTRAM_COCL2.png'), p3, width = 5, height = 8.5)
+
+p1.cl <- ggplot(df.day10_DABTRAM, aes(x = sqrt(variance), y = normalized_avg_eud_dist_by_shuffle)) +
+  geom_point(aes(size = n_cells.x), shape = 21, fill = '#9D85BE') +
+  scale_size_continuous(range = c(1, 8), breaks = c(20, 40, 60, 80)) +
+  ylab('') +
+  xlab('') +
+  theme_Clean()
+
+
+# COCL2
+p2.cl <- ggplot(df.day10_COCL2, aes(x = sqrt(variance), y = normalized_avg_eud_dist_by_shuffle)) +
+  geom_point(aes(size = n_cells.x), shape = 21, fill = '#6DC49C') +
+  scale_size_continuous(range = c(1, 8), breaks = c(20, 40, 60, 80)) +
+  ylab('') +
+  xlab('') +
+  theme_Clean()
+
+p3.cl <- ggarrange(p2.cl, p1.cl, ncol = 1)
+ggsave(paste0(figure_dir, 'scatter_plot_lin_var_growth_potential_sd_DABTRAM_COCL2_clean.pdf'), p3.cl, width = 3, height = 3.8)
+
 # =============================================================================
 # Plot
 # =============================================================================
 
-ggplot(var.fp.d10_w5.DABTRAM, aes(x = sqrt(variance), y = log10_week5_DABTRAM)) +
+p.fp.var.dabtram <- ggplot(var.fp.d10_w5.DABTRAM, aes(x = sqrt(variance), y = log10_week5_DABTRAM)) +
   geom_point(aes(size = n_cells), shape = 21, fill = '#9D85BE') +
   scale_size_continuous(range = c(1, 8), breaks = c(20, 40, 60, 80)) +
   stat_cor(method = 'spearman') +
   theme_Publication()
+ggsave(paste0(figure_dir, 'Supp_scatter_plot_growth_potential_sd_w5_size_DABTRAM.pdf'), p.fp.var.dabtram, width = 3, height = 2.4)
 
 ggplot(var.fp.d10_w5.COCL2, aes(x = sqrt(variance), y = log10_week5_COCL2)) +
   geom_point(aes(size = n_cells), shape = 21, fill = '#6DC49C') +
@@ -220,7 +274,28 @@ p5 <- ggplot(df.day10_COCL22, aes(x = normalized_avg_eud_dist_by_shuffle, y = lo
 
 
 p6 <- ggarrange(p5, p4, ncol = 1)
-ggsave(paste0(figure_dir, 'scatter_plot_lin_var_w5_size_DABTRAM_COCL2.pdf'), p6, width = 4, height = 8.5)
+
+ggsave(paste0(figure_dir, 'scatter_plot_lin_var_w5_size_DABTRAM_COCL2.png'), p6, width = 5, height = 8.5)
+
+
+p4.cl <- ggplot(df.day10_DABTRAM2, aes(x = normalized_avg_eud_dist_by_shuffle, y = log10_week5_DABTRAM)) +
+  geom_point(aes(size = n_cells), shape = 21, fill = '#9D85BE') +
+  scale_size_continuous(range = c(1, 8), breaks = c(20, 40, 60, 80)) +
+  ylab('') +
+  xlab('') +
+  theme_Clean()
+
+p5.cl <- ggplot(df.day10_COCL22, aes(x = normalized_avg_eud_dist_by_shuffle, y = log10_week5_COCL2)) +
+  geom_point(aes(size = n_cells), shape = 21, fill = '#6DC49C') +
+  scale_size_continuous(range = c(1, 8), breaks = c(20, 40, 60, 80)) +
+  ylab('') +
+  xlab('') +
+  theme_Clean()
+
+
+p6.cl <- ggarrange(p5.cl, p4.cl, ncol = 1)
+
+ggsave(paste0(figure_dir, 'scatter_plot_lin_var_w5_size_DABTRAM_COCL2_clean.pdf'), p6.cl, width = 3, height = 3.8)
 
 # CIS
 df.day10_CIS2 <- merge(lin_var.day10_CIS, lin.size.w5[, c('assigned_lineage', 'week5_CIS')], by = 'assigned_lineage', all.x = T)

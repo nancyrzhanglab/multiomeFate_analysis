@@ -67,6 +67,46 @@ df.bias.COCL2 <- read.csv(paste0(out_dir, 'adapting_bias_thres_0_COCL2.csv'))
 df.bias.CIS <- read.csv(paste0(out_dir, 'adapting_bias_thres_0_CIS.csv'))
 
 # =============================================================================
+# QC
+# =============================================================================
+
+nrow(df.bias.DABTRAM[df.bias.DABTRAM$bias > 0.5, ]) / 3326
+nrow(df.bias.COCL2[df.bias.COCL2$bias > 0.5, ]) / 3326
+nrow(df.bias.CIS[df.bias.CIS$bias > 0.5, ]) / 3326
+
+p1 <- ggplot(df.bias.DABTRAM, aes(x = bias)) +
+  geom_histogram(bins = 100, color = 'black', fill = 'lightgray') +
+  theme_Publication() +
+  xlab('Adapting fate bias') +
+  ylab('Number of cells') +
+  ggtitle('DABTRAM') +
+  theme(plot.title = element_text(hjust = 0.5))
+
+p2 <- ggplot(df.bias.COCL2, aes(x = bias)) +
+  geom_histogram(bins = 100, color = 'black', fill = 'lightgray') +
+  theme_Publication() +
+  xlab('Adapting fate bias') +
+  ylab('Number of cells') +
+  ggtitle('COCL2') +
+  theme(plot.title = element_text(hjust = 0.5))
+
+p3 <- ggplot(df.bias.CIS, aes(x = bias)) +
+  geom_histogram(bins = 100, color = 'black', fill = 'lightgray') +
+  theme_Publication() +
+  xlab('Adapting fate bias') +
+  ylab('Number of cells') +
+  ggtitle('CIS') +
+  theme(plot.title = element_text(hjust = 0.5))
+
+p4 <- ggarrange(p1, p2, p3,
+          ncol = 3,
+          label.x = 0.5,
+          label.y = 0.95,
+          font.label = list(size = 10, face = 'bold'))
+
+ggsave(paste0(figure_dir, 'Supp_adapting_bias_histograms.pdf'), width = 9, height = 3)
+
+# =============================================================================
 # Wrangle
 # =============================================================================
 metadat <- all_data@meta.data
@@ -195,4 +235,4 @@ p3 <- ggplot(df.CIS.summary, aes(x = is.lin.in.w5, y = adaptingCount)) +
 
 p4 <- ggarrange(p1, p2, p3, ncol = 3, legend = F)
 
-ggsave(paste0(figure_dir, 'Violin_Sum_AdaptingCount_panel.pdf'), width = 9, height = 3)
+ggsave(paste0(figure_dir, 'Supp_Violin_Sum_AdaptingCount_panel.pdf'), width = 9, height = 3)

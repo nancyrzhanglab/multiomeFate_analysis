@@ -19,7 +19,7 @@ dataset_colors <- c(day0 = "gray",
                     week5_COCL2 = "#0F8241",
                     week5_DABTRAM = "#623594")
 
-theme_Publication<- function(base_size=12, base_family="sans") {
+theme_Publication<- function(base_size=14, base_family="sans") {
   library(grid)
   library(ggthemes)
   (theme_foundation(base_size=base_size, base_family=base_family)
@@ -40,9 +40,9 @@ theme_Publication<- function(base_size=12, base_family="sans") {
             panel.grid.major = element_line(colour="white"),
             panel.grid.minor = element_blank(),
             legend.key = element_rect(colour = NA),
-            legend.position = "right",
+            legend.position = "bottom",
             legend.box.margin = margin(t = 0.1, r = 0.1, b = 0.1, l = 0.1, unit = "mm"),
-            legend.direction = "vertical",
+            legend.direction = "horizontal",
             legend.key.size= unit(0.5, "cm"),
             legend.spacing = unit(0, "cm"),
             legend.title = element_text(face="italic"),
@@ -169,8 +169,56 @@ p3 <- ggplot(ft.umap.CIS.nonday0, aes(x = ftCISumap_1, y = ftCISumap_2)) +
 p4 <- ggarrange(p1, p2, p3, ncol = 3)
 p4
 
-ggsave(paste0(figure_dir, 'adapting_bias_umap_panel.pdf'), p4, width = 9.5, height = 2.3)
+p1.cl <- p1 +
+  xlab('') +
+  ylab('') +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank())
+p2.cl <- p2 +
+  xlab('') +
+  ylab('') +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank())
+p3.cl <- p3 +
+  xlab('') +
+  ylab('') +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank())
+
+
+p4.cl <- ggarrange(p1.cl, p2.cl, p3.cl, ncol = 3)
+p4.cl
+
+# =============================================================================
+# Plot histogram
+# =============================================================================
+
+ggsave(paste0(figure_dir, 'adapting_bias_umap_panel.pdf'), p4.cl, width = 5.3, height = 2.5)
  
+
+p1 <- ggplot(df.bias.DABTRAM, aes(x = bias)) +
+  geom_histogram(bins = 100, color = 'black') +
+  ylab('Number of cells') +
+  xlab('Adapting fate bias') +
+  theme_bw()
+
+p2 <- ggplot(df.bias.COCL2, aes(x = bias)) +
+  geom_histogram(bins = 100, color = 'black') +
+  ylab('Number of cells') +
+  xlab('Adapting fate bias') +
+  theme_bw()
+
+p3 <- ggplot(df.bias.CIS, aes(x = bias)) +
+  geom_histogram(bins = 100, color = 'black') +
+  ylab('Number of cells') +
+  xlab('Adapting fate bias') +
+  theme_bw()
+
+p4 <- ggarrange(p1, p2, p3, ncol = 3)
+
+ggsave(paste0(figure_dir, 'Supp_adapting_bias_histograms.pdf'), p4, width = 6, height = 1.5)
+
+
 # ==================================================================================
 # =============================================================================
 # Wrangle

@@ -16,7 +16,7 @@ date_of_run <- Sys.time()
 session_info <- devtools::session_info()
 set.seed(10)
 
-theme_Publication<- function(base_size=12, base_family="sans") {
+theme_Publication<- function(base_size=14, base_family="sans") {
   library(grid)
   library(ggthemes)
   (theme_foundation(base_size=base_size, base_family=base_family)
@@ -24,13 +24,13 @@ theme_Publication<- function(base_size=12, base_family="sans") {
                                       size = rel(1.2), hjust = 0.5),
             plot.subtitle = element_text(face = "bold", hjust = 0.5),
             text = element_text(),
-            panel.background = element_rect(colour = NA),
-            plot.background = element_rect(colour = NA),
+            panel.background = element_blank(),
+            plot.background = element_blank(),
             panel.border = element_rect(colour = NA),
             axis.title = element_text(face = "bold"),
             axis.title.y = element_text(angle=90,vjust =2),
             axis.title.x = element_text(vjust = -0.2),
-            axis.text = element_text(),
+            axis.text = element_text(size = base_size),
             axis.line.x = element_line(colour="black"),
             axis.line.y = element_line(colour="black"),
             axis.ticks = element_line(),
@@ -123,7 +123,7 @@ x_max <- 1
 
 
 # Define key genes
-res_genes <- c("WNT5A", "AXL", "EGFR", "PDGFRB", "JUN", "NGFR", "PCNA")
+res_genes <- c("WNT5A", "AXL", "EGFR", "JUN", "NGFR", "PCNA")
 
 # Pick out res genes
 keygenes.dabtram.d0 <- d0_cor.RNA[d0_cor.RNA$gene %in% res_genes, 'correlation.DABTRAM_d0']
@@ -138,9 +138,11 @@ keygenes.cis.d10 <- d10_cor.RNA[d10_cor.RNA$gene %in% res_genes, 'correlation.CI
 d0_cor.RNA <- d0_cor.RNA %>% arrange(correlation.DABTRAM_d0)
 d0_cor.RNA$order.DABTRAM <- 1:nrow(d0_cor.RNA)
 p1 <- ggplot(d0_cor.RNA, aes(x = order.DABTRAM, y = correlation.DABTRAM_d0)) +
-  geom_point(size = 1, color = '#ffdbc9') +
+  geom_point(size = 1, color = '#FFDBDB') +
   geom_point(data = d0_cor.RNA[d0_cor.RNA$gene %in% res_genes, ], color = 'red') +
   ggrepel::geom_text_repel(data = subset(d0_cor.RNA, gene %in% res_genes), 
+                            box.padding = 0.1, 
+                            max.overlaps = Inf,
                            aes(label = gene)) +
   geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
   ylim(-1, 1) +
@@ -151,9 +153,11 @@ p1 <- ggplot(d0_cor.RNA, aes(x = order.DABTRAM, y = correlation.DABTRAM_d0)) +
 d0_cor.RNA <- d0_cor.RNA %>% arrange(correlation.COCL2_d0)
 d0_cor.RNA$order.COCL2 <- 1:nrow(d0_cor.RNA)
 p2 <- ggplot(d0_cor.RNA, aes(x = order.COCL2, y = correlation.COCL2_d0)) +
-  geom_point(size = 1, color = '#ffdbc9') +
+  geom_point(size = 1, color = '#FFDBDB') +
   geom_point(data = d0_cor.RNA[d0_cor.RNA$gene %in% res_genes, ], color = 'red') +
   ggrepel::geom_text_repel(data = subset(d0_cor.RNA, gene %in% res_genes), 
+                           box.padding = 0.1, 
+                           max.overlaps = Inf,
                            aes(label = gene)) +
   geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
   ylim(-1, 1) +
@@ -164,9 +168,11 @@ p2 <- ggplot(d0_cor.RNA, aes(x = order.COCL2, y = correlation.COCL2_d0)) +
 d0_cor.RNA <- d0_cor.RNA %>% arrange(correlation.CIS_d0)
 d0_cor.RNA$order.CIS <- 1:nrow(d0_cor.RNA)
 p3 <- ggplot(d0_cor.RNA, aes(x = order.CIS, y = correlation.CIS_d0)) +
-  geom_point(size = 1, color = '#ffdbc9') +
+  geom_point(size = 1, color = '#FFDBDB') +
   geom_point(data = d0_cor.RNA[d0_cor.RNA$gene %in% res_genes, ], color = 'red') +
   ggrepel::geom_text_repel(data = subset(d0_cor.RNA, gene %in% res_genes), 
+                            box.padding = 0.1, 
+                            max.overlaps = Inf,
                            aes(label = gene)) +
   geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
   ylim(-1, 1) +
@@ -174,7 +180,7 @@ p3 <- ggplot(d0_cor.RNA, aes(x = order.CIS, y = correlation.CIS_d0)) +
   labs(ylab = 'Correlation', xlab = 'Gene rank')
 
 p4 <- grid.arrange(p1, p2, p3, ncol = 3)
-ggsave(filename = paste0(figure_dir, 'SuppFig5A.D0.RNA.pdf'), p4, width = 9, height = 2.5)
+ggsave(filename = paste0(figure_dir, 'SuppFig5A.D0.RNA.pdf'), p4, width = 8.5, height = 2.5)
 
 
 
@@ -183,9 +189,11 @@ ggsave(filename = paste0(figure_dir, 'SuppFig5A.D0.RNA.pdf'), p4, width = 9, hei
 d10_cor.RNA <- d10_cor.RNA %>% arrange(correlation.DABTRAM_d10)
 d10_cor.RNA$order.DABTRAM <- 1:nrow(d10_cor.RNA)
 p5 <- ggplot(d10_cor.RNA, aes(x = order.DABTRAM, y = correlation.DABTRAM_d10)) +
-  geom_point(size = 1, color = '#ffdbc9') +
+  geom_point(size = 1, color = '#FFDBDB') +
   geom_point(data = d10_cor.RNA[d10_cor.RNA$gene %in% res_genes, ], color = 'red') +
-  ggrepel::geom_text_repel(data = subset(d10_cor.RNA, gene %in% res_genes), 
+  ggrepel::geom_label_repel(data = subset(d10_cor.RNA, gene %in% res_genes), 
+                           box.padding = 0.5, 
+                           max.overlaps = Inf,
                            nudge_x = -2,
                            aes(label = gene)) +
   geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
@@ -197,9 +205,11 @@ p5 <- ggplot(d10_cor.RNA, aes(x = order.DABTRAM, y = correlation.DABTRAM_d10)) +
 d10_cor.RNA <- d10_cor.RNA %>% arrange(correlation.COCL2_d10)
 d10_cor.RNA$order.COCL2 <- 1:nrow(d10_cor.RNA)
 p6 <- ggplot(d10_cor.RNA, aes(x = order.COCL2, y = correlation.COCL2_d10)) +
-  geom_point(size = 1, color = '#ffdbc9') +
+  geom_point(size = 1, color = '#FFDBDB') +
   geom_point(data = d10_cor.RNA[d10_cor.RNA$gene %in% res_genes, ], color = 'red') +
-  ggrepel::geom_text_repel(data = subset(d10_cor.RNA, gene %in% res_genes), 
+  ggrepel::geom_label_repel(data = subset(d10_cor.RNA, gene %in% res_genes), 
+                           box.padding = 0.5, 
+                           max.overlaps = Inf,
                            nudge_x = -10,
                            aes(label = gene)) +
   geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
@@ -212,9 +222,11 @@ p6 <- ggplot(d10_cor.RNA, aes(x = order.COCL2, y = correlation.COCL2_d10)) +
 d10_cor.RNA <- d10_cor.RNA %>% arrange(correlation.CIS_d10)
 d10_cor.RNA$order.CIS <- 1:nrow(d10_cor.RNA)
 p7 <- ggplot(d10_cor.RNA, aes(x = order.CIS, y = correlation.CIS_d10)) +
-  geom_point(size = 1, color = '#ffdbc9') +
+  geom_point(size = 1, color = '#FFDBDB') +
   geom_point(data = d10_cor.RNA[d10_cor.RNA$gene %in% res_genes, ], color = 'red') +
-  ggrepel::geom_text_repel(data = subset(d10_cor.RNA, gene %in% res_genes), 
+  ggrepel::geom_label_repel(data = subset(d10_cor.RNA, gene %in% res_genes), 
+                           box.padding = 0.5,
+                           max.overlaps = Inf,
                            nudge_x = -10,
                            aes(label = gene)) +
   geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
@@ -224,7 +236,7 @@ p7 <- ggplot(d10_cor.RNA, aes(x = order.CIS, y = correlation.CIS_d10)) +
 
 p8 <- grid.arrange(p5, p6, p7, ncol = 3)
 
-ggsave(filename = paste0(figure_dir, 'Fig5B.RNA.pdf'), p8, width = 9, height = 2.5)
+ggsave(filename = paste0(figure_dir, 'Fig5B.RNA.pdf'), p8, width = 8.5, height = 2.5)
 
 ##############################################################################################
 ## Fig 5D: Comparison of correlations
@@ -238,7 +250,8 @@ p9 <- ggplot(d0_cor.RNA, aes(x = correlation.DABTRAM_d0, y = correlation.COCL2_d
   xlim(c(-0.505, 0.505)) +
   ylim(c(-0.505, 0.505)) +
   scale_fill_manual(values = brewer.pal(5, "RdPu")) +
-  theme_Publication()
+  theme_Publication() +
+  theme(legend.position = "none")
 
 p10 <- ggplot(d0_cor.RNA, aes(x = correlation.CIS_d0, y = correlation.COCL2_d0)) +
   # geom_point(color = 'pink') +
@@ -247,7 +260,8 @@ p10 <- ggplot(d0_cor.RNA, aes(x = correlation.CIS_d0, y = correlation.COCL2_d0))
   xlim(c(-0.505, 0.505)) +
   ylim(c(-0.505, 0.505)) +
   scale_fill_manual(values = brewer.pal(5, "RdPu")) +
-  theme_Publication()
+  theme_Publication() +
+  theme(legend.position = "none")
 
 
 p11 <- ggplot(d0_cor.RNA, aes(x = correlation.DABTRAM_d0, y = correlation.CIS_d0)) +
@@ -257,11 +271,12 @@ p11 <- ggplot(d0_cor.RNA, aes(x = correlation.DABTRAM_d0, y = correlation.CIS_d0
   xlim(c(-0.505, 0.505)) +
   ylim(c(-0.505, 0.505)) +
   scale_fill_manual(values = brewer.pal(5, "RdPu")) +
-  theme_Publication()
+  theme_Publication() +
+  theme(legend.position = "none")
 
 p12 <- grid.arrange(p9, p10, p11, ncol = 3)
 
-ggsave(filename = paste0(figure_dir, 'Fig5D.D0.RNA.pdf'), p12, width = 9, height = 3.2)
+ggsave(filename = paste0(figure_dir, 'Fig5D.D0.RNA.pdf'), p12, width = 9, height = 2.8)
 
 # D10 correlations
 p13 <- ggplot(d10_cor.RNA, aes(x = correlation.DABTRAM_d10, y = correlation.COCL2_d10)) +
@@ -290,11 +305,31 @@ p15 <- ggplot(d10_cor.RNA, aes(x = correlation.DABTRAM_d10, y = correlation.CIS_
   xlim(c(-1, 1)) +
   ylim(c(-1, 1)) +
   scale_fill_manual(values = brewer.pal(5, "RdPu")) +
-  theme_Publication()
+  theme_Publication() +
 
 p16 <- grid.arrange(p13, p14, p15, ncol = 1)
 
+
 ggsave(filename = paste0(figure_dir, 'Fig5D.D10.RNA.pdf'), p16, width = 3, height = 9)
+
+p13.cl <- p13 + 
+  xlab('') +
+  ylab('') +
+  theme(legend.position = "none")
+
+p14.cl <- p14 + 
+  xlab('') +
+  ylab('') +
+  theme(legend.position = "none")
+
+p15.cl <- p15 +
+  xlab('') +
+  ylab('') +
+  theme(legend.position = "none")
+
+p16.cl <- grid.arrange(p13.cl, p14.cl, p15.cl, ncol = 1)
+ggsave(filename = paste0(figure_dir, 'Fig5D.D10.RNA.clean.pdf'), p16.cl, width = 2.8, height = 7.5)
+
 ##############################################################################################
 ## Supp: Sample gene vs FP scatter plots
 ##############################################################################################
@@ -319,7 +354,8 @@ if(remove_unassigned_cells) {
     all_data <- subset(all_data, keep == TRUE)
   }
 }
-
+# Define key genes
+res_genes <- c("WNT5A", "AXL", "EGFR", "JUN", "NGFR", "PCNA", "RPL8")
 # =============================================================================
 # Wrangle data
 # =============================================================================
@@ -334,32 +370,78 @@ saver.all_data.toplot <- t(saver.all_data.toplot)
 saver.all_data.toplot <- as.data.frame(saver.all_data.toplot)
 saver.all_data.toplot$cell_id <- rownames(saver.all_data.toplot)
 
-fatepotential.all_data <- metadat.all_data[, c('cell_id', 'dataset',
-                                               'fatepotential_CIS_d0_d10', 'fatepotential_CIS_d10_w5', 
-                                               'fatepotential_COCL2_d0_d10', 'fatepotential_COCL2_d10_w5',
-                                               'fatepotential_DABTRAM_d0_d10', 'fatepotential_DABTRAM_d10_w5')]
+# fatepotential.all_data <- metadat.all_data[, c('cell_id', 'dataset',
+#                                                'fatepotential_CIS_d0_d10', 'fatepotential_CIS_d10_w5', 
+#                                                'fatepotential_COCL2_d0_d10', 'fatepotential_COCL2_d10_w5',
+#                                                'fatepotential_DABTRAM_d0_d10', 'fatepotential_DABTRAM_d10_w5')]
+fatepotential.all_data <- metadat.all_data[, c('cell_id', 'dataset', 'fatepotential_CIS_d10_w5', 
+                                               'fatepotential_COCL2_d10_w5', 'fatepotential_DABTRAM_d10_w5')]
 
 cor.to.plot <- merge(fatepotential.all_data, saver.all_data.toplot, by = 'cell_id')
 
 # =============================================================================
 # Plot data
 # =============================================================================
-cor.to.plot.melt <- melt(cor.to.plot, id.vars = c('cell_id', 'dataset', 'fatepotential_CIS_d0_d10', 'fatepotential_CIS_d10_w5', 
-                                                  'fatepotential_COCL2_d0_d10', 'fatepotential_COCL2_d10_w5',
-                                                  'fatepotential_DABTRAM_d0_d10', 'fatepotential_DABTRAM_d10_w5'))
-colnames(cor.to.plot.melt)[9] <- 'Gene'
-colnames(cor.to.plot.melt)[10] <- 'Saver'
+# cor.to.plot.melt <- melt(cor.to.plot, id.vars = c('cell_id', 'dataset', 'fatepotential_CIS_d0_d10', 'fatepotential_CIS_d10_w5', 
+#                                                   'fatepotential_COCL2_d0_d10', 'fatepotential_COCL2_d10_w5',
+#                                                   'fatepotential_DABTRAM_d0_d10', 'fatepotential_DABTRAM_d10_w5'))
+# colnames(cor.to.plot.melt)[9] <- 'Gene'
+# colnames(cor.to.plot.melt)[10] <- 'Saver'
+# cor.to.plot.melt <- melt(cor.to.plot.melt, id.vars = c('cell_id', 'dataset', 'Gene', 'Saver'))
+# colnames(cor.to.plot.melt)[5] <- 'FatePotential.index'
+# colnames(cor.to.plot.melt)[6] <- 'FatePotential.estimate'
+
+cor.to.plot.melt <- melt(cor.to.plot, id.vars = c('cell_id', 'dataset', 'fatepotential_CIS_d10_w5',
+                                                  'fatepotential_COCL2_d10_w5','fatepotential_DABTRAM_d10_w5'))
+colnames(cor.to.plot.melt)[6] <- 'Gene'
+colnames(cor.to.plot.melt)[7] <- 'Saver'
 cor.to.plot.melt <- melt(cor.to.plot.melt, id.vars = c('cell_id', 'dataset', 'Gene', 'Saver'))
 colnames(cor.to.plot.melt)[5] <- 'FatePotential.index'
 colnames(cor.to.plot.melt)[6] <- 'FatePotential.estimate'
 
 cor.to.plot.melt <- cor.to.plot.melt %>% drop_na()
-ggplot(cor.to.plot.melt, aes(x = Saver, y = FatePotential.estimate)) +
-  geom_point(color = 'gray', size = 1) +
-  stat_cor(method = "spearman", label.sep = "\n", na.rm = T, label.x = -0.95, label.y = 0) +
+cor.to.plot.melt$FatePotential.index <- factor(cor.to.plot.melt$FatePotential.index, levels = c('fatepotential_DABTRAM_d10_w5',
+                                                                                                'fatepotential_COCL2_d10_w5', 
+                                                                                                'fatepotential_CIS_d10_w5'))
+cor.to.plot.melt.ctrl <- cor.to.plot.melt[cor.to.plot.melt$Gene == 'RPL8', ]
+cor.to.plot.melt <- cor.to.plot.melt[cor.to.plot.melt$Gene != 'RPL8', ]
+
+cor.to.plot.melt$FatePotential.index <- gsub('fatepotential_', '', cor.to.plot.melt$FatePotential.index)
+cor.to.plot.melt$FatePotential.index <- gsub('_d10_w5', '', cor.to.plot.melt$FatePotential.index)
+cor.to.plot.melt$FatePotential.index <- factor(cor.to.plot.melt$FatePotential.index, levels = c('DABTRAM',
+                                                                                                'COCL2', 
+                                                                                                'CIS'))
+
+p1 <- ggplot(cor.to.plot.melt, aes(x = Saver, y = FatePotential.estimate)) +
+  geom_point(color = 'gray', size = 1, alpha = 0.5) +
+  # geom_hdr(aes(fill = after_stat(probs)), color = "black", alpha = 0.8, probs = c(0.99, 0.8, 0.6, 0.4, 0.2)) +
+  stat_cor(method = "spearman", label.sep = "\n", na.rm = T, label.x = 0, label.y = 0) +
+  xlab('GEX (Saver)') +
+  ylab('D10-to-W5 Growth Potential') +
   facet_grid(FatePotential.index ~ Gene, scales = 'free') +
+  coord_cartesian(xlim = c(-1, 5)) +
   theme_bw()
 
+cor.to.plot.melt.ctrl$FatePotential.index <- gsub('fatepotential_', '', cor.to.plot.melt.ctrl$FatePotential.index)
+cor.to.plot.melt.ctrl$FatePotential.index <- gsub('_d10_w5', '', cor.to.plot.melt.ctrl$FatePotential.index)
+cor.to.plot.melt.ctrl$FatePotential.index <- factor(cor.to.plot.melt.ctrl$FatePotential.index, levels = c('DABTRAM',
+                                                                                                'COCL2', 
+                                                                                                'CIS'))
+
+p2 <- ggplot(cor.to.plot.melt.ctrl, aes(x = Saver, y = FatePotential.estimate)) +
+  geom_point(color = 'gray', size = 1, alpha = 0.5) +
+  # geom_hdr(aes(fill = after_stat(probs)), color = "black", alpha = 0.8, probs = c(0.99, 0.8, 0.6, 0.4, 0.2)) +
+  stat_cor(method = "spearman", label.sep = "\n", na.rm = T, label.x = -7.5, label.y = 0) +
+  xlab('GEX (Saver)') +
+  ylab('D10-to-W5 Growth Potential') +
+  facet_grid(FatePotential.index ~ Gene, scales = 'free') +
+  # coord_cartesian(xlim = c(-1, 5)) +
+  theme_bw()
+
+p3 <- ggarrange(p1, p2, widths = c(6, 1.5))
+
+ggsave(p3, filename = paste0(figure_dir, 'Supp_Geve_vs_FatePotential.png'), 
+       width = 9.5, height = 4, dpi = 600)
 
 ##############################################################################################
 ## Fig 5B: Density plot of chromVAR FP correlations
@@ -413,6 +495,7 @@ d10_cor.chromVAR$TF <- rownames(d10_cor.chromVAR)
 tfs <- d0_cor.chromVAR$TF
 tfs_toplot <- tfs[grepl('JUN', tfs) | grepl('FOS', tfs) | grepl('SOX10', tfs) | grepl('MITF', tfs) | grepl('TEAD', tfs) | grepl('STAT', tfs) | grepl('IRF3', tfs) ]
 tfs_toplot <- tfs_toplot[!grepl('(var.2)', tfs_toplot)]
+tfs_toplot <- c('JUNB', 'FOS', 'FOSL2', 'TEAD2', 'TEAD1', 'JUN', 'STAT1', 'MITF', 'SOX10')
 
 keyTFs.dabtram.d0 <- d0_cor.chromVAR[d0_cor.chromVAR$TF %in% tfs_toplot, 'correlation.DABTRAM_d0']
 keyTFs.cocl2.d0 <- d0_cor.chromVAR[d0_cor.chromVAR$TF %in% tfs_toplot, 'correlation.COCL2_d0']
@@ -432,7 +515,8 @@ p1.TF <- ggplot(d0_cor.chromVAR, aes(x = order.DABTRAM, y = correlation.DABTRAM_
   geom_point(size = 1, color = '#B5DFB7') +
   geom_point(data = d0_cor.chromVAR[d0_cor.chromVAR$TF %in% tfs_toplot, ], color = 'red') +
   ggrepel::geom_text_repel(data = subset(d0_cor.chromVAR, TF %in% tfs_toplot), 
-                           aes(label = TF)) +
+                           aes(label = TF),
+                           max.overlaps = Inf) +
   ylim(-1, 1) +
   theme_Publication() +
   labs(ylab = 'Correlation', xlab = 'TF rank')
@@ -445,7 +529,8 @@ p2.TF <- ggplot(d0_cor.chromVAR, aes(x = order.COCL2, y = correlation.COCL2_d0))
   geom_point(size = 1, color = '#B5DFB7') +
   geom_point(data = d0_cor.chromVAR[d0_cor.chromVAR$TF %in% tfs_toplot, ], color = 'red') +
   ggrepel::geom_text_repel(data = subset(d0_cor.chromVAR, TF %in% tfs_toplot), 
-                           aes(label = TF)) +
+                           aes(label = TF),
+                           max.overlaps = Inf) +
   ylim(-1, 1) +
   theme_Publication() +
   labs(ylab = 'Correlation', xlab = 'TF rank')
@@ -457,13 +542,14 @@ p3.TF <- ggplot(d0_cor.chromVAR, aes(x = order.CIS, y = correlation.CIS_d0)) +
   geom_point(size = 1, color = '#B5DFB7') +
   geom_point(data = d0_cor.chromVAR[d0_cor.chromVAR$TF %in% tfs_toplot, ], color = 'red') +
   ggrepel::geom_text_repel(data = subset(d0_cor.chromVAR, TF %in% tfs_toplot), 
-                           aes(label = TF)) +
+                           aes(label = TF),
+                           max.overlaps = Inf) +
   ylim(-1, 1) +
   theme_Publication() +
   labs(ylab = 'Correlation', xlab = 'TF rank')
 
 p4.TF <- grid.arrange(p1.TF, p2.TF, p3.TF, ncol = 3)
-ggsave(filename = paste0(figure_dir, 'SuppFig5B.D0.TF.pdf'), p4.TF, width = 9, height = 2.5)
+ggsave(filename = paste0(figure_dir, 'SuppFig5B.D0.TF.pdf'), p4.TF, width = 8.5, height = 2.5)
 
 
 # DABTRAM day10
@@ -472,7 +558,9 @@ d10_cor.chromVAR$order.DABTRAM <- 1:nrow(d10_cor.chromVAR)
 p5.TF <- ggplot(d10_cor.chromVAR, aes(x = order.DABTRAM, y = correlation.DABTRAM_d10)) +
   geom_point(size = 1, color = '#B5DFB7') +
   geom_point(data = d10_cor.chromVAR[d10_cor.chromVAR$TF %in% tfs_toplot, ], color = 'red') +
-  ggrepel::geom_text_repel(data = subset(d10_cor.chromVAR, TF %in% tfs_toplot), 
+  ggrepel::geom_label_repel(data = subset(d10_cor.chromVAR, TF %in% tfs_toplot), 
+                            box.padding = 0.5,
+                            max.overlaps = Inf,
                            nudge_x = -2,
                            aes(label = TF)) +
   geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
@@ -486,8 +574,10 @@ d10_cor.chromVAR$order.COCL2 <- 1:nrow(d10_cor.chromVAR)
 p6.TF <- ggplot(d10_cor.chromVAR, aes(x = order.COCL2, y = correlation.COCL2_d10)) +
   geom_point(size = 1, color = '#B5DFB7') +
   geom_point(data = d10_cor.chromVAR[d10_cor.chromVAR$TF %in% tfs_toplot, ], color = 'red') +
-  ggrepel::geom_text_repel(data = subset(d10_cor.chromVAR, TF %in% tfs_toplot), 
+  ggrepel::geom_label_repel(data = subset(d10_cor.chromVAR, TF %in% tfs_toplot), 
                            nudge_x = -10,
+                           box.padding = 0.5,
+                           max.overlaps = Inf,
                            aes(label = TF)) +
   geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
   ylim(-1, 1) +
@@ -501,8 +591,10 @@ d10_cor.chromVAR$order.CIS <- 1:nrow(d10_cor.chromVAR)
 p7.TF <- ggplot(d10_cor.chromVAR, aes(x = order.CIS, y = correlation.CIS_d10)) +
   geom_point(size = 1, color = '#B5DFB7') +
   geom_point(data = d10_cor.chromVAR[d10_cor.chromVAR$TF %in% tfs_toplot, ], color = 'red') +
-  ggrepel::geom_text_repel(data = subset(d10_cor.chromVAR, TF %in% tfs_toplot), 
+  ggrepel::geom_label_repel(data = subset(d10_cor.chromVAR, TF %in% tfs_toplot), 
                            nudge_x = -10,
+                           box.padding = 0.5,
+                           max.overlaps = Inf,
                            aes(label = TF)) +
   geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
   ylim(-1, 1) +
@@ -511,7 +603,7 @@ p7.TF <- ggplot(d10_cor.chromVAR, aes(x = order.CIS, y = correlation.CIS_d10)) +
 
 p8.TF <- grid.arrange(p5.TF, p6.TF, p7.TF, ncol = 3)
 
-ggsave(filename = paste0(figure_dir, 'Fig5B.TF.pdf'), p8.TF, width = 9, height = 2.5)
+ggsave(filename = paste0(figure_dir, 'Fig5B.TF.pdf'), p8.TF, width = 8.5, height = 2.5)
 
 ##############################################################################################
 ## Fig 5D: Comparison of correlations (TF)
@@ -525,7 +617,8 @@ p9.TF <- ggplot(d0_cor.chromVAR, aes(x = correlation.DABTRAM_d0, y = correlation
   xlim(c(-0.505, 0.505)) +
   ylim(c(-0.505, 0.505)) +
   scale_fill_manual(values = brewer.pal(5, "GnBu")) +
-  theme_Publication()
+  theme_Publication() +
+  theme(legend.position = "none")
 
 p10.TF <- ggplot(d0_cor.chromVAR, aes(x = correlation.CIS_d0, y = correlation.COCL2_d0)) +
   # geom_point(color = 'pink') +
@@ -534,7 +627,8 @@ p10.TF <- ggplot(d0_cor.chromVAR, aes(x = correlation.CIS_d0, y = correlation.CO
   xlim(c(-0.505, 0.505)) +
   ylim(c(-0.505, 0.505)) +
   scale_fill_manual(values = brewer.pal(5, "GnBu")) +
-  theme_Publication()
+  theme_Publication() +
+  theme(legend.position = "none")
 
 
 p11.TF <- ggplot(d0_cor.chromVAR, aes(x = correlation.DABTRAM_d0, y = correlation.CIS_d0)) +
@@ -544,11 +638,12 @@ p11.TF <- ggplot(d0_cor.chromVAR, aes(x = correlation.DABTRAM_d0, y = correlatio
   xlim(c(-0.505, 0.505)) +
   ylim(c(-0.505, 0.505)) +
   scale_fill_manual(values = brewer.pal(5, "GnBu")) +
-  theme_Publication()
+  theme_Publication() +
+  theme(legend.position = "none")
 
 p12.TF <- grid.arrange(p9.TF, p10.TF, p11.TF, ncol = 3)
 
-ggsave(filename = paste0(figure_dir, 'Fig5D.D0.TF.pdf'), p12.TF, width = 9, height = 3.2)
+ggsave(filename = paste0(figure_dir, 'Fig5D.D0.TF.pdf'), p12.TF, width = 9, height = 2.8)
 
 
 # D10 correlations
@@ -564,7 +659,7 @@ p13.TF <- ggplot(d10_cor.chromVAR, aes(x = correlation.DABTRAM_d10, y = correlat
 p14.TF <- ggplot(d10_cor.chromVAR, aes(x = correlation.CIS_d10, y = correlation.COCL2_d10)) +
   # geom_point(color = 'pink') +
   geom_hdr(aes(fill = after_stat(probs)), color = "black", alpha = 0.8, probs = c(0.99, 0.8, 0.6, 0.4, 0.2)) +
-  stat_cor(method = "spearman", label.x = -0.95, label.y = 0.8) +
+  stat_cor(method = "spearman", label.x = -0.15, label.y = 0.8) +
   xlim(c(-0.2, 0.2)) +
   ylim(c(-1, 1)) +
   scale_fill_manual(values = brewer.pal(5, "GnBu")) +
@@ -574,7 +669,7 @@ p14.TF <- ggplot(d10_cor.chromVAR, aes(x = correlation.CIS_d10, y = correlation.
 p15.TF <- ggplot(d10_cor.chromVAR, aes(x = correlation.DABTRAM_d10, y = correlation.CIS_d10)) +
   # geom_point(color = 'pink') +
   geom_hdr(aes(fill = after_stat(probs)), color = "black", alpha = 0.8, probs = c(0.99, 0.8, 0.6, 0.4, 0.2)) +
-  stat_cor(method = "spearman", label.x = -0.95, label.y = 0.8) +
+  stat_cor(method = "spearman", label.x = -0.95, label.y = 0.15) +
   xlim(c(-1, 1)) +
   ylim(c(-0.2, 0.2)) +
   scale_fill_manual(values = brewer.pal(5, "GnBu")) +
@@ -584,6 +679,23 @@ p16.TF <- grid.arrange(p13.TF, p14.TF, p15.TF, ncol = 1)
 
 ggsave(filename = paste0(figure_dir, 'Fig5D.D10.TF.pdf'), p16.TF, width = 3, height = 9)
 
+p13.TF.cl <- p13.TF + 
+  xlab('') +
+  ylab('') +
+  theme(legend.position = "none")
+
+p14.TF.cl <- p14.TF + 
+  xlab('') +
+  ylab('') +
+  theme(legend.position = "none")
+
+p15.TF.cl <- p15.TF +
+  xlab('') +
+  ylab('') +
+  theme(legend.position = "none")
+
+p16.TF.cl <- grid.arrange(p13.TF.cl, p14.TF.cl, p15.TF.cl, ncol = 1)
+ggsave(filename = paste0(figure_dir, 'Fig5D.D10.TF.clean.pdf'), p16.TF.cl, width = 2.8, height = 7.5)
 
 
 
@@ -636,7 +748,7 @@ write.csv(d0_d10.RNA, paste0(result_dir, 'd0_d10_correlation_mod.csv'), row.name
 d0_d10.RNA <- read.csv(paste0(result_dir, 'd0_d10_correlation_mod.csv'))
 rownames(d0_d10.RNA) <- d0_d10.RNA$Gene
 
-pdf(paste0(figure_dir, "Fig5C.heatmap_output_d0_d10.pdf"), width = 8, height = 7)
+pdf(paste0(figure_dir, "Supp_heatmap_genes_d0_d10.pdf"), width = 8, height = 15)
 Heatmap(d0_d10.RNA[, c('correlation.DABTRAM_d0', 'correlation.COCL2_d0', 'correlation.CIS_d0', 'correlation.DABTRAM_d10', 'correlation.COCL2_d10', 'correlation.CIS_d10')],
         col = colorRamp2(seq(-0.8,0.8, length=12), colorRampPalette(rev(brewer.pal(9, "RdYlBu")))(12)),
         cluster_rows = FALSE, row_split = d0_d10.RNA$`Pathway.`, cluster_columns = FALSE,
@@ -713,6 +825,10 @@ Heatmap(as.matrix(d0_d10.RNA[c('correlation.DABTRAM_d0', 'correlation.COCL2_d0',
 
 
 ## Plot correlation with MP UCEll scores
+gavish.mp <- read.csv('/Users/emiliac/Dropbox/Thesis/resources/Signatures/Gavish_Malignant_Meta_Programs.csv')
+gavish.mp.names <- as.data.frame(colnames(gavish.mp))
+colnames(gavish.mp.names) <- 'Gavish.MP.names'
+gavish.mp.names$Gavish.MP.names2 <- paste0('MP', seq(1, nrow(gavish.mp.names)), '-', gavish.mp.names$Gavish.MP.names)
 
 d0_cor.gavish.mp <- read.csv(paste0(result_dir, "GavishMP_UCell_cor_d0_d10.csv"))
 d10_cor.gavish.mp <- read.csv(paste0(result_dir, "GavishMP_UCell_cor_d10_w5.csv"))
@@ -726,19 +842,42 @@ mps <- c('Cell Cycle - G1/S.rho', 'Cell Cycle - G2/M.rho', 'Cell Cycle HMG-rich.
 
 d0_d10_cor.gavish.mp <- merge(d0_cor.gavish.mp, d10_cor.gavish.mp, by = 'MetaProgram')
 rownames(d0_d10_cor.gavish.mp) <- d0_d10_cor.gavish.mp$MetaProgram
+d0_d10_cor.gavish.mp$MetaProgram <- gsub('.rho', '', d0_d10_cor.gavish.mp$MetaProgram)
+d0_d10_cor.gavish.mp$MetaProgram.name <- gsub('\\-', '.', d0_d10_cor.gavish.mp$MetaProgram)
+d0_d10_cor.gavish.mp$MetaProgram.name <- gsub(' ', '.', d0_d10_cor.gavish.mp$MetaProgram.name)
+d0_d10_cor.gavish.mp$MetaProgram.name <- gsub('\\/', '.', d0_d10_cor.gavish.mp$MetaProgram.name)
+d0_d10_cor.gavish.mp$MetaProgram.name <- gsub('\\(', '.', d0_d10_cor.gavish.mp$MetaProgram.name)
+d0_d10_cor.gavish.mp$MetaProgram.name <- gsub('\\)', '.', d0_d10_cor.gavish.mp$MetaProgram.name)
+
+
 d0_d10_cor.gavish.mp <- d0_d10_cor.gavish.mp[mps, ]
-rownames(d0_d10_cor.gavish.mp) <- gsub('.rho', '', rownames(d0_d10_cor.gavish.mp))
+d0_d10_cor.gavish.mp <- merge(d0_d10_cor.gavish.mp, gavish.mp.names, by.x = 'MetaProgram.name', by.y = 'Gavish.MP.names', all.x = TRUE)
+d0_d10_cor.gavish.mp$Label <- str_split_fixed(d0_d10_cor.gavish.mp$Gavish.MP.names2, '-', 2)[, 1]
+d0_d10_cor.gavish.mp$Label <- factor(d0_d10_cor.gavish.mp$Label, levels = paste0('MP', seq(1,41)))
+d0_d10_cor.gavish.mp <- d0_d10_cor.gavish.mp[order(d0_d10_cor.gavish.mp$Label), ]
+
+rownames(d0_d10_cor.gavish.mp) <- d0_d10_cor.gavish.mp$Gavish.MP.names2
+
 
 pdf(paste0(figure_dir, "Fig5C.heatmap_output_d0_d10_gavish_mp.pdf"), width = 5, height = 7)
 Heatmap(as.matrix(d0_d10_cor.gavish.mp[, c('DABTRAM.D0.D10', 'COCL2.D0.D10', 'CIS.D0.D10', 'DABTRAM.D10.W5', 'COCL2.D10.W5', 'CIS.D10.W5')]),
         col = colorRamp2(seq(-0.8,0.8, length=12), colorRampPalette(rev(brewer.pal(9, "RdYlBu")))(12)),
-        cluster_rows = TRUE, cluster_columns = FALSE,
+        cluster_rows = F, cluster_columns = FALSE,
         show_row_names = T, row_title_rot = 0, 
-        column_split = c(rep('Day0', 3), rep('Day10', 3)), show_column_names = T, column_title_rot = 0,
+        column_split = c(rep('D0-to-D10', 3), rep('D10-to-W5', 3)), show_column_names = T, column_title_rot = 0,
         border = TRUE)
 dev.off()
 
-
+pdf(paste0(figure_dir, "Fig5C.heatmap_output_d0_d10_gavish_mp.pdf"), width = 5, height = 7)
+pheatmap(as.matrix(d0_d10_cor.gavish.mp[, c('DABTRAM.D0.D10', 'COCL2.D0.D10', 'CIS.D0.D10', 'DABTRAM.D10.W5', 'COCL2.D10.W5', 'CIS.D10.W5')]),
+         col = colorRamp2(seq(-0.8,0.8, length=12), colorRampPalette(rev(brewer.pal(9, "RdYlBu")))(12)),
+         cluster_rows = F,
+         cluster_cols = F,
+         column_split = c(rep('D0-to-D10', 3), rep('D10-to-W5', 3)),
+         cellwidth = 20,
+         cellheight = 20,
+         border = TRUE)
+dev.off()
 
 ##############################################################################################
 ## Fig 5E feature plot
@@ -750,6 +889,7 @@ remove_unassigned_cells <- TRUE
 # ==============================================================================
 
 load(paste0(data_dir, 'Writeup10a_data_empty.RData'))
+load(paste0(data_dir, 'Writeup10a_data_fatepotential.RData'))
 load(paste0(data_dir, 'Writeup10a_data_fasttopic_DABTRAM.RData'))
 load(paste0(data_dir, 'Writeup10a_data_chromVar_day0.RData'))
 load(paste0(data_dir, 'Writeup10a_data_chromVar_day10_DABTRAM.RData'))
@@ -818,7 +958,29 @@ ft_umap$JUN.scale <- ifelse(ft_umap$JUN.scale > 2, 2, ft_umap$JUN.scale)
 ft_umap$JUN <- ifelse(ft_umap$JUN < -5, -5, ft_umap$JUN)
 ft_umap$JUN <- ifelse(ft_umap$JUN > 5, 5, ft_umap$JUN)
 
-ggplot(ft_umap, aes(x = ftDABTRAMumap_1, y = ftDABTRAMumap_2, color = JUN)) +
+p <- ggplot(ft_umap, aes(x = ftDABTRAMumap_1, y = ftDABTRAMumap_2, color = JUN.scale)) +
   geom_point(size = 0.1) +
   scale_color_gradient2(low = "#604cc3", mid = "bisque", high = "#ffa500", midpoint = 0,  na.value = '#E8E8E8') +
+  theme_Publication() +
+  theme(legend.position = "right",
+        legend.direction = "vertical")
+ggsave(paste0(figure_dir, 'SuppFig5E.JUN.fatepotential.pdf'), p, width = 3.5, height = 2)
+
+metadat$cell_id <- rownames(metadat)
+ft_umap <- merge(metadat[, c('cell_id', 'fatepotential_DABTRAM_d0_d10', 'fatepotential_DABTRAM_d10_w5')], ft_umap, by = 'cell_id')
+p1 <- ggplot(ft_umap, aes(x = fatepotential_DABTRAM_d0_d10, y = `JUN`)) +
+  geom_point(size = 0.5) +
+  # geom_smooth(method = 'lm', alpha = 0.2) +
+  stat_cor(method = 'spearman') +
+  ggtitle('DABTRAM (day0)') +
   theme_Publication()
+
+p2 <- ggplot(ft_umap, aes(x = fatepotential_DABTRAM_d10_w5, y = `JUN`)) +
+  geom_point(size = 0.5) +
+  # geom_smooth(method = 'lm', alpha = 0.2) +
+  stat_cor(method = 'spearman', label.x = 0, label.y = -2.5) +
+  ggtitle('DABTRAM (day10)') +
+  theme_Publication()
+
+p3 <- grid.arrange(p1, p2, ncol = 1)
+ggsave(paste0(figure_dir, 'SuppFig5E.JUN.fatepotential.spearman.pdf'), p3, width = 3.5, height = 6.5)

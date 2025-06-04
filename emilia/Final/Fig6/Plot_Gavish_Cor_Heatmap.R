@@ -3,6 +3,7 @@ library(Seurat)
 library(multiomeFate)
 library(tidyverse)
 library(ggpubr)
+library(ComplexHeatmap)
 
 data_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/'
 out_dir1 <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task2_correlate_fate_potential_and_features_V2/'
@@ -107,18 +108,25 @@ mps <- c('Cell.Cycle...G1.S.rho', 'Cell.Cycle...G2.M.rho', 'Cell.Cycle.HMG.rich.
 # =============================================================================
 # Plot
 # =============================================================================
-pheatmap::pheatmap(cor.vec[mps, c('cor.DABTRAM', 'cor.COCL2', 'cor.CIS')], 
-                   breaks = seq(-0.8, 0.8, length.out = 101),
-                   fontsize = 10, fontsize_row = 10, fontsize_col = 10,
-                   show_colnames = T, show_rownames = T,
-                   cluster_rows = F, cluster_cols = F, 
-                   border_color = 'black', 
-                   legend = F,
-                   cellwidth = 20, cellheight = 20,
-                   filename = paste0(figure_dir, 'Gavish_MP_correlation_FB_heatmap.pdf'))
+# pheatmap::pheatmap(cor.vec[mps, c('cor.DABTRAM', 'cor.COCL2', 'cor.CIS')], 
+#                    breaks = seq(-0.8, 0.8, length.out = 101),
+#                    fontsize = 10, fontsize_row = 10, fontsize_col = 10,
+#                    show_colnames = T, show_rownames = T,
+#                    cluster_rows = F, cluster_cols = F, 
+#                    border_color = 'black', 
+#                    legend = F,
+#                    cellwidth = 20, cellheight = 20,
+#                    filename = paste0(figure_dir, 'Gavish_MP_correlation_FB_heatmap.pdf'))
 
-
-                  
+pdf(paste0(figure_dir, 'Supp_Gavish_MP_correlation_FB_heatmap.pdf'), width = 4, height = 8)
+pheatmap(cor.vec[mps, c('cor.DABTRAM', 'cor.COCL2', 'cor.CIS')], 
+         breaks = seq(-0.8, 0.8, length.out = 101),
+         fontsize = 10, fontsize_row = 10, fontsize_col = 10,
+         show_colnames = T, show_rownames = T,
+         cluster_rows = F, cluster_cols = F, 
+         border_color = 'black', 
+         cellwidth = 20, cellheight = 20)
+dev.off()
 
 
 

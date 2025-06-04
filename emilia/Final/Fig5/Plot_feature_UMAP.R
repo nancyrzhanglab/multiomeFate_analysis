@@ -5,11 +5,14 @@ library(data.table)
 library(ggplot2)
 library(ggpubr)
 library(GGally)
+library(hdrcde)
 library(ggdensity)
+library(circlize)
 library(RColorBrewer)
 
 data_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/'
 out_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/'
+figure_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/figures/MultiomeFate_V3/Fig5/'
 
 theme_Publication<- function(base_size=12, base_family="sans") {
   library(grid)
@@ -43,6 +46,7 @@ theme_Publication<- function(base_size=12, base_family="sans") {
             strip.text = element_text(face="bold")
     ))
 }
+
 # ==============================================================================
 # Read data general
 # ==============================================================================
@@ -55,6 +59,7 @@ all_data[['fasttopic_DABTRAM']] <- all_data_fasttopic_DABTRAM
 all_data[["ft.DABTRAM.umap"]] <- all_data_ft_DABTRAM_umap
 
 
+remove_unassigned_cells <- TRUE
 # remove cells with no lineage
 if(remove_unassigned_cells) {
   print("Removing cells with no assigned lineage")
@@ -116,3 +121,28 @@ p2 <- ggplot(ft_umap, aes(x = fatepotential_DABTRAM_d10_w5, y = `Interferon.MHC.
 p3 <- grid.arrange(p1, p2, ncol = 1)
 ggsave(paste0(figure_dir, 'SuppFig5E.Interferon.MHC.II..I.fatepotential.pdf'), p3, width = 3.5, height = 6.5)
 
+
+ft_umap.day0 <- ft_umap[!is.na(ft_umap$fatepotential_DABTRAM_d0_d10), ]
+p1 <- ggplot(ft_umap.day0, aes(x = fatepotential_DABTRAM_d0_d10, y = `Stress`)) +
+  # geom_point(size = 0.5) +
+  geom_hdr(aes(fill = after_stat(probs)), color = "black", alpha = 0.8, probs = c(0.99, 0.8, 0.6, 0.4, 0.2)) +
+  # geom_smooth(method = 'lm', alpha = 0.2, color = 'black') +
+  stat_cor(method = 'spearman', label.x = -0.95, label.y = 0.6) +
+  scale_fill_manual(values = brewer.pal(5, "RdPu")) +
+  ylim(0, 0.6) +
+  theme_Publication() +
+  theme(legend.position = 'none')
+
+ft_umap.day10 <- ft_umap[!is.na(ft_umap$fatepotential_DABTRAM_d10_w5), ]
+p2 <- ggplot(ft_umap.day10, aes(x = fatepotential_DABTRAM_d10_w5, y = `Stress`)) +
+  # geom_point(size = 0.5) +
+  geom_hdr(aes(fill = after_stat(probs)), color = "black", alpha = 0.8, probs = c(0.99, 0.8, 0.6, 0.4, 0.2)) +
+  # geom_smooth(method = 'lm', alpha = 0.2) +
+  stat_cor(method = 'spearman', label.x = -2, label.y = 0.6) +
+  scale_fill_manual(values = brewer.pal(5, "RdPu")) +
+  ylim(0, 0.6) +
+  theme_Publication()+
+  theme(legend.position = 'none')
+
+p3 <- grid.arrange(p1, p2, ncol = 1)
+ggsave(paste0(figure_dir, 'Fig5E.Stress.fatepotential.pdf'), p3, width = 3.5, height = 6.5)

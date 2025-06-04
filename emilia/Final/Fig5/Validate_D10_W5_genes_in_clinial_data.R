@@ -47,7 +47,8 @@ theme_Publication<- function(base_size=12, base_family="sans") {
     ))
 }
 
-use.pal <- c('#4285F4', '#C00000')
+# use.pal <- c('#4285F4', '#C00000')
+use.pal <- c('#169976', '#FE7743')
 names(use.pal) <- c('pCR', 'RD')
 # ==============================================================================
 # Load data
@@ -266,7 +267,6 @@ cp.dat <- cp.dat %>%
   filter(pathologic_response_pcr_rd %in% c('pCR', 'RD'))
 
 
-
 # ==============================================================================
 # Validate.2
 # ==============================================================================
@@ -286,11 +286,41 @@ cp.dat$cocl2.hi <- factor(cp.dat$cocl2.hi, levels=c("Low", "High"))
 cp.dat$cis.hi <- ifelse(cp.dat$custom.cis > median(cp.dat$custom.cis, na.rm=TRUE), "High", "Low")
 cp.dat$cis.hi <- factor(cp.dat$cis.hi, levels=c("Low", "High"))
 
+# QC
+p.qc <- ggplot(cp.dat, aes(x = pathologic_response_pcr_rd, y = oob.surv)) +
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_boxplot(width = 0.2, outlier.shape = NA) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), alpha = 0.5, width = 0.1) +
+  geom_hline(yintercept = median(cp.dat$oob.surv, na.rm=TRUE), linetype = 'dashed', color = 'red') +
+  scale_fill_manual(values = use.pal) +
+  scale_color_manual(values = use.pal) +
+  labs(y = "Relapse Risk Score") +
+  stat_compare_means(comparisons = list(c('pCR', 'RD')),
+                     paired = FALSE,
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  theme_Publication()
+ggsave(p.qc, filename = paste0(figure_dir, "Supp_relapse_socres.pdf"), width = 1.6, height = 2.5)
+
+p.emt <- ggplot(cp.dat.rd, aes(x = relapse.risk.hi, y = EMT.III)) +
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), alpha = 0.5, width = 0.1) +
+  geom_boxplot(width = 0.2, outlier.shape = NA,  alpha = 0.8) +
+  scale_fill_manual(values = use.pal) +
+  scale_color_manual(values = use.pal) +
+  labs(x = "Relapse Risk Status", 
+       y = "EMT.III") +
+  stat_compare_means(comparisons = list(c('Low', 'High')),
+                     paired = FALSE,
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  theme_Publication()
+p.emt
+ggsave(p.emt, filename = paste0(figure_dir, "Supp_relapse_risk_EMT.pdf"), width = 1.6, height = 2.5)
+
 # Cisplatin long-term
 p1.cis <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=custom.cis)) + 
   geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
-  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
   geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
   stat_compare_means(comparisons = list(c('pCR', 'RD')),
                      paired = FALSE, 
                      method = "wilcox", aes(label =  after_stat(p.signif))) +
@@ -314,8 +344,8 @@ p2.cis <- ggplot(cp.dat, aes(x=custom.cis, y=oob.surv)) +
 
 p3.cis <- ggplot(cp.dat, aes(x=relapse.risk.hi, y=custom.cis)) + 
   geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
-  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
   geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
   stat_compare_means(comparisons = list(c('Low', 'High')),
                      paired = FALSE, 
                      method = "wilcox", aes(label =  after_stat(p.signif))) +
@@ -332,7 +362,41 @@ p.cis <- ggarrange(
   p1.cis, p3.cis,  widths = c(0.6, 1),
   common.legend = TRUE, legend = "bottom")
 
-ggsave(p.cis, filename = paste0(figure_dir, "Fig5H.cisplatin_d10ToWeek5Top20Genes.pdf"), width = 7, height = 4)
+# ggsave(p.cis, filename = paste0(figure_dir, "Fig5H.cisplatin_d10ToWeek5Top20Genes.pdf"), width = 7, height = 4)
+
+p1.cis.cl <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=custom.cis)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('pCR', 'RD')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Pathologic Response", 
+       y = "CIS w5 top20 predictors") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+
+cp.dat.rd <- cp.dat[cp.dat$pathologic_response_pcr_rd == "RD", ]
+p3.cis.cl <- ggplot(cp.dat.rd, aes(x=relapse.risk.hi, y=custom.cis)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('Low', 'High')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Relapse Risk Status", 
+       y = "CIS w5 top20 predictors") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+
+p.cis.cl <- ggarrange(
+  p1.cis.cl, p3.cis.cl,  widths = c(1, 1),
+  common.legend = TRUE, legend = "bottom")
+ggsave(p.cis.cl, filename = paste0(figure_dir, "Fig5H.cisplatin_d10ToWeek5Top20Genes_cl.pdf"), width = 3.2, height = 2.5)
 
 # COCL2 long term
 p1.cocl2 <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=custom.cocl2)) + 
@@ -372,6 +436,40 @@ p.cocl2 <- ggarrange(
 ggsave(p.cocl2, filename = paste0(figure_dir, "Fig5H.cocl2_d10ToWeek5Top20Genes.pdf"), width = 7, height = 4)
 
 
+p1.cocl2.cl <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=custom.cocl2)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('pCR', 'RD')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Pathologic Response", 
+       y = "COCL2 w5 top20 predictors") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+
+p3.cocl2.cl <- ggplot(cp.dat.rd, aes(x=relapse.risk.hi, y=custom.cocl2)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('Low', 'High')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Relapse Risk Status", 
+       y = "COCL2 w5 top20 predictors") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+
+p.cocl2.cl <- ggarrange(
+  p1.cocl2.cl, p3.cocl2.cl,  widths = c(1, 1),
+  common.legend = TRUE, legend = "bottom")
+ggsave(p.cocl2.cl, filename = paste0(figure_dir, "Fig5H.cocl2_d10ToWeek5Top20Genes.clean.pdf"), width = 3.2, height = 2.5)
+
+
 ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=reported.pcr)) + 
   geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
   geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
@@ -386,3 +484,248 @@ ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=reported.pcr)) +
        title = "COCL2 and Pathologic Response") +
   theme_Publication() + 
   theme(legend.position="bottom")
+
+# DABTRAM
+p1.dabtram <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=custom.dabtram)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('pCR', 'RD')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Pathologic Response", 
+       y = "DABTRAM w5 top20 predictors") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+p3.dabtram <- ggplot(cp.dat.rd, aes(x=relapse.risk.hi, y=custom.dabtram)) +
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) +
+  stat_compare_means(comparisons = list(c('Low', 'High')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Relapse Risk Status", 
+       y = "DABTRAM w5 top20 predictors") +
+  theme_Publication() +
+  theme(legend.position="bottom")
+
+p.dabtram <- ggarrange(
+  p1.dabtram, p3.dabtram,  widths = c(1, 1),
+  common.legend = TRUE, legend = "bottom")
+ggsave(p.dabtram, filename = paste0(figure_dir, "Supp_dabtram_d10ToWeek5Top20Genes.clean.pdf"), width = 3.2, height = 2.5)
+
+
+
+
+
+# MP17
+p1.mp17 <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=Interferon.MHC.II..I.)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('pCR', 'RD')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Pathologic Response", 
+       y = "Interferon.MHC.II..I.") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+p3.mp17 <- ggplot(cp.dat.rd, aes(x=relapse.risk.hi, y=Interferon.MHC.II..I.)) +
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) +
+  stat_compare_means(comparisons = list(c('Low', 'High')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Relapse Risk Status", 
+       y = "Interferon.MHC.II..I.") +
+  theme_Publication() +
+  theme(legend.position="bottom")
+
+p.mp17 <- ggarrange(
+  p1.mp17, p3.mp17,  widths = c(1, 1),
+  common.legend = TRUE, legend = "bottom")
+ggsave(p.mp17, filename = paste0(figure_dir, "Supp_mp17_d10ToWeek5Top20Genes.clean.pdf"), width = 3.2, height = 2.5)
+
+# MP18
+p1.mp18 <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=Interferon.MHC.II..II.)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('pCR', 'RD')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Pathologic Response", 
+       y = "Interferon.MHC.II..II.") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+p3.mp18 <- ggplot(cp.dat.rd, aes(x=relapse.risk.hi, y=Interferon.MHC.II..II.)) +
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) +
+  stat_compare_means(comparisons = list(c('Low', 'High')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Relapse Risk Status", 
+       y = "Interferon.MHC.II..II.") +
+  theme_Publication() +
+  theme(legend.position="bottom")
+
+p.mp18 <- ggarrange(
+  p1.mp18, p3.mp18,  widths = c(1, 1),
+  common.legend = TRUE, legend = "bottom")
+ggsave(p.mp18, filename = paste0(figure_dir, "Supp_mp18_d10ToWeek5Top20Genes.clean.pdf"), width = 3.2, height = 2.5)
+
+
+# isg.rs
+p1.isgrs <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=ISG.RS)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('pCR', 'RD')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Pathologic Response", 
+       y = "ISG.RS") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+p3.isgrs <- ggplot(cp.dat.rd, aes(x=relapse.risk.hi, y=ISG.RS)) +
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) +
+  stat_compare_means(comparisons = list(c('Low', 'High')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Relapse Risk Status", 
+       y = "ISG.RS") +
+  theme_Publication() +
+  theme(legend.position="bottom")
+
+p.isgrs <- ggarrange(
+  p1.isgrs, p3.isgrs,  widths = c(1, 1),
+  common.legend = TRUE, legend = "bottom")
+ggsave(p.isgrs, filename = paste0(figure_dir, "Supp_ISGRS_d10ToWeek5Top20Genes.clean.pdf"), width = 3.2, height = 2.5)
+
+
+# EMT iii
+p1.mp14 <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=EMT.III)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('pCR', 'RD')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Pathologic Response", 
+       y = "EMT.III") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+p3.mp14 <- ggplot(cp.dat.rd, aes(x=relapse.risk.hi, y=EMT.III)) +
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) +
+  stat_compare_means(comparisons = list(c('Low', 'High')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Relapse Risk Status", 
+       y = "EMT.III") +
+  theme_Publication() +
+  theme(legend.position="bottom")
+
+p.mp14 <- ggarrange(
+  p1.mp14, p3.mp14,  widths = c(1, 1),
+  common.legend = TRUE, legend = "bottom")
+ggsave(p.mp14, filename = paste0(figure_dir, "Supp_EMTIII_d10ToWeek5Top20Genes.clean.pdf"), width = 3.2, height = 2.5)
+
+
+# G2M
+p1.mp1 <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=Cell.Cycle...G2.M)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('pCR', 'RD')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Pathologic Response", 
+       y = "Cell.Cycle...G2.M") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+p3.mp1 <- ggplot(cp.dat.rd, aes(x=relapse.risk.hi, y=Cell.Cycle...G2.M)) +
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) +
+  stat_compare_means(comparisons = list(c('Low', 'High')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Relapse Risk Status", 
+       y = "Cell.Cycle...G2.M") +
+  theme_Publication() +
+  theme(legend.position="bottom")
+
+p.mp1 <- ggarrange(
+  p1.mp1, p3.mp1,  widths = c(1, 1),
+  common.legend = TRUE, legend = "bottom")
+ggsave(p.mp1, filename = paste0(figure_dir, "Supp_CellCycleG2M_d10ToWeek5Top20Genes.clean.pdf"), width = 3.2, height = 2.5)
+
+
+# G1S
+p1.mp2 <- ggplot(cp.dat, aes(x=pathologic_response_pcr_rd, y=Cell.Cycle...G1.S)) + 
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) + 
+  stat_compare_means(comparisons = list(c('pCR', 'RD')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Pathologic Response", 
+       y = "Cell.Cycle...G1.S") +
+  theme_Publication() + 
+  theme(legend.position="bottom")
+p3.mp2 <- ggplot(cp.dat.rd, aes(x=relapse.risk.hi, y=Cell.Cycle...G1.S)) +
+  geom_violin(aes(fill = pathologic_response_pcr_rd), scale = 'width', alpha = 0.2) +
+  geom_jitter(aes(color = pathologic_response_pcr_rd), width = 0.1, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.2, alpha = 0.8, lwd = 0.8) +
+  stat_compare_means(comparisons = list(c('Low', 'High')),
+                     paired = FALSE, 
+                     method = "wilcox", aes(label =  after_stat(p.signif))) +
+  scale_color_manual(values = use.pal) +
+  scale_fill_manual(values = use.pal) +
+  labs(x = "Relapse Risk Status", 
+       y = "Cell.Cycle...G1.S") +
+  theme_Publication() +
+  theme(legend.position="bottom")
+
+p.mp2 <- ggarrange(
+  p1.mp2, p3.mp2,  widths = c(1, 1),
+  common.legend = TRUE, legend = "bottom")
+ggsave(p.mp2, filename = paste0(figure_dir, "Supp_CellCycleG1S_d10ToWeek5Top20Genes.clean.pdf"), width = 3.2, height = 2.5)
+
+
+
+
+
+

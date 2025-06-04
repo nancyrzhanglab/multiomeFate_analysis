@@ -7,7 +7,7 @@ library(RColorBrewer)
 library(circlize)
 library(gridExtra)
 
-theme_Publication<- function(base_size=12, base_family="sans") {
+theme_Publication<- function(base_size=14, base_family="sans") {
   library(grid)
   library(ggthemes)
   (theme_foundation(base_size=base_size, base_family=base_family)
@@ -39,6 +39,8 @@ theme_Publication<- function(base_size=12, base_family="sans") {
             strip.text = element_text(face="bold")
     ))
 }
+
+
 
 # =============================================================================
 # Read data
@@ -77,6 +79,7 @@ tfs <- comp_df$TF
 
 tfs_toplot <- tfs[grepl('JUN', tfs) | grepl('FOS', tfs) | grepl('SOX10', tfs) | grepl('MITF', tfs) | grepl('TEAD', tfs) | grepl('STAT', tfs) | grepl('IRF3', tfs) ]
 tfs_toplot <- tfs_toplot[!grepl('(var.2)', tfs_toplot)]
+tfs_toplot <- c('FOS', 'TEAD1', 'JUN', 'STAT1', 'MITF', 'SOX10')
 
 # =============================================================================
 # Plot pair-wise comparisons
@@ -167,6 +170,7 @@ comp_df$order.DABTRAM <- 1:nrow(comp_df)
 p1.TF <- ggplot(comp_df, aes(x = order.DABTRAM, y = cor.DATBRAM)) +
   geom_point(size = 1, color = '#B5DFB7') +
   geom_point(data = comp_df[comp_df$TF %in% tfs_toplot, ], color = 'red') +
+  geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
   ggrepel::geom_text_repel(data = subset(comp_df, TF %in% tfs_toplot), 
                            aes(label = TF)) +
   ylim(-1, 1) +
@@ -180,6 +184,7 @@ comp_df$order.COCL2 <- 1:nrow(comp_df)
 p2.TF <- ggplot(comp_df, aes(x = order.COCL2, y = cor.COCL2)) +
   geom_point(size = 1, color = '#B5DFB7') +
   geom_point(data = comp_df[comp_df$TF %in% tfs_toplot, ], color = 'red') +
+  geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
   ggrepel::geom_text_repel(data = subset(comp_df, TF %in% tfs_toplot), 
                            aes(label = TF)) +
   ylim(-1, 1) +
@@ -192,6 +197,7 @@ comp_df$order.CIS <- 1:nrow(comp_df)
 p3.TF <- ggplot(comp_df, aes(x = order.CIS, y = cor.CIS)) +
   geom_point(size = 1, color = '#B5DFB7') +
   geom_point(data = comp_df[comp_df$TF %in% tfs_toplot, ], color = 'red') +
+  geom_hline(yintercept = 0, linetype = 'dashed', color = 'black') +
   ggrepel::geom_text_repel(data = subset(comp_df, TF %in% tfs_toplot), 
                            aes(label = TF)) +
   ylim(-1, 1) +

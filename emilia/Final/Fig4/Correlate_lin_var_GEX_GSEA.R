@@ -279,18 +279,35 @@ GSEA_res$ID.2 <- gsub('_', ' ', GSEA_res$ID.2)
 GSEA_res$ID.2 <- tolower(GSEA_res$ID.2)
 GSEA_res$ID.2 <- gsub('(^|\\W)(\\w)', '\\1\\U\\2', GSEA_res$ID.2, perl = TRUE) 
 
+GSEA_res.main <- GSEA_res[GSEA_res$treatment != 'CIS', ]
+GSEA_res.main <- GSEA_res.main[GSEA_res.main$ID.2 %in% c('Epithelial Mesenchymal Transition', 'Uv Response Dn', 'Myogenesis',
+                                                         'Mtorc1 Signaling', 'Hypoxia', 'Glycolysis', 'Apical Junction', 'Coagulation',
+                                                         'Tnfa Signaling Via Nfkb', 'Apoptosis', 'Tgf Beta Signaling', 'P53 Pathway', 
+                                                         'Il6 Jak Stat3 Signaling', 'Myc Targets V1', 'Interferon Gamma Response', 
+                                                         'Adipogenesis', 'E2f Targets', 'G2m Checkpoint', 'Mitotic Spindle', 'Oxidative Phosphorylation'), ]
 
-p1 <- ggplot(GSEA_res, aes(x = treatment, y = reorder(ID.2, NES), color = NES, size = neg_log10_pval)) +
+p1 <- ggplot(GSEA_res.main, aes(x = reorder(ID.2, -NES), y = treatment, color = NES, size = neg_log10_pval)) +
   geom_point() +
   scale_color_gradient2(low = "#606676", mid = '#C0C0C0', high = "#FFA725", midpoint = 0) +
-  geom_vline(xintercept = 0, linetype = 'dashed', color = 'black') +
+  # geom_vline(xintercept = 0, linetype = 'dashed', color = 'black') +
   scale_size_continuous(range = c(1, 8), breaks = c(2, 4, 6)) +
   labs( x = '', y = '') +
   theme_Publication() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1),
+        legend.position = 'none')
+
 
 p1
-ggsave(paste0(figure_dir, 'GSEA_res_day10.pdf'), p1, width = 6, height = 6)
+# ggsave(paste0(figure_dir, 'GSEA_res_day10.pdf'), p1, width = 6, height = 3)
 
 
+p2 <- ggplot(GSEA_res.main, aes(x = reorder(ID.2, -NES), y = treatment, color = NES, size = neg_log10_pval)) +
+  geom_point() +
+  scale_color_gradient2(low = "#606676", mid = '#C0C0C0', high = "#FFA725", midpoint = 0) +
+  # geom_vline(xintercept = 0, linetype = 'dashed', color = 'black') +
+  scale_size_continuous(range = c(1, 8), breaks = c(2, 4, 6)) +
+  labs( x = '', y = '') +
+  theme_Publication() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1))
 
+ggsave(paste0(figure_dir, 'GSEA_res_day10_legend.pdf'), p2, width = 6, height = 3)

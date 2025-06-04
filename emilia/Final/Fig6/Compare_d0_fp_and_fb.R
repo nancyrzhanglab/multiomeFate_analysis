@@ -47,7 +47,7 @@ theme_Publication<- function(base_size=12, base_family="sans") {
     ))
 }
 
-dataset_colors <- c(day0 = "#A9A9A9",
+dataset_colors <- c(day0 = "#696969",
                     day10_CIS = "#FBD08C",
                     day10_COCL2 = "#6DC49C",
                     day10_DABTRAM = "#9D85BE",
@@ -181,7 +181,7 @@ df.1 <- df[df$assigned_lineage == lin.to.plot, ]
 
 p1 <- ggplot(df.1, aes(x = fatepotential_d0_d10, y = bias)) +
   geom_point(data = df, color = '#E8E8E8', stroke = 0.5) +
-  geom_point(shape = 18, size = 5, color = '#A9A9A9', stroke = 0.5) +
+  geom_point(shape = 18, size = 5, color = '#696969', stroke = 0.5) +
   geom_vline(xintercept = 0, linetype = 'dashed') +
   geom_hline(yintercept = 0.5, linetype = 'dashed') +
   # scale_fill_gradient(low = "#DCDCDC", high = "#7C00FE") +
@@ -198,21 +198,59 @@ p1 <- ggplot(df.1, aes(x = fatepotential_d0_d10, y = bias)) +
 ft.umap.DABTRAM.d10 <-  merge(ft.umap.DABTRAM, fp.d10_w5, by = 'cell_id')
 ft.umap.DABTRAM.d10 <- ft.umap.DABTRAM.d10[order(ft.umap.DABTRAM.d10$fp.d10_w5, decreasing = FALSE), ]
 ft.umap.DABTRAM.d0.w5 <- ft.umap.DABTRAM[ft.umap.DABTRAM$dataset %in% c('day0', 'week5_DABTRAM'), ]
+
+
+max_val <- stats::quantile(ft.umap.DABTRAM.d10$fp.d10_w5, 
+                           probs = 0.99, 
+                           na.rm = TRUE)
+min_val <- stats::quantile(ft.umap.DABTRAM.d10$fp.d10_w5, 
+                           probs = 0.01, 
+                           na.rm = TRUE)
+ft.umap.DABTRAM.d10$fp.d10_w5_scaled <- scales::rescale(
+  pmax(pmin(ft.umap.DABTRAM.d10$fp.d10_w5, 
+            max_val), 
+       min_val),
+  to = c(-1, 1)
+)
+
+
+
 p2 <- ggplot(ft.umap.DABTRAM, aes(x = ftDABTRAMumap_1, y = ftDABTRAMumap_2)) +
   geom_point(color = '#E8E8E8', size = 0.5) +
   geom_point(data = ft.umap.DABTRAM.d0.w5[ft.umap.DABTRAM.d0.w5$assigned_lineage == lin.to.plot, ], 
              aes(color = dataset), size = 5, shape = 18) +
   geom_point(data = ft.umap.DABTRAM.d10[ft.umap.DABTRAM.d10$assigned_lineage == lin.to.plot, ],
-             aes(fill = fp.d10_w5), shape = 23, size = 4, stroke = 0) +
+             aes(fill = fp.d10_w5_scaled), shape = 21, size = 5, stroke = 0) +
   scale_color_manual(values = dataset_colors) +
-  scale_fill_gradient2(low = 'red', high = 'blue', mid = 'bisque', midpoint = 0) +
-  labs(title = treatment) +
-  theme_Publication()
+  scale_fill_gradient2(low = 'blue', high = 'red', mid = 'bisque', midpoint = 0, limits = c(min_val, max_val)) +
+  xlab('') +
+  ylab('') +
+  theme_Publication() +
+  theme(axis.line.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        legend.position = 'none')
 
-p3 <- ggarrange(p1, p2, widths = c(0.65, 1), ncol = 2)
+p3 <- ggarrange(p1, p2, widths = c(1, 1), ncol = 2)
 
-ggsave(paste0(figure_dir, 'adapting_bias_thres_0_vs_fp_d0_d10_DABTRAM_panel_', lin.to.plot, '.pdf'), p3, width = 8.4, height = 3.6)
+ggsave(paste0(figure_dir, 'adapting_bias_thres_0_vs_fp_d0_d10_DABTRAM_panel_', lin.to.plot, '.pdf'), p3, width = 5.8, height = 3)
 
 
-p2
+p4 <- ggplot(ft.umap.DABTRAM, aes(x = ftDABTRAMumap_1, y = ftDABTRAMumap_2)) +
+  geom_point(color = '#E8E8E8', size = 0.5) +
+  geom_point(data = ft.umap.DABTRAM.d0.w5[ft.umap.DABTRAM.d0.w5$assigned_lineage == lin.to.plot, ], 
+             aes(color = dataset), size = 5, shape = 18) +
+  geom_point(data = ft.umap.DABTRAM.d10[ft.umap.DABTRAM.d10$assigned_lineage == lin.to.plot, ],
+             aes(fill = fp.d10_w5_scaled), shape = 21, size = 5, stroke = 0) +
+  scale_color_manual(values = dataset_colors) +
+  scale_fill_gradient2(low = 'blue', high = 'red', mid = 'bisque', midpoint = 0, limits = c(min_val, max_val)) +
+  xlab('') +
+  ylab('') +
+  theme_Publication() +
+  theme(axis.line.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank())
+ggsave(paste0(figure_dir, 'adapting_bias_thres_0_vs_fp_d0_d10_DABTRAM_panel_', lin.to.plot, '_legend.pdf'), p4, width = 5.8, height = 3)
 

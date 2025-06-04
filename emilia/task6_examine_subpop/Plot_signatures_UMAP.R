@@ -10,6 +10,7 @@ library(RColorBrewer)
 
 data_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/'
 out_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/'
+figure_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/figures/MultiomeFate_V3/Fig5/'
 
 theme_Publication<- function(base_size=12, base_family="sans") {
   library(grid)
@@ -357,17 +358,12 @@ score.df.week5_CIS <- score.df[metadat.week5_CIS$cell_id, ]
 correlation_day0 <- cor(score.df.day0)
 pheatmap(correlation_day0, cluster_rows = T, cluster_cols = T,  main = 'Day0')
 
-correlation_day10_DABTRAM <- cor(score.df.day10_DABTRAM)
-pheatmap(correlation_day10_DABTRAM, cluster_rows = T, cluster_cols = T,  main = 'Day10 DABTRAM')
 
 correlation_day10_COCL2 <- cor(score.df.day10_COCL2)
 pheatmap(correlation_day10_COCL2, cluster_rows = T, cluster_cols = T,  main = 'Day10 COCL2')
 
 correlation_day10_CIS <- cor(score.df.day10_CIS)
 pheatmap(correlation_day10_CIS, cluster_rows = T, cluster_cols = T,  main = 'Day10 CIS')
-
-correlation_week5_DABTRAM <- cor(score.df.week5_DABTRAM)
-pheatmap(correlation_week5_DABTRAM, cluster_rows = T, cluster_cols = T,  main = 'Week5 DABTRAM')
 
 correlation_week5_COCL2 <- cor(score.df.week5_COCL2)
 pheatmap(correlation_week5_COCL2, cluster_rows = T, cluster_cols = T,  main = 'Week5 COCL2')
@@ -376,4 +372,14 @@ correlation_week5_CIS <- cor(score.df.week5_CIS)
 pheatmap(correlation_week5_CIS, cluster_rows = T, cluster_cols = T,  main = 'Week5 CIS')
 
 
+correlation_day10_DABTRAM <- cor(score.df.day10_DABTRAM)
+pdf(paste0(figure_dir, 'Supp_correlation_day10_DABTRAM.pdf'), width = 5.5, height = 5)
+pheatmap(correlation_day10_DABTRAM, cluster_rows = T, cluster_cols = T,  main = 'Day10 DABTRAM',
+         treeheight_row = 0, treeheight_col = 0)
+dev.off()
 
+correlation_week5_DABTRAM <- cor(score.df.week5_DABTRAM)
+pdf(paste0(figure_dir, 'Supp_correlation_week5_DABTRAM.pdf'), width = 5.5, height = 5)
+pheatmap(correlation_week5_DABTRAM, cluster_rows = T, cluster_cols = T,  main = 'Week5 DABTRAM',
+         treeheight_row = 0, treeheight_col = 0)
+dev.off()

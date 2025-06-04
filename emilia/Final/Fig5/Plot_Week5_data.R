@@ -2,6 +2,7 @@ rm(list = ls())
 
 library(tidyverse)
 library(ggplot2)
+library(data.table)
 library(GGally)
 
 remove_unassigned_cells <- TRUE
@@ -141,51 +142,55 @@ ggplot(to_plot.CIS_m, aes(x = dataset, y = value)) +
 # Plot heatmap
 # =============================================================================
 
+mps.to.plot <- c('Cell.Cycle...G2.M_UCell', 'Cell.Cycle...G1.S_UCell', 'Stress_UCell', 'Hypoxia_UCell',
+                  'EMT.I_UCell', 'EMT.II_UCell', 'EMT.III_UCell', 'EMT.IV_UCell',
+                 'Interferon.MHC.II..I._UCell', 'Interferon.MHC.II..II._UCell')
+
 mat.DABTRAM <- merge(rna.gavish.mp, metadat.DABTRAM[, c('cell_id', 'dataset')], by = 'cell_id')
 mat.DABTRAM <- mat.DABTRAM[, -c(1)]
 mat.DABTRAM_m <- melt(mat.DABTRAM, id.vars = c('dataset'))
-mat.DABTRAM_m <- mat.DABTRAM_m[mat.DABTRAM_m$variable %in% mps,]
+mat.DABTRAM_m <- mat.DABTRAM_m[mat.DABTRAM_m$variable %in% mps.to.plot,]
 
 mat.COCL2 <- merge(rna.gavish.mp, metadat.COCL2[, c('cell_id', 'dataset')], by = 'cell_id')
 mat.COCL2 <- mat.COCL2[, -c(1)]
 mat.COCL2_m <- melt(mat.COCL2, id.vars = c('dataset'))
-mat.COCL2_m <- mat.COCL2_m[mat.COCL2_m$variable %in% mps,]
+mat.COCL2_m <- mat.COCL2_m[mat.COCL2_m$variable %in% mps.to.plot,]
 
 mat.CIS <- merge(rna.gavish.mp, metadat.CIS[, c('cell_id', 'dataset')], by = 'cell_id')
 mat.CIS <- mat.CIS[, -c(1)]
 mat.CIS_m <- melt(mat.CIS, id.vars = c('dataset'))
-mat.CIS_m <- mat.CIS_m[mat.CIS_m$variable %in% mps,]
+mat.CIS_m <- mat.CIS_m[mat.CIS_m$variable %in% mps.to.plot,]
 
 ggplot(mat.DABTRAM_m, aes(x = dataset, y = value)) +
   geom_violin(aes(fill = dataset), scale = 'width') +
   geom_boxplot(width = 0.2, outlier.shape = NA, color = 'black', lwd = 0.5) +
   scale_fill_manual(values = dataset_colors) +
-  facet_wrap(~variable, scales = 'free_y', ncol = 8) +
+  facet_wrap(~variable, scales = 'free_y', ncol = 5) +
   ggtitle("DABTRAM") +
   theme_Publication(base_size = 8) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-ggsave(paste0(figure_dir, 'DABTRAM_violin.pdf'), width = 10, height = 4)
+ggsave(paste0(figure_dir, 'DABTRAM_violin.pdf'), width = 6, height = 4.5)
 
 ggplot(mat.COCL2_m, aes(x = dataset, y = value)) +
   geom_violin(aes(fill = dataset), scale = 'width') +
   geom_boxplot(width = 0.2, outlier.shape = NA, color = 'black', lwd = 0.5) +
   scale_fill_manual(values = dataset_colors) +
-  facet_wrap(~variable, scales = 'free_y', ncol = 8) +
+  facet_wrap(~variable, scales = 'free_y', ncol = 5) +
   ggtitle("COCL2") +
   theme_Publication(base_size = 8) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave(paste0(figure_dir, 'COCL2_violin.pdf'), width = 10, height = 4)
+ggsave(paste0(figure_dir, 'COCL2_violin.pdf'), width = 6, height = 4.5)
 
 ggplot(mat.CIS_m, aes(x = dataset, y = value)) +
   geom_violin(aes(fill = dataset), scale = 'width') +
   geom_boxplot(width = 0.2, outlier.shape = NA, color = 'black', lwd = 0.5) +
   scale_fill_manual(values = dataset_colors) +
-  facet_wrap(~variable, scales = 'free_y', ncol = 8) +
+  facet_wrap(~variable, scales = 'free_y', ncol = 5) +
   ggtitle("CIS") +
   theme_Publication(base_size = 8) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave(paste0(figure_dir, 'CIS_violin.pdf'), width = 10, height = 4)
+ggsave(paste0(figure_dir, 'CIS_violin.pdf'), width = 6, height = 4.5)
 
 
 # =============================================================================

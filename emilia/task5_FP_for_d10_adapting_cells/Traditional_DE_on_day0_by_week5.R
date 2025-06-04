@@ -5,6 +5,7 @@ library(tidyverse)
 library(ggpubr)
 
 data_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/data/Shaffer_lab/FINAL/'
+results_dir <- '/Users/emiliac/Dropbox/Thesis/Lineage_trace/outputs/task5_FP_for_d10_adapting_cells/'
 
 remove_unassigned_cells <- TRUE
 # 
@@ -59,13 +60,14 @@ remove_unassigned_cells <- TRUE
 #                                 "COL6A2", "MPC2", "PLIN2", "HLA-A", "IGFBP7",
 #                                 "CAV1")))
 
-keygenes <- list(CIS = sort(c("YY1AP1", "LGALS3", "MCF2L", "TIMM50", "AC207130.1",
-                              "SLC25A6", "EIF3L", "CTSD", "NQO1", "HNMT", "ZFYVE16",
-                              "PHACTR1", "TNFRSF14", "RAI14", "TRPM1", "HIST1H1C",
-                              "HIST2H2AC", "SPARC", "TRIM63", "TUBA1B", "HIST1H1A",
-                              "HIST1H1D", "PYCARD", "FSTL1", "DCT", "CTSK", "HIST1H4C",
-                              "GDF15", "HIST1H1B")))
-keygenes <- unlist(keygenes)
+# keygenes <- list(CIS = sort(c("YY1AP1", "LGALS3", "MCF2L", "TIMM50", "AC207130.1",
+#                               "SLC25A6", "EIF3L", "CTSD", "NQO1", "HNMT", "ZFYVE16",
+#                               "PHACTR1", "TNFRSF14", "RAI14", "TRPM1", "HIST1H1C",
+#                               "HIST2H2AC", "SPARC", "TRIM63", "TUBA1B", "HIST1H1A",
+#                               "HIST1H1D", "PYCARD", "FSTL1", "DCT", "CTSK", "HIST1H4C",
+#                               "GDF15", "HIST1H1B")))
+# keygenes <- unlist(keygenes)
+keygenes <- c("WNT5A", "AXL", "EGFR", "JUN", "NGFR", "PCNA")
 
 treatment <- 'CIS'
 
@@ -162,11 +164,13 @@ p1 <- p1 + ggplot2::geom_hline(yintercept=min(logpval_vec[which(pvalue_vec <= 0.
                                color = "gray", linewidth=2)
 p1 <- p1 + ggplot2::geom_vline(xintercept=0, linetype="dashed", 
                                color = "gray", linewidth=2)
-p1 <- p1 + ggplot2::ggtitle(paste0("CIS Day0 DE based on presence or absence on Week5")) +
+p1 <- p1 + ggplot2::ggtitle(paste0("DABTRAM Day0 DE based on presence or absence on Week5")) +
   ggplot2::xlab("Mean difference in SAVER gene exp.: (Best-Worst)") + ggplot2::ylab("T test p-value (-Log10)")
 p1 <- p1 + ggplot2::theme_bw()
 p1 <- p1 + Seurat::NoLegend()
 p1
+
+write.csv(df, file = paste0(results_dir, 'day0_DE_genes_by_w5', treatment, '_presence.csv'), row.names = F)
 
 
 x_vec <- as.data.frame(all_data_day0[["saver"]]@scale.data['FOSL1', ])
