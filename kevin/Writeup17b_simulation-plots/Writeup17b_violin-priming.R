@@ -97,4 +97,3 @@ plot1 <- plot1 + ggplot2::labs(y = NULL) + ggplot2::theme(axis.title = ggplot2::
 ggplot2::ggsave(filename = paste0(plot_folder, "fatepotential_true-violinplot_cleaned.png"),
                 plot1, device = "png", width = 4, height = 1.5, units = "in", 
                 dpi = 450)
-
