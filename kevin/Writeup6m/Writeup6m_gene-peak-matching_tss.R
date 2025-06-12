@@ -80,7 +80,7 @@ for(i in 1:len){
 
   if(i %% 100 == 0) {
     save(matching_list, date_of_run, session_info,
-         file = "../../../../out/kevin/Writeup6m/peak-gene-matching.RData")
+         file = "../../../../out/kevin/Writeup6m/peak-gene-matching_tss.RData")
   }
 }
 
