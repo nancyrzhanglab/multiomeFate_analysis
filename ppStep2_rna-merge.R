@@ -48,7 +48,7 @@ seurat_list <- lapply(1:length(file_folders), function(i){
   seurat_obj$dataset <- name_vec[i]
   seurat_obj
 })
-
+  
 all_data_rna <- merge(seurat_list[[1]], y = c(seurat_list[[2]], seurat_list[[3]], 
                                               seurat_list[[4]], seurat_list[[5]], 
                                               seurat_list[[6]], seurat_list[[7]]), 
