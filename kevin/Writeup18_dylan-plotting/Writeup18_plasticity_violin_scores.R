@@ -73,6 +73,12 @@ lin_var.day10_COCL2_Shuffled$category <- 'shuffled.day10_COCL2'
 df.day10_COCL2 <- rbind(lin_var.day10_COCL2, lin_var.day10_COCL2_Shuffled)
 df.day10_COCL2$category <- factor(df.day10_COCL2$category, levels = c('shuffled', 'day10_COCL2'))
 
+df1 <- rbind(lin_var.day10_COCL2, lin_var.day10_COCL2_Shuffled)
+pvalue_res <- stats::wilcox.test(
+  x = df1$normalized_avg_eud_dist_by_shuffle[which(df1$category == "day10_COCL2")],
+  y = df1$normalized_avg_eud_dist_by_shuffle[which(df1$category == "shuffled.day10_COCL2")]
+)
+
 # plot COCL2 violin plot
 df1 <- rbind(lin_var.day10_COCL2, lin_var.day10_COCL2_Shuffled)
 plot1 <- ggplot(df1, aes(x = dataset, y= normalized_avg_eud_dist_by_shuffle)) +
@@ -80,8 +86,9 @@ plot1 <- ggplot(df1, aes(x = dataset, y= normalized_avg_eud_dist_by_shuffle)) +
   geom_boxplot(aes(group = category), width = 0.2, position = position_dodge(0.8), fill = 'white', outlier.shape = NA) +
   scale_fill_manual(values = dataset_colors) +
   ylab('Lineage variability (RNA)') +
-  theme_Publication()
-ggsave(plot1, file = paste0(plot_folder, 'Writeup18_plasticity_violin_scores.png'), width = 2.5, height = 3)
+  theme_Publication() +
+  ggplot2::ggtitle(paste0("Wilcoxon p-value: ", pvalue_res$p.value))
+ggsave(plot1, file = paste0(plot_folder, 'Writeup18_plasticity_violin_scores.png'), width = 8, height = 3)
 
 ##########
 
