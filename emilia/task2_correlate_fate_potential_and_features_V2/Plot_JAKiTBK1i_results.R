@@ -69,8 +69,7 @@ count.baseline <- data.m %>%
 
 count.baseline <- count.baseline[, c('Sample', 'Cell.Count')]
 
-count.baseline <- count.baseline %>%
-  rename(Cell.Count.d0 = Cell.Count)
+colnames(count.baseline) <- c('Sample', 'Cell.Count.d0')
 
 data.m <- merge(data.m, count.baseline, by = "Sample")
 

@@ -153,7 +153,7 @@ ggplot(df.1, aes(x = fatepotential_d0_d10, y = bias)) +
        x = 'Fate potential from Day0 to Day10') +
   theme_Publication() +
   theme(legend.position = 'none')
-ggsave(paste0(figure_dir, 'adapting_bias_thres_0_vs_fp_d0_d10_DABTRAM_Lin117363.pdf'), width = 3, height = 3)
+# ggsave(paste0(figure_dir, 'adapting_bias_thres_0_vs_fp_d0_d10_DABTRAM_Lin117363.pdf'), width = 3, height = 3)
 
 
 lineage.size.W5 <- metadat.week5_DABTRAM %>% 
@@ -173,7 +173,7 @@ ft.umap.DABTRAM <- merge(ft.umap.DABTRAM, metadat[, c('cell_id', 'assigned_linea
 colnames(fp.d10_w5) <- c('fp.d10_w5')
 fp.d10_w5$cell_id <- rownames(fp.d10_w5)
 
-lin.to.plot <- 'Lin18546' # Priming 'Lin79040
+lin.to.plot <- 'Lin79040' # Priming 'Lin79040' 'Lin18546'
 lin.to.plot <- 'Lin56667' # Size 'Lin16087'
 lin.to.plot <- 'Lin125036' # Plasticity 
 

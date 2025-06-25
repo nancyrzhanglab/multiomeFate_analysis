@@ -147,13 +147,15 @@ reported.pcr <- c('AGA', 'ANGEL1', 'ANKRD11', 'ARID3A', 'ASTN2', 'BID', 'BPI', '
                   'HMGXB4', 'KIAA0406', 'KIF24', 'KLF11', 'KPNA1', 'LMO4', 'LPCAT1', 'MEF2A', 'MYCL1',
                   'NAGA', 'PAK1IP1', 'PI4KA', 'PPARA')
 
-custom.list <- list(custom.dabtram, custom.cocl2, custom.cis, custom.cis.acute, reported.pcr)
+stress <- c("JUN", 'FOS', 'JUNB', 'FOSB')
+
+custom.list <- list(custom.dabtram, custom.cocl2, custom.cis, custom.cis.acute, reported.pcr, stress)
 custom.list <- lapply(1:length(custom.list), function(x) {
   gs <- custom.list[[x]]
   gs <- unique(na.omit(gs[gs %in% genes.all]))
   return(gs)
 })
-names(custom.list) <- c('custom.dabtram', 'custom.cocl2', 'custom.cis', 'custom.cis.acute', 'reported.pcr')
+names(custom.list) <- c('custom.dabtram', 'custom.cocl2', 'custom.cis', 'custom.cis.acute', 'reported.pcr', 'stress')
 
 
 gene_list <- c(list(isg.rs), list(isg.mem), custom.list, gavish.mp.list)
@@ -175,7 +177,7 @@ ntree <- 1000
 nodesize <- 1
 nsplit <- 2
 
-ntree.null    <- c(10, 100, 1000, 10000)[3]
+ntree.null  <- c(10, 100, 1000, 10000)[3]
 risk.perc <- c(0.1, 0.8)  # low and hi risk mortality cut-offs for RF-RSF ensemble survival plots
 
 

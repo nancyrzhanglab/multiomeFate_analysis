@@ -280,7 +280,7 @@ fp.summary.dabtram <- merge(fp.summary.dabtram, lin.size.week5[, c('assigned_lin
 
 umap.dabtram.lin1 <- umap.dabtram %>% 
   filter(dataset == 'day10_DABTRAM') %>%
-  filter(assigned_lineage == 'Lin77715')
+  filter(assigned_lineage == 'Lin65492')
 
 p3 <- ggplot(umap.dabtram, aes(x = ftDABTRAMumap_1, y = ftDABTRAMumap_2)) +
   geom_point(aes(color = fatepotential_DABTRAM_d10_w5_scaled), shape = NA) +
@@ -365,10 +365,10 @@ ggsave(paste0(figure_dir, 'fatepotential_DABTRAM_d10_w5_umap_lin_size.pdf'), p6,
 fp.summary.cocl2 <- umap.cocl2 %>% 
   filter(dataset == 'day10_COCL2') %>% 
   group_by(assigned_lineage) %>% 
-  summarize(fp.mean = mean(fatepotential_COCL2_d10_w5_scaled, na.rm = T),
-            fp.var = var(fatepotential_COCL2_d10_w5_scaled, na.rm = T),
-            fp.max = max(fatepotential_COCL2_d10_w5_scaled, na.rm = T),
-            fp.min = min(fatepotential_COCL2_d10_w5_scaled, na.rm = T),
+  summarize(fp.mean = mean(fatepotential_COCL2_d10_w5, na.rm = T),
+            fp.var = var(fatepotential_COCL2_d10_w5, na.rm = T),
+            fp.max = max(fatepotential_COCL2_d10_w5, na.rm = T),
+            fp.min = min(fatepotential_COCL2_d10_w5, na.rm = T),
             n = n())
 fp.summary.cocl2 <- merge(fp.summary.cocl2, lin.size.week5[, c('assigned_lineage', 'week5_COCL2')], by = 'assigned_lineage', all.x = T)
 
@@ -465,18 +465,19 @@ ggsave(paste0(figure_dir, 'fatepotential_COCL2_d10_w5_umap_lin_size.pdf'), p10, 
 # DABTRAM
 
 priming.lins.dabtram <- fp.summary.dabtram %>% 
-  filter(n > 5) %>% 
+  filter(n > 2) %>% 
   filter(week5_DABTRAM > 0) %>% 
-  filter(fp.min > -0.5) %>% 
+  filter(fp.min > 0) %>% 
   arrange(desc(fp.mean)) %>%
-  head(4)
+  head(5)
 
 variance.lins.dabtram <- fp.summary.dabtram %>% 
   filter(n > 5) %>% 
   filter(week5_DABTRAM > 0) %>% 
+  arrange(desc(n)) %>%
   filter(!assigned_lineage %in% priming.lins.dabtram$assigned_lineage) %>%
   arrange(desc(fp.var)) %>%
-  head(4)
+  head(5)
 
 size.lins.dabtram <- fp.summary.dabtram %>% 
   filter(n > 5) %>% 
@@ -488,12 +489,12 @@ death.lins.dabtram <- fp.summary.dabtram %>%
   filter(n > 5) %>% 
   filter(is.na(week5_DABTRAM)) %>% 
   arrange(fp.mean) %>%
-  head(4)
+  head(5)
 
 other.lins.dabtram <- fp.summary.dabtram %>% 
   filter(!assigned_lineage %in% c(priming.lins.dabtram$assigned_lineage, 
                                   variance.lins.dabtram$assigned_lineage, 
-                                  size.lins.dabtram$assigned_lineage, 
+                                  size.lins.dabtram$assigned_lineage,
                                   death.lins.dabtram$assigned_lineage))
 
 fp.day10_dabtram$cell_id <- rownames(fp.day10_dabtram)
@@ -502,15 +503,15 @@ df$assigned_lineage_plot <- ifelse(df$assigned_lineage %in% priming.lins.dabtram
                                    df$assigned_lineage, 'Other')
 df$assigned_lineage_plot <- ifelse(df$assigned_lineage %in% variance.lins.dabtram$assigned_lineage, 
                                    df$assigned_lineage, df$assigned_lineage_plot)
-df$assigned_lineage_plot <- ifelse(df$assigned_lineage %in% size.lins.dabtram$assigned_lineage,
-                                   df$assigned_lineage, df$assigned_lineage_plot)
+# df$assigned_lineage_plot <- ifelse(df$assigned_lineage %in% size.lins.dabtram$assigned_lineage,
+#                                    df$assigned_lineage, df$assigned_lineage_plot)
 df$assigned_lineage_plot <- ifelse(df$assigned_lineage %in% death.lins.dabtram$assigned_lineage,
                                    df$assigned_lineage, df$assigned_lineage_plot)
 
 
 df$assigned_lineage_plot <- factor(df$assigned_lineage_plot, levels = c(priming.lins.dabtram$assigned_lineage, 
                                                                         variance.lins.dabtram$assigned_lineage, 
-                                                                        size.lins.dabtram$assigned_lineage, 
+                                                                        # size.lins.dabtram$assigned_lineage, 
                                                                         death.lins.dabtram$assigned_lineage, 
                                                                         'Other'))
 col_vec <- c(rep("lightgray", length(unique(df$assigned_lineage_plot))-1), 'darkgray')
@@ -522,9 +523,9 @@ plot1 <- plot1 + ggplot2::geom_jitter(shape=16,
                                       position=ggplot2::position_jitter(0.2), alpha = 0.5, size = 1)
 plot1 <- plot1 + Seurat::NoLegend()
 # plot1 <- plot1 + ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 45))
-plot1 <- plot1 + ggplot2::stat_summary(fun = median, geom = "crossbar", lwd = 3,
+plot1 <- plot1 + ggplot2::stat_summary(fun = median, geom = "crossbar", lwd = 1,
                                        width = 0.75, color = "#633895")
-plot1 <- plot1 + geom_vline(xintercept = c(4.5, 8.5, 12.5, 16.5), linetype = 'dashed', color = 'gray', linewidth = 0.8)
+plot1 <- plot1 + geom_vline(xintercept = c(5.5, 10.5, 15.5, 16.5), linetype = 'dashed', color = 'gray', linewidth = 0.8)
 plot1 <- plot1 + 
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = 'none',
@@ -538,13 +539,13 @@ plot1 <- plot1 +
 
 plot1
 
-df2 <- rbind(priming.lins.dabtram, variance.lins.dabtram, size.lins.dabtram, death.lins.dabtram)
+df2 <- rbind(priming.lins.dabtram, variance.lins.dabtram, death.lins.dabtram)
 df2[nrow(df2)+1, ] <- c('Other', 0, 0, 0, 0, 0, NA)
 df2$week5_DABTRAM <- as.numeric(df2$week5_DABTRAM)
 df2$week5_DABTRAM[is.na(df2$week5_DABTRAM)] <- 0
 df2$assigned_lineage <- factor(df2$assigned_lineage, levels = c(priming.lins.dabtram$assigned_lineage, 
                                                                  variance.lins.dabtram$assigned_lineage, 
-                                                                 size.lins.dabtram$assigned_lineage, 
+                                                                 # size.lins.dabtram$assigned_lineage, 
                                                                  death.lins.dabtram$assigned_lineage,
                                                                  'Other'))
 
@@ -586,35 +587,35 @@ ggplot2::ggsave(filename = paste0(figure_dir, "fatepotential-violinplot-DABTRAM_
 # COCL2
 
 priming.lins.cocl2 <- fp.summary.cocl2 %>% 
-  filter(n > 5) %>% 
-  filter(week5_COCL2 > 0) %>% 
-  filter(fp.min > -0.5) %>% 
-  arrange(desc(fp.mean)) %>%
-  head(4)
+  filter(n > 2) %>% 
+  filter(week5_COCL2 > 0) %>%
+  filter(fp.min > -3) %>%
+  arrange(desc(fp.mean)) %>% 
+  head(5)
 
 variance.lins.cocl2 <- fp.summary.cocl2 %>% 
   filter(n > 5) %>% 
   filter(week5_COCL2 > 0) %>% 
   filter(!assigned_lineage %in% priming.lins.cocl2$assigned_lineage) %>%
   arrange(desc(fp.var)) %>%
-  head(4)
+  head(5)
 
 size.lins.cocl2 <- fp.summary.cocl2 %>% 
   filter(n > 5) %>% 
   filter(week5_COCL2 > 0) %>% 
   arrange(desc(n)) %>%
-  head(4)
+  head(5)
 
 death.lins.cocl2 <- fp.summary.cocl2 %>% 
   filter(n > 5) %>% 
   filter(is.na(week5_COCL2)) %>% 
-  arrange(fp.mean) %>%
-  head(4)
+  arrange(fp.max, desc = F) %>%
+  head(5)
 
 other.lins.cocl2 <- fp.summary.cocl2 %>% 
   filter(!assigned_lineage %in% c(priming.lins.cocl2$assigned_lineage, 
                                   variance.lins.cocl2$assigned_lineage, 
-                                  size.lins.cocl2$assigned_lineage, 
+                                  # size.lins.cocl2$assigned_lineage, 
                                   death.lins.cocl2$assigned_lineage))
 
 fp.day10_cocl2$cell_id <- rownames(fp.day10_cocl2)
@@ -623,15 +624,15 @@ df$assigned_lineage_plot <- ifelse(df$assigned_lineage %in% priming.lins.cocl2$a
                                    df$assigned_lineage, 'Other')
 df$assigned_lineage_plot <- ifelse(df$assigned_lineage %in% variance.lins.cocl2$assigned_lineage, 
                                    df$assigned_lineage, df$assigned_lineage_plot)
-df$assigned_lineage_plot <- ifelse(df$assigned_lineage %in% size.lins.cocl2$assigned_lineage,
-                                   df$assigned_lineage, df$assigned_lineage_plot)
+# df$assigned_lineage_plot <- ifelse(df$assigned_lineage %in% size.lins.cocl2$assigned_lineage,
+#                                    df$assigned_lineage, df$assigned_lineage_plot)
 df$assigned_lineage_plot <- ifelse(df$assigned_lineage %in% death.lins.cocl2$assigned_lineage,
                                    df$assigned_lineage, df$assigned_lineage_plot)
 
 
 df$assigned_lineage_plot <- factor(df$assigned_lineage_plot, levels = c(priming.lins.cocl2$assigned_lineage, 
                                                                         variance.lins.cocl2$assigned_lineage, 
-                                                                        size.lins.cocl2$assigned_lineage, 
+                                                                        # size.lins.cocl2$assigned_lineage, 
                                                                         death.lins.cocl2$assigned_lineage, 
                                                                         'Other'))
 col_vec <- c(rep("lightgray", length(unique(df$assigned_lineage_plot))-1), 'darkgray')
@@ -640,12 +641,12 @@ plot1 <- ggplot2::ggplot(df, ggplot2::aes(x=assigned_lineage_plot, y=fatepotenti
 plot1 <- plot1 + ggplot2::geom_violin(trim=T, scale = "width")
 plot1 <- plot1 + ggplot2::scale_fill_manual(values = col_vec) 
 plot1 <- plot1 + ggplot2::geom_jitter(shape=16, 
-                                      position=ggplot2::position_jitter(0.2), alpha = 0.1, size = 0.5)
+                                      position=ggplot2::position_jitter(0.2), alpha = 0.5, size = 0.5)
 plot1 <- plot1 + Seurat::NoLegend()
 # plot1 <- plot1 + ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 45))
 plot1 <- plot1 + ggplot2::stat_summary(fun = median, geom = "crossbar", lwd = 1,
                                        width = 0.75, color = "#6DC49C")
-plot1 <- plot1 + geom_vline(xintercept = c(4.5, 8.5, 12.5, 16.5), linetype = 'dashed', color = 'gray', linewidth = 0.8)
+plot1 <- plot1 + geom_vline(xintercept = c(5.5, 10.5, 15.5, 16.5), linetype = 'dashed', color = 'gray', linewidth = 0.8)
 plot1 <- plot1 + 
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = 'none',
@@ -659,13 +660,13 @@ plot1 <- plot1 +
 
 plot1
 
-df2 <- rbind(priming.lins.cocl2, variance.lins.cocl2, size.lins.cocl2, death.lins.cocl2)
+df2 <- rbind(priming.lins.cocl2, variance.lins.cocl2, death.lins.cocl2)
 df2[nrow(df2)+1, ] <- c('Other', 0, 0, 0, 0, 0, NA)
 df2$week5_COCL2 <- as.numeric(df2$week5_COCL2)
 df2$week5_COCL2[is.na(df2$week5_COCL2)] <- 0
 df2$assigned_lineage <- factor(df2$assigned_lineage, levels = c(priming.lins.cocl2$assigned_lineage, 
                                                                 variance.lins.cocl2$assigned_lineage, 
-                                                                size.lins.cocl2$assigned_lineage, 
+                                                                # size.lins.cocl2$assigned_lineage, 
                                                                 death.lins.cocl2$assigned_lineage,
                                                                 'Other'))
 

@@ -48,9 +48,13 @@ names(use.pal) <- c('DMSO', 'JNKi')
 data <- read.csv(paste0(results_dir, "CJC011_Full_Timecourse_Plate_1.csv"))
 metadat <- read.csv(paste0(results_dir, "CJC011_Full_Timecourse_Plate_1_metadata.csv"))
 
+data2 <- read.csv(paste0(results_dir, "CJC011_Full_Timecourse_Plate_2.csv"))
+
 # ==============================================================================
 # Wrangle data
 # ==============================================================================
+
+# Data rep1
 data <- as.data.frame(t(data))
 colnames(data) <- data[1,]
 data <- data[-1,]
@@ -72,8 +76,7 @@ count.baseline <- data.m %>%
 
 count.baseline <- count.baseline[, c('Sample', 'Cell.Count')]
 
-count.baseline <- count.baseline %>%
-  rename(Cell.Count.d0 = Cell.Count)
+colnames(count.baseline) <- c('Sample', 'Cell.Count.d0')
 
 data.m <- merge(data.m, count.baseline, by = "Sample")
 
@@ -83,6 +86,40 @@ data.m$Cell.Count.log2FC <- log2(data.m$Cell.Count / data.m$Cell.Count.d0)
 
 data.m.to.plot <- data.m[data.m$Elaspe.Time %in% c('288.9333333', '979.3'), ]
 data.m.to.plot$Timepoint <- ifelse(data.m.to.plot$Elaspe.Time == '288.9333333', 'Day 12', 'Day 41')
+data.m.to.plot$Rep <- 'Rep1'
+
+# Data rep2
+data2 <- as.data.frame(t(data2))
+colnames(data2) <- data2[1,]
+data2 <- data2[-1,]
+data2$Sample <- rownames(data2)
+
+data2.m <- melt(data2, id.vars = "Sample")
+colnames(data2.m) <- c('Sample', 'Elaspe.Time', 'Cell.Count')
+data2.m <- merge(data2.m, metadat, by = "Sample")
+
+# standardize time
+data2.m$Elaspe.Time.days <- as.numeric(as.character(data2.m$Elaspe.Time))
+data2.m$Elaspe.Time.days <- data2.m$Elaspe.Time.days / 24
+
+# baseline cell count
+count.baseline2 <- data2.m %>% 
+  filter(Elaspe.Time == '0')
+count.baseline2 <- count.baseline2[, c('Sample', 'Cell.Count')]
+
+count.baseline2 <- count.baseline2 %>%
+  rename(Cell.Count.d0 = Cell.Count)
+
+data2.m <- merge(data2.m, count.baseline2, by = "Sample")
+data2.m$Cell.Count <- as.numeric(data2.m$Cell.Count)
+data2.m$Cell.Count.d0 <- as.numeric(data2.m$Cell.Count.d0)
+data2.m$Cell.Count.log2FC <- log2(data2.m$Cell.Count / data2.m$Cell.Count.d0)
+
+data2.m.to.plot <- data2.m[data2.m$Elaspe.Time %in% c('267.5833333', '960'), ]
+data2.m.to.plot$Timepoint <- ifelse(data2.m.to.plot$Elaspe.Time == '267.5833333', 'Day 12', 'Day 41')
+data2.m.to.plot$Rep <- 'Rep2'
+
+data.m.to.plot.all <- rbind(data.m.to.plot, data2.m.to.plot)
 
 # ==============================================================================
 # Plot
@@ -99,10 +136,11 @@ ggplot(data.m, aes(x = Elaspe.Time.days, y = Cell.Count.log2FC, color = Treatmen
        y = "log2FC Cell Count") +
   theme_Publication()
 
-data.m.to.plot$Category <- paste0(data.m.to.plot$Timepoint, "-", data.m.to.plot$Treatment)
-ggplot(data.m.to.plot, aes(x = Treatment, y = Cell.Count.log2FC)) +
+data.m.to.plot.all$Category <- paste0(data.m.to.plot$Timepoint, "-", data.m.to.plot$Treatment)
+
+ggplot(data.m.to.plot.all, aes(x = Treatment, y = Cell.Count.log2FC)) +
   # geom_boxplot(aes(color = Treatment)) +
-  geom_jitter(aes(color = Treatment), shape = 21, size = 5, width = 0.3, height = 0.2, stroke = 2) +
+  geom_jitter(aes(color = Treatment), shape = 21, size = 5, width = 0.2, height = 0, stroke = 2) +
   facet_wrap(~Timepoint) +
   stat_compare_means(
     method = "t.test",
@@ -115,4 +153,6 @@ ggplot(data.m.to.plot, aes(x = Treatment, y = Cell.Count.log2FC)) +
   theme_Publication() +
   theme(legend.position = "none")
 
-ggsave(paste0(figure_dir, "Fig5G_boxplot_log2FC_cell_count_clean.pdf"), width = 4.2, height = 3.3)
+# ggsave(paste0(figure_dir, "Fig5G_boxplot_log2FC_cell_count_clean2.pdf"), width = 4.2, height = 3.3)
+ggsave(paste0(figure_dir, "Fig5G_boxplot_log2FC_cell_count_clean2.pdf"), width = 5, height = 3.5)
+
