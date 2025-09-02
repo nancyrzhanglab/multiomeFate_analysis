@@ -94,7 +94,8 @@ p1 <- ggplot(rna.atac.comp, aes(x = lin_var.RNA, y = lin_var.ATAC)) +
     legend.position = "none",
     plot.margin = margin(1,1,1,1)
   ) 
-ggsave(p1, file = paste0(plot_folder, 'Writuep18_plasticity_scatterplot_cleaned.png'), width = 2, height = 2)
+ggsave(p1, file = paste0(plot_folder, 'Writuep18_plasticity_scatterplot_cleaned.png'), 
+       width = 1.8, height = 2)
 
 ######################
 

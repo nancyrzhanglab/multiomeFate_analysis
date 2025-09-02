@@ -112,4 +112,4 @@ plot1 <- ggplot(df1, aes(x = category, y = normalized_avg_eud_dist_by_shuffle, f
   stat_summary(fun = median, geom = "crossbar", width = 0.5, color = "black", fatten = 0)
 
 ggplot2::ggsave(plot1, filename = paste0(plot_folder, "Writeup18_plasticity_violin_scores_cleaned.png"),
-                width = 2, height = 1)
+                width = 1.68, height = 2)

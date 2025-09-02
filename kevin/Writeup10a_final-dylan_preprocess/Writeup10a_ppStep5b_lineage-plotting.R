@@ -73,3 +73,12 @@ hist_res <- graphics::hist(ratio_vec,
                            main = "Lineage barcoding shared maximum")
 graphics.off()
 
+#########
+
+zz <- all_data[["Lineage"]]@counts
+zz[1:5,1:5]
+num_lineages <- sapply(1:ncol(zz), function(i){
+  idx <- multiomeFate:::.nonzero_col(zz, col_idx = i, bool_value = FALSE)
+  length(idx)
+})
+
