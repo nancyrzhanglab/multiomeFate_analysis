@@ -280,7 +280,7 @@ for (h2f in h2_feature_values) {
 
 # ---- Save results ------------------------------------------------------------
 
-filepath <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup_Simulations/"
+filepath <- "~/kzlinlab/projects/multiomeFate/out/kevin/Writeup_Simulations/"
 saveRDS(
   list(summary = summary_df,
        grid    = grid,
