@@ -41,6 +41,7 @@
 #   because it explicitly weights each cell by its fate potential.
 # ==============================================================================
 
+rm(list=ls())
 library(multiomeFate)
 library(MASS)
 
@@ -94,7 +95,7 @@ clone_labels    <- paste0("clone:", clone_ids)
 h2_feature_values <- c(0.05, 0.20, 0.50, 0.80, 0.95)
 h2_fate_values    <- c(0.10, 0.30, 0.60, 0.90)
 
-n_replicates <- 15
+n_replicates <- 10
 
 # ---- Core simulation function ------------------------------------------------
 
@@ -105,6 +106,7 @@ h2_to_sigma_within <- function(h2, sigma_between = 1.0) {
 }
 
 run_heritability_sim <- function(h2_feature, h2_fate, seed_val) {
+  print(paste0("Seed: ", seed_val))
   set.seed(seed_val)
 
   sigma_between <- 1.0
@@ -186,6 +188,7 @@ run_heritability_sim <- function(h2_feature, h2_fate, seed_val) {
 # ---- Naive baseline (group cells by clone future count) ----------------------
 
 run_naive_heritability <- function(h2_feature, h2_fate, seed_val) {
+  print(paste0("Seed: ", seed_val))
   set.seed(seed_val)
 
   sigma_between <- 1.0
@@ -277,6 +280,7 @@ for (h2f in h2_feature_values) {
 
 # ---- Save results ------------------------------------------------------------
 
+filepath <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup_Simulations/"
 saveRDS(
   list(summary = summary_df,
        grid    = grid,
@@ -284,7 +288,7 @@ saveRDS(
                       n_features = n_features, n_causal = n_causal,
                       h2_feature_values = h2_feature_values,
                       h2_fate_values    = h2_fate_values)),
-  file = "sim3_heritability_results.rds"
+  file = paste0(filepath, "sim3_heritability_results.rds")
 )
 
 message("sim3 complete. Results saved to sim3_heritability_results.rds")

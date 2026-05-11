@@ -46,6 +46,7 @@
 #   changes of cells that actually contribute to future growth.
 # ==============================================================================
 
+rm(list=ls())
 library(multiomeFate)
 library(MASS)
 
@@ -85,8 +86,8 @@ fit_cyfer_simple <- function(X, clone_labels, lfc) {
 
 # ---- Simulation parameters ---------------------------------------------------
 
-n_cells_per_clone <- 200   # cells per clone at t1
-n_clones          <- 60    # number of clones
+n_cells_per_clone <- 60   # cells per clone at t1
+n_clones          <- 20    # number of clones
 
 n_features  <- 20          # expression dimensions
 n_features_stress <- 5     # features that change in dying cells (stress signature)
@@ -108,13 +109,14 @@ delta_survive <- c(rep(0.5, 5), rep(0, n_features - 5))
 # Fractions of dying cells to test
 f_dying_values <- c(0.10, 0.25, 0.50, 0.75, 0.90, 0.99)
 
-n_replicates <- 20
+n_replicates <- 10
 
 feat_names <- paste0("f", seq_len(n_features))
 
 # ---- Core simulation for a single clone proportions -------------------------
 
 run_one <- function(f_dying, seed_val) {
+  print(paste0("Seed: ", seed_val))
   set.seed(seed_val)
 
   n_dying   <- round(f_dying * n_cells_per_clone)
@@ -288,6 +290,7 @@ print(ratio_df)
 
 # ---- Save results ------------------------------------------------------------
 
+filepath <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup_Simulations/"
 saveRDS(
   list(all_results = all_results,
        summary     = summary_df,
@@ -295,7 +298,7 @@ saveRDS(
                      n_clones = n_clones, n_features = n_features,
                      Z_high = Z_high, Z_low = Z_low,
                      f_dying_values = f_dying_values)),
-  file = "sim6_adaptation_index_results.rds"
+  file = paste0(filepath, "sim6_adaptation_index_results.rds")
 )
 
 message("sim6 complete. Results saved to sim6_adaptation_index_results.rds")

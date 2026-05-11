@@ -46,6 +46,7 @@
 #   on imputed fate potentials, is more sensitive to cell-level subsampling.
 # ==============================================================================
 
+rm(list=ls())
 library(multiomeFate)
 library(MASS)
 
@@ -92,7 +93,7 @@ n_features   <- 20
 n_causal     <- 4
 sigma_between <- 1.0
 sigma_within  <- 0.4
-n_replicates  <- 20
+n_replicates  <- 10
 
 true_beta      <- c(rep(1.5, n_causal), rep(0, n_features - n_causal))
 feat_names     <- paste0("f", seq_len(n_features))
@@ -131,6 +132,7 @@ message("=== PART A: Clone-level dropout ===")
 results_A_random <- lapply(p_overlap_values, function(p_ov) {
   message("  p_overlap = ", p_ov)
   reps <- lapply(seq_len(n_replicates), function(rep_idx) {
+    print(paste0("Replicate: ", rep_idx))
     base <- generate_base_data(rep_idx * 11 + round(p_ov * 100))
     X       <- base$X
     true_Z  <- base$true_Z
@@ -173,6 +175,7 @@ results_A_random <- lapply(p_overlap_values, function(p_ov) {
 results_A_biased <- lapply(p_overlap_values, function(p_ov) {
   message("  p_overlap = ", p_ov, " (size-biased)")
   reps <- lapply(seq_len(n_replicates), function(rep_idx) {
+    print(paste0("Replicate: ", rep_idx))
     set.seed(rep_idx * 11 + round(p_ov * 100) + 5000)
     base <- generate_base_data(rep_idx * 11 + round(p_ov * 100))
     lfc_full <- base$lfc_full; X <- base$X; true_Z <- base$true_Z
@@ -220,6 +223,7 @@ message("\n=== PART B: Cell-level subsampling at t1 ===")
 results_B <- lapply(p_cell_values, function(p_cell) {
   message("  p_cell_capture = ", p_cell)
   reps <- lapply(seq_len(n_replicates), function(rep_idx) {
+    print(paste0("Replicate: ", rep_idx))
     base <- generate_base_data(rep_idx * 7 + round(p_cell * 100))
     X <- base$X; true_Z <- base$true_Z; lfc_full <- base$lfc_full
 
@@ -308,6 +312,7 @@ if (!is.null(final_fit_main)) {
 
 # ---- Save results ------------------------------------------------------------
 
+filepath <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup_Simulations/"
 saveRDS(
   list(partA = results_A_df,
        partB = results_B_df,
@@ -315,7 +320,7 @@ saveRDS(
        params = list(n_clones = n_clones, n_per_clone = n_per_clone,
                      n_features = n_features, n_causal = n_causal,
                      n_replicates = n_replicates)),
-  file = "sim5_barcode_dropout_results.rds"
+  file = paste0(filepath, "sim5_barcode_dropout_results.rds")
 )
 
 message("sim5 complete. Results saved to sim5_barcode_dropout_results.rds")

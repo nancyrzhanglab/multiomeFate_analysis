@@ -45,6 +45,7 @@
 #   practical thresholds below which CYFER becomes unreliable.
 # ==============================================================================
 
+rm(list=ls())
 library(multiomeFate)
 library(MASS)
 
@@ -82,7 +83,7 @@ feat_names     <- paste0("f", seq_len(n_features))
 names(true_beta) <- feat_names
 causal_features <- feat_names[seq_len(n_causal)]
 
-n_replicates <- 25
+n_replicates <- 10
 
 # ---- Core CYFER fitting function ---------------------------------------------
 
@@ -161,6 +162,7 @@ results_K <- lapply(K_values, function(K) {
   clone_labels <- paste0("clone:", clone_ids)
 
   reps <- lapply(seq_len(n_replicates), function(rep_idx) {
+    print(paste0("Replicate: ", rep_idx))
     set.seed(rep_idx * 13 + K)
 
     cc <- mvrnorm(K, mu = rep(0, n_features), Sigma = sigma_between^2 * diag(n_features))
@@ -212,6 +214,7 @@ results_npc <- lapply(n_per_clone_values, function(npc) {
   clone_labels <- paste0("clone:", clone_ids)
 
   reps <- lapply(seq_len(n_replicates), function(rep_idx) {
+    print(paste0("Replicate: ", rep_idx))
     set.seed(rep_idx * 19 + npc * 3)
 
     cc <- mvrnorm(K_fixed, mu = rep(0, n_features), Sigma = sigma_between^2 * diag(n_features))
@@ -264,6 +267,7 @@ results_cap <- lapply(p_capture_values, function(p_cap) {
   message("  p_capture = ", p_cap)
 
   reps <- lapply(seq_len(n_replicates), function(rep_idx) {
+    print(paste0("Replicate: ", rep_idx))
     set.seed(rep_idx * 23 + round(p_cap * 100))
 
     cc <- mvrnorm(K_axis3, mu = rep(0, n_features), Sigma = sigma_between^2 * diag(n_features))
@@ -324,6 +328,7 @@ cat("  Barcode capture rate: p_capture >=",
 
 # ---- Save results ------------------------------------------------------------
 
+filepath <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup_Simulations/"
 saveRDS(
   list(axis1_clones   = results_K_df,
        axis2_cellsize  = results_npc_df,
@@ -331,7 +336,7 @@ saveRDS(
        params = list(n_features = n_features, n_causal = n_causal,
                      sigma_between = sigma_between, sigma_within = sigma_within,
                      n_replicates = n_replicates)),
-  file = "sim4_power_analysis_results.rds"
+  file = paste0(filepath, "sim4_power_analysis_results.rds")
 )
 
 message("sim4 complete. Results saved to sim4_power_analysis_results.rds")

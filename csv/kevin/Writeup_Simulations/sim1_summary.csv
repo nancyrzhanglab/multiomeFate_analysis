@@ -1,0 +1,5 @@
+"model","mean_r","sd_r","median_r"
+"exponential",0.997,0.002,0.998
+"linear",0.974,0.006,0.974
+"logistic",0.958,0.011,0.957
+"power_law",0.993,0.002,0.993

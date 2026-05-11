@@ -31,6 +31,7 @@
 #   exponential, but the rank-based metrics (Jaccard) should remain high.
 # ==============================================================================
 
+rm(list=ls())
 library(multiomeFate)
 library(MASS)
 
@@ -117,6 +118,7 @@ growth_models <- list(
 # ---- Single-run helper -------------------------------------------------------
 
 run_one_replicate <- function(seed_val) {
+  print(paste0("Seed value: ", seed_val))
   set.seed(seed_val)
 
   # Generate hierarchical feature matrix
@@ -286,6 +288,7 @@ print(summary_df)
 
 # ---- Save results ------------------------------------------------------------
 
+filepath <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup_Simulations/"
 saveRDS(
   list(
     detailed      = detailed_df,
@@ -294,7 +297,7 @@ saveRDS(
     params = list(n_cells = n_cells, n_clones = n_clones,
                   n_features = n_features, n_causal = n_causal)
   ),
-  file = "sim1_growth_modes_results.rds"
+  file = paste0(filepath, "sim1_growth_modes_results.rds")
 )
 
 message("sim1 complete. Results saved to sim1_growth_modes_results.rds")

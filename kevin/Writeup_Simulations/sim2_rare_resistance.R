@@ -34,6 +34,7 @@
 #   (some clones may have 0 resistant cells, making the signal undetectable).
 # ==============================================================================
 
+rm(list=ls())
 library(multiomeFate)
 library(MASS)
 
@@ -74,7 +75,7 @@ top_features_by_cor <- function(feature_mat, target, k) {
 
 # ---- Simulation parameters ---------------------------------------------------
 
-n_cells      <- 2000
+n_cells      <- 1200
 n_clones     <- 100
 n_features   <- 30
 n_causal     <- 5        # features distinguishing resistant from non-resistant
@@ -92,7 +93,7 @@ Z_resistant     <-  3.0   # log expected progeny for resistant cells
 Z_nonresistant  <- -1.5   # log expected progeny for non-resistant cells
 Z_noise         <-  0.3   # cell-level fate noise
 
-n_replicates    <- 25
+n_replicates    <- 10
 
 # Feature names
 feat_names     <- paste0("f", seq_len(n_features))
@@ -229,6 +230,7 @@ message("Running ", n_replicates, " replicates x ", length(f_values), " prevalen
 all_results <- lapply(f_values, function(f) {
   message("  f = ", f)
   res_list <- lapply(seq_len(n_replicates), function(rep_idx) {
+    print(paste0("Replicate: ", rep_idx))
     run_one(f = f, seed_val = rep_idx * 17 + round(f * 1000))
   })
   res_list <- Filter(Negate(is.null), res_list)
@@ -302,6 +304,7 @@ run_naive <- function(f, seed_val) {
 message("Running naive comparison...")
 naive_results <- lapply(f_values, function(f) {
   res_list <- lapply(seq_len(n_replicates), function(rep_idx) {
+    print(paste0("Replicate: ", rep_idx))
     run_naive(f, seed_val = rep_idx * 17 + round(f * 1000))
   })
   mean(sapply(res_list, function(r) r$auroc_naive), na.rm = TRUE)
@@ -316,13 +319,14 @@ print(summary_df[, c("resistance_fraction", "n_resistant_avg",
 
 # ---- Save results ------------------------------------------------------------
 
+filepath <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup_Simulations/"
 saveRDS(
   list(all_results = all_results,
        summary     = summary_df,
        params      = list(n_cells = n_cells, n_clones = n_clones,
                           n_features = n_features, n_causal = n_causal,
                           f_values = f_values)),
-  file = "sim2_rare_resistance_results.rds"
+  file = paste0(filepath, "sim2_rare_resistance_results.rds")
 )
 
 message("sim2 complete. Results saved to sim2_rare_resistance_results.rds")

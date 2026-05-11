@@ -50,6 +50,7 @@
 #   the majority of low-fate cells in the same clone.
 # ==============================================================================
 
+rm(list=ls())
 library(multiomeFate)
 library(MASS)
 
@@ -112,7 +113,7 @@ compute_metrics_at_threshold <- function(p_values, true_causal, alpha = 0.05) {
 
 # ---- Simulation parameters ---------------------------------------------------
 
-n_cells    <- 1500
+n_cells    <- 1200
 n_clones   <- 60
 n_features <- 50
 n_causal   <- 10
@@ -133,7 +134,7 @@ n_cells_per_clone <- n_cells %/% n_clones
 clone_ids    <- rep(seq_len(n_clones), each = n_cells_per_clone)[seq_len(n_cells)]
 clone_labels <- paste0("clone:", clone_ids)
 
-n_replicates  <- 20
+n_replicates  <- 10
 alpha_thresh  <- 0.05
 n_permutations <- 100    # for permutation test
 
@@ -194,6 +195,7 @@ method_clone_mean <- function(X, clone_sub, lfc_sub) {
 # ---- Run simulation for one scenario and replicate ---------------------------
 
 run_one_replicate <- function(scenario, seed_val) {
+  print(paste0("Seed: ", seed_val))
   set.seed(seed_val)
 
   sigma_within <- if (scenario == "priming") sigma_within_priming else sigma_within_plasticity
@@ -354,6 +356,7 @@ message("\nRunning null calibration (checking false positive rates)...")
 
 # Under the null: all features have beta = 0
 null_run <- function(seed_val) {
+  print(paste0("Seed: ", seed_val))
   set.seed(seed_val)
   X_null <- matrix(rnorm(n_cells * n_features), nrow = n_cells)
   rownames(X_null) <- paste0("cell:", seq_len(n_cells))
@@ -390,6 +393,7 @@ cat(sprintf("\nNull calibration: expected FPR=%.2f, observed mean FPR=%.3f (SD=%
 
 # ---- Save all results --------------------------------------------------------
 
+filepath <- "/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup_Simulations/"
 saveRDS(
   list(summary        = summary_df,
        permutation    = perm_df,
@@ -398,7 +402,7 @@ saveRDS(
        params = list(n_cells = n_cells, n_clones = n_clones,
                      n_features = n_features, n_causal = n_causal,
                      alpha = alpha_thresh, n_replicates = n_replicates)),
-  file = "sim7_sensitivity_specificity_results.rds"
+  file = paste0(filepath, "sim7_sensitivity_specificity_results.rds")
 )
 
 message("sim7 complete. Results saved to sim7_sensitivity_specificity_results.rds")
