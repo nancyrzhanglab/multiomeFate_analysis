@@ -17,6 +17,7 @@ multiomeFate_analysis/
     Writeup_Simulations/    ← current focus: revision simulation scripts
     Writeup*/               ← prior analysis writeup directories (numbered)
     analysis_pipeline/
+  csv/kevin/Writeup_Simulations/   ← flat CSVs exported by make_csvs.R
 ```
 
 The **multiomeFate R package** lives at a sibling path:
@@ -83,7 +84,7 @@ Z_hat <- as.numeric(X %*% final_fit$coefficient_vec[-1]) +
 - `num_folds = min(3, length(unique(clone_vec)) - 1)`
 - Scale `X` with `scale()` before fitting
 
-**Defensive wrapper** (used in all sim scripts):
+**Defensive fitting pattern** (used across sim scripts, sometimes inlined):
 ```r
 fit_cyfer_safe <- function(X, clone_labels, lfc) {
   valid <- names(lfc[lfc > 0])
@@ -102,6 +103,7 @@ fit_cyfer_safe <- function(X, clone_labels, lfc) {
   }, error = function(e) NULL)
 }
 ```
+Note: this pattern appears as `fit_cyfer` (sim5), `fit_cyfer_simple` (sim6), or inlined (sim1–4, sim7).
 
 ## Simulation Scripts (Writeup_Simulations/)
 
@@ -111,22 +113,76 @@ All use synthetic data + `multiomeFate` + `MASS` packages.
 | Script | Addresses | Key Variable | n_replicates |
 |--------|-----------|--------------|--------------|
 | `sim1_growth_modes.R` | Rev 1a | growth model (exp/linear/logistic/power) | 20 |
-| `sim2_rare_resistance.R` | Rev 1b, 9 | resistance fraction f ∈ {1%,2%,5%,10%,25%,50%} | 25 |
-| `sim3_heritability.R` | Rev 1c, 2, 3 | h2_feature × h2_fate grid (5×4) | 15 |
-| `sim4_power_analysis.R` | Rev 1d, 4, 5, 9 | #clones / cells-per-clone / capture rate | 25 |
-| `sim5_barcode_dropout.R` | Rev 4, 5, 6 | p_overlap, p_cell_capture, min clone size | 20 |
-| `sim6_adaptation_index.R` | Rev 8 | f_dying ∈ {10%,25%,50%,75%,90%,99%} | 20 |
-| `sim7_sensitivity_specificity.R` | Rev 7, 1 | priming vs. plasticity scenario | 20 |
-
-Each script saves an `.rds` file with `all_results` (replicate-level) and `summary` (aggregated).
+| `sim2_rare_resistance.R` | Rev 1b, 9 | resistance fraction f ∈ {1%,2%,5%,10%,25%,50%} | 10 |
+| `sim3_heritability.R` | Rev 1c, 2, 3 | h2_feature × h2_fate grid (5×4) | 10 |
+| `sim4_power_analysis.R` | Rev 1d, 4, 5, 9 | #clones / cells-per-clone / capture rate | 10 |
+| `sim5_barcode_dropout.R` | Rev 4, 5, 6 | p_overlap, p_cell_capture, min clone size | 10 |
+| `sim6_adaptation_index.R` | Rev 8 | f_dying ∈ {10%,25%,50%,75%,90%,99%} | 10 |
+| `sim7_sensitivity_specificity.R` | Rev 7, 1 | priming vs. plasticity scenario | 10 |
 
 **Run**: `Rscript sim1_growth_modes.R` (single-core; see README.txt for runtimes ~5-40 min each)
 
 **Parallelization**: wrap replicate loops with `parallel::mclapply()` to speed up.
 
+### RDS output structure (per script)
+
+RDS files are saved to `/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/Writeup_Simulations/`.
+
+Each script saves a different structure — there is no uniform schema:
+
+| Script | RDS keys |
+|--------|----------|
+| `sim1` | `detailed` (single-run metrics), `replicate_cors` (matrix), `summary`, `params` |
+| `sim2` | `all_results` (list of per-f data frames), `summary`, `params` |
+| `sim3` | `summary` (20-row grid), `grid`, `params` — **no replicate-level data stored** |
+| `sim4` | `axis1_clones`, `axis2_cellsize`, `axis3_capture`, `params` |
+| `sim5` | `partA` (clone dropout), `partB` (cell subsampling), `partC` (Gini vs clone size), `params` |
+| `sim6` | `all_results` (nested list per f_dying), `summary`, `params` |
+| `sim7` | `summary`, `permutation`, `all_results`, `null_fpr`, `params` |
+
+## CSV Export (make_csvs.R)
+
+`kevin/Writeup_Simulations/make_csvs.R` reads each RDS and writes flat CSVs to
+`csv/kevin/Writeup_Simulations/`. Run: `Rscript make_csvs.R`.
+
+| CSV file | Contents |
+|----------|----------|
+| `sim1_summary.csv` | Mean/SD/median correlation per growth model |
+| `sim1_detailed_single_run.csv` | Correlation, Jaccard, Gini per model (single run) |
+| `sim1_replicate_cors.csv` | Per-replicate correlation, one row per replicate |
+| `sim2_summary.csv` | Mean AUROC, sensitivity, specificity per resistance fraction |
+| `sim2_replicate_details.csv` | Per-(fraction, replicate) metrics |
+| `sim3_summary.csv` | Per-(h2_feature, h2_fate) grid cell: CYFER vs naive correlation/Jaccard |
+| `sim4_axis1_n_clones.csv` | Performance vs number of clones |
+| `sim4_axis2_cells_per_clone.csv` | Performance vs cells per clone |
+| `sim4_axis3_capture_rate.csv` | Performance vs barcode capture rate |
+| `sim5_partA_clone_dropout.csv` | Correlation and Gini error vs p_overlap (random + size-biased) |
+| `sim5_partB_cell_subsampling.csv` | Correlation and Gini error vs p_cell_capture |
+| `sim5_partC_gini_vs_clone_size.csv` | Gini vs minimum clone size threshold |
+| `sim6_summary.csv` | Adaptation index bias/correlation per f_dying |
+| `sim6_replicate_details.csv` | Per-replicate adaptation index metrics |
+| `sim7_summary.csv` | AUROC, AUPRC, sensitivity, specificity per scenario |
+| `sim7_permutation_test.csv` | Permutation p-value for CYFER vs naive AUROC difference |
+| `sim7_null_calibration_fpr.csv` | Observed false positive rate under the null |
+| `sim7_replicate_details.csv` | Per-(scenario, replicate) full metrics for all three methods |
+
 ## Common Simulation Patterns
 
-**Hierarchical data generation** (used in sim3, sim4, sim5):
+**Simulation parameters by script**:
+
+| Script | n_cells | n_clones | n_features | n_causal |
+|--------|---------|----------|------------|----------|
+| sim1 | 1500 | 60 | 30 | 5 |
+| sim2 | 1200 | 100 | 30 | 5 |
+| sim3 | 1200 | 50 | 25 | 5 |
+| sim4 | varies (K × n_per_clone) | varies | 20 | 4 |
+| sim5 | 2500 (100×25) | 100 | 20 | 4 |
+| sim6 | 1200 (60×20) | 20 | 20 | — |
+| sim7 | 1200 | 60 | 50 | 10 |
+
+Note: sim2 header comment says "n=2000 cells" but the code sets `n_cells <- 1200`.
+
+**Hierarchical data generation** (used in sim1, sim3, sim4, sim5, sim7):
 ```r
 library(MASS)
 cc <- mvrnorm(n_clones, rep(0, n_features), sigma_between^2 * diag(n_features))
@@ -137,6 +193,15 @@ X <- scale(X)
 true_Z <- as.numeric(X %*% true_beta)
 cell_future <- rpois(n_cells, exp(true_Z))
 lfc <- tapply(cell_future, clone_labels, sum)
+```
+
+**sim3 heritability parameterization**:
+```r
+# h2 = sigma_between^2 / (sigma_between^2 + sigma_within^2)
+# Fix sigma_between = 1, solve for sigma_within:
+sigma_within <- sqrt((1 - h2) / h2)
+# h2_feature: {0.05, 0.20, 0.50, 0.80, 0.95}
+# h2_fate:    {0.10, 0.30, 0.60, 0.90}
 ```
 
 **Gini coefficient**:
@@ -153,15 +218,29 @@ gini_coef <- function(x) {
 jaccard <- function(a, b) length(intersect(a, b)) / length(union(a, b))
 ```
 
-**AUROC** (requires `pROC` or manual implementation):
+**AUROC** (Wilcoxon statistic, used in sim2 and sim7):
 ```r
-# Simple manual AUROC from ranked scores
 auroc <- function(scores, labels) {
-  n1 <- sum(labels == 1); n0 <- sum(labels == 0)
-  if (n1 == 0 || n0 == 0) return(NA)
-  sum(rank(scores)[labels == 1]) / (n1 * n0) - (n1 + 1) / (2 * n0)
+  n_pos <- sum(labels == 1); n_neg <- sum(labels == 0)
+  if (n_pos == 0 || n_neg == 0) return(0.5)
+  wilcox.test(scores[labels == 1], scores[labels == 0],
+              alternative = "greater")$statistic / (n_pos * n_neg)
 }
 ```
+
+**sim7 p-values** are from `cor.test()` (CYFER) or `wilcox.test()` (naive), then scored
+as `-log10(p)` for AUROC/AUPRC ranking. Includes three methods: CYFER, naive (Wilcoxon
+by clone fate quartile), and clone-mean correlation.
+
+**sim6 adaptation index**:
+```r
+adaptation_index <- function(d_vec, weights) {
+  weights <- pmax(weights, 0)
+  if (sum(weights) < 1e-10) return(mean(d_vec))
+  sum(weights * d_vec) / sum(weights)
+}
+```
+Three variants compared: CYFER-weighted, naive (uniform), oracle (true fate potential).
 
 ## Key Reviewer Critiques (Nature Genetics Revision)
 

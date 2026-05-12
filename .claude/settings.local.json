@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python3 *)",
-      "Bash(Rscript make_csvs.R)"
+      "Bash(Rscript make_csvs.R)",
+      "Bash(Rscript *)"
     ]
   }
 }

@@ -47,6 +47,15 @@ rep_df <- do.call(rbind, lapply(s2$all_results, function(df) {
 write_csv(rep_df, "sim2_replicate_details.csv")
 
 # ==============================================================================
+# SIM 3: Heritability Grid
+# ==============================================================================
+message("=== Sim 3: Heritability ===")
+s3 <- readRDS(file.path(in_dir, "sim3_heritability_results.rds"))
+
+# Summary: one row per (h2_feature, h2_fate) grid cell
+write_csv(s3$summary, "sim3_summary.csv")
+
+# ==============================================================================
 # SIM 4: Power Analysis
 # ==============================================================================
 message("=== Sim 4: Power Analysis ===")
