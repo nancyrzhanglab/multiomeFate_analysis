@@ -39,19 +39,24 @@ Why the two comparators are expected to fail, in the terms the paper will use:
   is `S_t1 · M · S_t2`: `M` is the barcode link, which ties every t1 cell of a clone
   to every t2 cell of that clone equally, and `S_t1`, `S_t2` are within-time
   similarity smoothers (`COSPAR_SRC/cospar/tmap/_tmap_core.py`; the t1-to-t2
-  similarity is never read). Three things break it. When cells within a clone
-  differ in fate, the barcode link cannot tell the clone-mates apart; the only way
-  CoSPAR separates them is coherence across clones at t2, and that requires the
-  t2 neighbourhood structure to mirror the t1 fate structure, which need not hold
-  when each clone's descendants drift in their own direction. When one or two
-  clones dominate, the "High" fate is one clone's descendants and the bias is that
-  clone's identity spread over its neighbours, lineage-DE's problem in another
-  form. And a clone that went extinct is a single-time clone to CoSPAR, absent
-  from the barcode link, whereas to CYFER its zero is data; at high Gini those are
-  most clones. The assumption that a clone's t2 expression sits near its t1
-  expression belongs to expression-aligning methods (optimal transport, RNA
-  velocity, CoSPAR's one-time-clone mode), not to barcoded CoSPAR, and the paper
-  should not attribute it to CoSPAR.
+  similarity is never read). Three things break it:
+
+  - When cells within a clone differ in fate, the barcode link cannot tell the
+    clone-mates apart; the only way CoSPAR separates them is coherence across
+    clones at t2, and that requires the t2 neighbourhood structure to mirror the
+    t1 fate structure, which need not hold when each clone's descendants drift in
+    their own direction.
+  - When one or two clones dominate, the "High" fate is one clone's descendants
+    and the bias is that clone's identity spread over its neighbours, lineage-DE's
+    problem in another form.
+  - A clone that went extinct is a single-time clone to CoSPAR, absent from the
+    barcode link, whereas to CYFER its zero is data; at high Gini those are most
+    clones.
+
+  The assumption that a clone's t2 expression sits near its t1 expression belongs
+  to expression-aligning methods (optimal transport, RNA velocity, CoSPAR's
+  one-time-clone mode), not to barcoded CoSPAR, and the paper should not attribute
+  it to CoSPAR.
 
 The paper's current Methods say why this replaces the priming/plastic pair: those
 two semi-synthetic datasets reach Gini 0.26 and 0.28 only, whereas the real data run
