@@ -1,40 +1,58 @@
-# Writeup21: design notes for the Gini and heterogeneity simulation sweeps
+# Writeup21: design for the Gini and heterogeneity simulation sweeps
 
-Claude, 2026-09-22. A thinking-through, not an implementation. Nothing here has
-been run. Questions for Kevin are collected in Section 9 and cross-referenced as
-**[Q1]**, **[Q2]**, ... where they arise.
+Design memo for the two Figure 4 panels. Nothing here has been run. Decisions are
+stated as settled; the points that still need Kevin's input are collected in
+Section 9 and cross-referenced as **[Q1]**, **[Q2]**, ... where they arise.
 
 ## 1. What the two figures have to show
 
 The Nature Methods mockup (`additional_context/Mockup of figures of Nancy-Sydney
-paper.pptx`, slide 4) plans **Figure 4** as two panels, each a ladder of about
-seven simulated settings:
+paper.pptx`, slide 4) plans **Figure 4** as two panels, each a ladder of seven
+simulated settings:
 
-- **4A: varying clone-size skewness (Gini index).** Overlap of the genes each method
-  calls with the true expansion genes, as the Gini index of clone sizes rises.
-- **4B: varying intraclonal heterogeneity (AED).** Same metric, as the
-  average-of-squared Euclidean distance within clones rises.
+- **4A: varying clone-size skewness (Gini index).** How well each method recovers the
+  genes associated with clonal expansion, as the Gini index of clone sizes rises.
+- **4B: varying intraclonal heterogeneity (AED).** The same, as the within-clone
+  average Euclidean distance rises.
 
 Methods: CYFER, CoSPAR (Wang et al. 2022), and lineage-level differential expression
-(the three columns of the paper's Table 1). Metric: Jaccard index between the called
-gene set and the true set. Data: fully synthetic, two time points, RNA only.
+(the three columns of the paper's Table 1). Data: fully synthetic, two time points,
+RNA only.
 
-The paper's current Methods admit why this replaces the priming/plastic pair: those
-two semi-synthetic datasets reach Gini 0.26 and 0.28 only, because each varies clones
-along a single axis, whereas the real data run from Gini 0.64 before treatment to
-near 1 at week 5. The Nature Genetics reviewers asked for exactly this kind of
-sweep (reviewer 2 comment 3b, reviewer 3 comment 1b) and the response letter
-committed to it. So the sweep is not decoration: it is the paper's answer to "when
-does CYFER's advantage appear, and when does everything fail".
+**The story both panels must tell is a gradient.** At the easy end of each axis
+(low Gini: many clones expanded and many did not; low AED: every cell in a clone
+looks alike) all three methods should do well. At the hard end (high Gini: one or two
+lineages dominate the later time point; high AED: cells within a clone differ) only
+CYFER should still work, because it models the expansion potential of every cell
+rather than of clones or of smooth state transitions. The figure's content is where
+along each axis the other two methods fall away.
 
-Two Table 1 claims are what the panels should make visible: CYFER "accounts for
-exponential growth and selection" (4A) and "quantifies fate potential driven by
-plasticity" (4B).
+Why the two comparators are expected to fail, in the terms the paper will use:
 
-## 2. The generative model I would build
+- **Lineage-DE** has to cut the clones into a "high" and a "low" group and pool all
+  high clones together. When one or two clones dominate, the high group is one
+  clone, and DE returns that clone's identity genes rather than the expansion
+  program. When cells within a clone differ in fate (high AED), clone membership no
+  longer predicts a cell's fate, so a clone-level split mislabels cells.
+- **CoSPAR** links time points through barcodes and then smooths fate over
+  transcriptomic neighbours, assuming a smooth continuum of states between the two
+  time points. A clone's expression at the later time point need not be anywhere
+  near its expression at the earlier one, and within a clone the cells that
+  expanded need not be the transcriptomic neighbours of those that did not.
+  CoSPAR's fate bias is also a clone-level quantity spread over neighbours, so it
+  inherits lineage-DE's problem at high Gini (its "High" fate becomes one clone) and
+  it ignores clones that went extinct, which are the informative ones at high Gini.
+
+The paper's current Methods say why this replaces the priming/plastic pair: those
+two semi-synthetic datasets reach Gini 0.26 and 0.28 only, whereas the real data run
+from Gini 0.64 before treatment to near 1 at week 5. The Nature Genetics reviewers
+asked for exactly this sweep (reviewer 2 comment 3b, reviewer 3 comment 1b) and the
+response letter committed to it.
+
+## 2. The generative model
 
 One generator serves both sweeps; each sweep moves one knob and recalibrates the
-other to stay fixed. I describe it bottom-up.
+other so that the second statistic stays fixed (Section 5). Described bottom-up.
 
 ### 2.1 Latent cell state
 
@@ -42,15 +60,17 @@ Each earlier-time-point (t1) cell `i` in clone `l` has a latent state
 `s_i ∈ R^d` (`d = 10`):
 
 ```
-m_l   ~ N(0, τ² I_d)               clone-level centre
-s_i   = m_l + e_i,   e_i ~ N(0, σ_w² I_d)    within-clone deviation
+m_l   ~ N(0, τ² I_d)                          clone-level centre
+s_i   = m_l + e_i,   e_i ~ N(0, σ_w² I_d)     within-clone deviation
 ```
 
 `τ` and `σ_w` are the two knobs of the whole design. Between-clone spread `τ`
 drives clone-size inequality; within-clone spread `σ_w` drives AED. Their ratio is
-the heritability of sim3 (`h² = τ² / (τ² + σ_w²)`), so this is sim3's hierarchical
-model with a gene layer on top and with the two parameters exposed as the axes the
-figure wants rather than as a heritability grid.
+sim3's heritability (`h² = τ² / (τ² + σ_w²)`), so this is sim3's hierarchical model
+with a gene layer on top and the two parameters exposed as the axes the figure
+wants. `σ_w` is isotropic: heterogeneity moves the causal and non-causal
+coordinates together, which is what real heterogeneity looks like and what AED
+measures on all genes.
 
 ### 2.2 Fate potential
 
@@ -59,15 +79,17 @@ The first latent coordinate is the **expansion axis**:
 ```
 Z_i = β_0 + β · s_i1
 N_i ~ Poisson(exp(Z_i))           progeny of cell i at t2
-Y_l = Σ_{i ∈ l} N_i               clone size at t2 before sampling
+Y_l = Σ_{i ∈ l} N_i               clone size at t2
 ```
 
-`β` is fixed across the sweep (`β = 1.5`, as in sim7), `β_0` is solved so that the
-expected total progeny matches a target population size. Making only one latent
-coordinate causal keeps the truth set crisp (Section 2.4) and keeps the two axes
-interpretable: `τ` moves the spread of clone means *along the causal axis*,
-`σ_w` moves the within-clone spread along it. **[Q2]** asks whether this is the
-mechanism Kevin wants for high Gini; alternatives are in Section 3.2.
+`β` is fixed across the sweep (`β = 1.5`, as in sim7); `β_0` is solved at every
+level so that the expected total number of t2 cells is the same across levels
+(Section 2.6). One causal coordinate keeps the truth crisp and the axes
+interpretable: `τ` moves the spread of clone means *along the causal axis*, `σ_w`
+the within-clone spread along it. Between-clone spread `τ` is the primary knob for
+Gini because its Gini is smoothly controllable by bisection; rare "jackpot" cells
+within ordinary clones are not folded in, so 4A is not a re-run of sim2's
+rare-resistance axis.
 
 ### 2.3 Genes
 
@@ -87,356 +109,363 @@ Y_ig ~ NegBin(mean = L_i · μ_ig / Σ_g μ_ig, size = θ)     θ = 10, L_i ~ Lo
 ```
 
 Negative-binomial rather than Poisson so that the "genes are noisy" part of the
-problem is honest; library sizes `L_i` around 5,000. Baselines `a_g` from a
-log-normal so expression levels span the usual range. Nothing here is tuned to make
-any method look good, which is the point of synthetic rather than semi-synthetic
-data; it is also why the reviewer's "you decoupled heritability" objection does not
-apply, since clone identity is inherited through `m_l`.
+problem is honest; library sizes `L_i` around 5,000; baselines `a_g` log-normal so
+expression levels span the usual range. Nothing is tuned to make any method look
+good, which is the point of synthetic rather than semi-synthetic data; clone
+identity is inherited through `m_l`, so the reviewer's "you decoupled heritability"
+objection does not apply.
 
-### 2.4 Truth set
+The 100 loading genes are a generator device only. The truth the methods are scored
+against is operational (Section 6.1), so no gene has to be declared "true" or
+"false".
 
-Structural definition: the 100 genes with non-zero loading on `s_1`. I would also
-compute the **operational** truth (Spearman correlation of each gene with the true
-`Z_i` over t1 cells, BH `q < 0.05`) and check it recovers the structural set at
-Jaccard above 0.9 in every setting; where it does not, the effect size is too small
-for *any* method and that level should be reported as such rather than as a method
-failure. **[Q5]** asks which definition goes in the figure.
+### 2.4 The later time point
 
-### 2.5 The later time point
+Only CoSPAR needs t2 cells with expression (CYFER needs the clone counts `Y_l`;
+lineage-DE splits clones on `Y_l` and tests t1 cells). The construction, step by
+step:
 
-The three methods need t2 cells for different reasons: CYFER needs only clone
-counts; CoSPAR needs t2 cells with expression and a fate label; lineage-DE as Kevin
-specified it tests t2 cells. So t2 cells must have expression. I would generate a
-fixed number `n_2` of t2 cells by sampling progeny in proportion to `N_i` (this is
-the capture step; `n_2 = 3000`), and give each progeny cell a latent state
+1. Draw `s_i` for every t1 cell (Section 2.1) and `N_i` for every t1 cell
+   (Section 2.2). `Y_l = Σ_i N_i` is the clone's t2 size, zeros included.
+2. The t2 population is the multiset of children: parent `i` contributes `N_i`
+   cells. No capture subsampling; the t2 cells CoSPAR sees are exactly the cells
+   CYFER counts.
+3. Each child of parent `i` gets its own latent state
 
 ```
 s_child = ρ · s_parent + (1 − ρ) · m_l + sqrt(1 − ρ²) · σ_w · e_child + δ
 ```
 
-with `ρ` the within-clone inheritance of the parent's deviation and `δ` a
-t2-specific shift shared by all t2 cells (a treatment-response program on
-non-causal coordinates, so it does not create new expansion genes). `ρ = 1`, `δ = 0`
-means progeny are copies of their parents; `ρ = 0` means progeny regress to the
-clone centre. **This knob decides how well lineage-DE at t2 works** (Section 4.3),
-so the default matters. I would fix `ρ = 0.5` and `δ` a modest shift, and report
-`ρ ∈ {0, 0.5, 1}` as a supplementary row. **[Q4]**.
+   with `ρ = 0.8`: a child takes after its specific parent more than after the
+   clone's centre, but is not a copy. `δ` is a t2-wide shift on the non-causal
+   coordinates (a treatment-response program; it creates no new expansion genes),
+   with its norm set so that t1 and t2 cells barely overlap in the top PCs, about
+   three standard deviations of the t1 cloud.
+4. Counts for t2 cells come from the same gene model (Section 2.3).
 
-### 2.6 Sizes
+`ρ` and `δ` reach the gene calls only through CoSPAR, and even there only weakly:
+CoSPAR's t1→t2 link is the barcode, and its similarity smoothing acts within each
+time point, so a rigid shift that moves every t2 cell the same way leaves its
+within-t2 neighbourhoods intact. A large `δ` is set as specified, but it should not
+be expected to be the thing that breaks CoSPAR; the things that break it are in
+Section 1. **[Q6]** asks whether a clone-specific component of the shift is wanted.
+
+### 2.5 Sizes
 
 | Quantity | Value | Why |
 |---|---|---|
-| clones `L` | 100 | sim2/sim5 scale; leaves ~66 training clones at 3 folds, so up to ~60 CYFER features |
-| t1 cells | 3,000 (30 per clone, equal) | AED needs pairs within clones; 30 gives 435 pairs per clone |
-| t2 cells captured | 3,000 | fixed capture keeps CoSPAR's graph size constant across levels |
-| genes | 2,000; 100 causal | enough for a BH-controlled gene call to mean something; small enough that CoSPAR runs in ~1 min |
-| latent `d` | 10 | PCA dims for both CYFER and CoSPAR |
-| replicates | 20 per level | sim1 used 20; SDs on Jaccard at 20 are about 0.03 |
-
-Whether t1 clone sizes should also be unequal is **[Q1]**; the paper's pre-treatment
-Gini of 0.64 says real t1 sizes are, and unequal t1 sizes make the "pooled" Gini
-Kevin described meaningful.
+| clones `L` | 100 | sim2/sim5 scale; ~66 training clones at 3 folds, so up to ~60 CYFER features |
+| t1 cells | 1,000: 10 per clone, equal | realistic for a pre-treatment barcoded population; 45 within-clone pairs per clone for AED |
+| t2 cells | 3,000 expected total, fixed across levels via `β_0`; realized sizes from 0 up to a few hundred per clone | zeros kept; see **[Q1]** for the ceiling this places on pooled Gini and for the "up to 500" scale |
+| genes | 2,000; 100 on the causal axis | enough for a per-gene correlation vector to mean something; small enough that CoSPAR runs in about a minute |
+| latent `d` | 10 | PCA dims for CYFER, CoSPAR and AED |
+| replicates | 2 per level for the laptop run; 20 later on Hyak | Section 8 |
 
 ## 3. Axis 1: Gini of clone sizes
 
-### 3.1 Which Gini
+### 3.1 Definition
 
-Kevin's description: clone sizes across all time points at once, where a high value
-means one clone has expanded far beyond the others at t2. Three candidate
-definitions, all computable from the same data:
+The **pooled** Gini: `Gini(n_l^{t1} + n_l^{t2})` over the `L` clones, computed with
+`gini_coef()` (identical to the paper's `dineq::gini.wtd` on non-negative vectors).
+With every t1 clone at 10 cells, the pooled Gini is driven entirely by t2:
 
-1. `Gini(n_l^{t1} + n_l^{t2})` over clones, the pooled size. This is the literal
-   reading.
-2. `Gini(n_l^{t2})`, the later-time-point inequality, which is what the paper reports
-   rising to ~1 and what drives every method's difficulty.
-3. `Gini` of the concatenated vector `(n_1^{t1}, ..., n_L^{t1}, n_1^{t2}, ..., n_L^{t2})`.
+```
+Gini(10 + Y) = Gini(Y) · mean(Y) / (10 + mean(Y))
+```
 
-With equal t1 sizes, (1) is a damped version of (2); with unequal t1 sizes they
-diverge. I would compute all three per dataset, sweep on (1) as specified, and
-label the x-axis with realized values. **[Q1]**.
+because adding a constant leaves the mean absolute difference unchanged and raises
+the mean. At 3,000 t2 cells over 100 clones, `mean(Y) = 30`, so the pooled Gini is
+`0.75 × Gini(Y)` and **cannot exceed about 0.74** even when one clone holds
+everything. The t2-only Gini is reported alongside for comparison with the paper's
+real-data numbers, which are single-time-point values (0.64 at t1, 0.72–0.81 at day
+10, near 1 at week 5). **[Q1]**.
 
-The paper's Gini is `dineq::gini.wtd`; the sim scripts use a hand-rolled
-`gini_coef()`. They agree on non-negative vectors, so reuse `gini_coef()`.
+### 3.2 The extreme end is a different regime
 
-### 3.2 What generates the inequality
+At the top level one or a few clones hold most t2 cells. Consequences:
 
-The Gini of `Y_l = Σ_i exp(Z_i)` rises with three different things, and they are
-not equivalent for the methods:
+- Lineage-DE's high group is one to three clones, 10–30 t1 cells against ~970. Its
+  DE finds those clones' identity genes (their `m_l` on every coordinate), not the
+  expansion genes. This is the intended failure.
+- CoSPAR's "High" fate is one clone's descendants, and the coherence smoothing
+  spreads that clone's bias over its transcriptomic neighbours. Most t1 cells belong
+  to clones with no t2 cells at all; in CoSPAR's terms these are single-time
+  clones, they contribute no barcode link to the transition map, and their fate bias
+  comes entirely from smoothing over neighbours. This is not fatal to CoSPAR as long
+  as some clones are observed at both time points (it is, at every level), and it is
+  a fair picture of how CoSPAR behaves on the real data. The point to make in the
+  paper is that CoSPAR treats an extinct clone as missing, whereas CYFER treats its
+  zero as data.
+- CYFER sees most clones with `Y_l = 0`. The package accepts zero-count clones and
+  the fit keeps them: at high Gini the zeros carry the signal, and the filter to
+  `Y_l > 0` used by sim1–sim7 would throw it away. This is a deliberate choice to
+  state in the Methods.
 
-| Mechanism | Knob | Who it helps |
-|---|---|---|
-| (a) Clone means spread along the causal axis | `τ` | lineage-DE: high clones are uniformly high |
-| (b) Steeper fate response | `β` | everyone, but the gene truth set gets larger effects |
-| (c) Rare "jackpot" cells in otherwise ordinary clones | mixture on `e_i1` | CYFER only, in principle |
+Honest expectation for 4A: everyone is fine at the bottom, the comparators degrade
+toward the top, and CYFER should degrade slowest if the zero-clone handling is
+right. Nothing more is promised before it runs.
 
-The realistic story in the paper is a mix of (a) and (c): a few clones are
-uniformly primed, and some ordinary clones win through rare cells. A sweep on `τ`
-alone (a) makes 4A partly a re-run of sim3's heritability axis; a sweep on (c)
-alone makes 4A a re-run of sim2's rare-resistance axis. I would sweep `τ` as the
-primary knob because it is the one whose Gini is smoothly controllable, keep `σ_w`
-at the mid AED level, and **calibrate `τ` by bisection** to hit each target Gini
-level in expectation (Section 5). **[Q2]** is whether Kevin wants (c) folded in.
+### 3.3 Levels
 
-### 3.3 The extreme end is a different regime
-
-At Gini near 1, one or two clones hold nearly all t2 cells. Consequences:
-
-- Lineage-DE compares one "high" clone with everything else, so it finds that
-  clone's *identity* genes (its `m_l` on all coordinates), not the expansion genes.
-  Its precision collapses even if recall is fine. This is the intended failure.
-- CoSPAR's "High" fate is one clone's descendants, and its coherence smoothing then
-  spreads that clone's bias over its transcriptomic neighbours. Also likely to fail,
-  for the same reason wearing a different hat.
-- CYFER sees most clones with `Y_l = 0`. Those zeros are informative (they say the
-  cells are low), but every existing sim script filters to `Y_l > 0` before
-  fitting, while the package itself accepts zeros. **At high Gini the filter throws
-  away the signal.** I would keep zero-count clones in the fit and treat this as a
-  deliberate choice to state in the Methods. **[Q6]**.
-
-So the honest expectation for 4A is: everyone is fine in the middle, everyone
-degrades at the top, and the figure's content is *how fast*. CYFER should degrade
-slowest if the zero-clone handling is right. I would not promise more than that
-before running it.
-
-### 3.4 Levels
-
-Seven targets: Gini ∈ {0.2, 0.35, 0.5, 0.6, 0.7, 0.8, 0.9} on definition (2), which
-brackets the real data (0.64 at t1, 0.72–0.81 at day 10, ~1 at week 5). The exact
-list depends on what the calibration can reach at `L = 100`; a Gini of 0.95 with
-100 clones needs one clone to hold about 90% of cells, which is reachable but leaves
-`n_2` almost entirely from one clone. **[Q7]** covers the level list and count.
+Seven targets on the pooled Gini, `{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7}`, the top one
+sitting just under the ceiling of Section 3.1. AED is held at its middle level
+(Section 4.3) throughout. Whether the ceiling should instead be raised by
+generating more t2 cells is **[Q1]**.
 
 ## 4. Axis 2: within-clone heterogeneity (AED)
 
-### 4.1 Definition, and a naming trap
+### 4.1 Definition
 
-The paper's Methods define the clonal variability score as
+The paper's clonal variability score, un-squared as written in the Methods
+(`paper_nbt.tex`, "Clonal variability score calculation"), with the name left for
+the paper to fix:
 
 ```
 AED_l = Dist_l / Dist_random
-Dist_l      = mean pairwise Euclidean distance among clone-l cells in the embedding
-Dist_random = mean pairwise Euclidean distance among all cells
+Dist_l      = mean pairwise Euclidean distance among clone-l t1 cells in the PCA embedding
+Dist_random = mean pairwise Euclidean distance among all t1 cells in the same embedding
 ```
 
-despite the name, the distances are **not squared** in the written formula, and
-reviewer 2 (comment 20) already flagged the inconsistency. For the simulation I
-would compute both the ratio of mean distances (as written) and the ratio of mean
-squared distances, report which one the figure uses, and let the paper's Methods be
-fixed to match. **[Q10]**. The embedding is the same PCA the methods use (Section 6),
-at t1 only.
+The embedding is the same 10-PC PCA of log-normalized counts on all 2,000 genes
+that the methods use (Section 6), computed on t1 cells only. Heterogeneity is
+measured on all genes, causal and non-causal together; there is no separate
+"non-causal coordinates only" experiment.
 
-Under the generator, `E[squared distance within clone] = 2 d σ_w²` and
-`E[squared distance overall] = 2 d (τ² + σ_w²)`, so the squared-distance AED is
-`σ_w² / (τ² + σ_w²) = 1 − h²`, which is why this axis is sim3's feature-heritability
-axis in disguise. Levels of AED map to `σ_w/τ` directly; the un-squared version is
-a monotone transform of the same ratio.
+The sweep's x-axis is the **mean of `AED_l` over clones**. Under the generator the
+expected squared within-clone distance is `2 d σ_w²` and the expected squared
+overall distance is `2 d (τ² + σ_w²)`, so the un-squared AED is approximately
+`sqrt(σ_w² / (τ² + σ_w²)) = sqrt(1 − h²)`, which is sim3's feature-heritability axis
+in disguise. Two consequences for the range:
+
+- The mean AED is **bounded above by about 1**: it reaches 1 when clones have no
+  centre at all (`τ = 0`), because between-clone pairs are never closer, on average,
+  than within-clone pairs. Individual clones exceed 1 only when their own spread
+  exceeds the typical clone's, which needs `σ_w` to vary across clones. **[Q2]**
+  asks how to reconcile this with a 0-to-2 axis.
+- The mean AED has a **floor above 0**: at `σ_w = 0` the within-clone distance is
+  pure count noise in the PCs, and so is part of the overall distance. The floor is
+  found in a pilot run and the lowest level is set just above it.
 
 ### 4.2 Holding Gini fixed while AED moves
 
 Raising `σ_w` widens the within-clone spread of `Z`, so `Σ_i exp(Z_i)` gets heavier
-tails and the Gini rises on its own. If 4B does not hold Gini fixed, the two panels
-are confounded. I would fix the target Gini at the middle level of 4A (about 0.6)
-and, for each AED level, bisect on `τ` (or on `β_0` and `τ` jointly) so the realized
-Gini stays at 0.6 ± 0.03. Report realized Gini and realized AED for every dataset
-and plot Jaccard against the realized AED as a check that the calibration worked.
-**[Q11]**.
+tails and the Gini rises on its own. To keep the panels unconfounded, the pooled
+Gini is held at 0.4 (the middle of 4A's ladder) throughout 4B: at each AED level,
+`τ` is bisected so the realized pooled Gini stays at 0.4 ± 0.03 (Section 5).
+Realized Gini and realized AED are reported for every dataset and the metric is
+also plotted against realized AED, as a check that the calibration worked.
 
-### 4.3 Where the heterogeneity lives
+### 4.3 Levels
 
-Two very different things raise AED:
-
-- **Heterogeneity on the causal axis** (`σ_w` on `s_1`). This is plasticity in the
-  paper's sense: cells in one clone differ in fate potential. Lineage-level methods
-  lose here because clone membership stops predicting cell fate.
-- **Heterogeneity on non-causal axes** (`σ_w` on `s_2..s_d` only). AED rises, but
-  every cell in a clone still has the same fate. Lineage-DE is unaffected; only the
-  embedding gets noisier.
-
-The primary sweep should move `σ_w` isotropically (both at once), because that is
-what real heterogeneity looks like and it is what AED measures. A one-row
-supplement moving only the non-causal coordinates would show that AED *per se* is
-not what breaks lineage methods, which pre-empts a reviewer asking "isn't this just
-noise". **[Q13]**.
-
-### 4.4 The lineage-DE at t2 problem
-
-Kevin specified lineage-DE as: split clones by expansion between the two time
-points, then test t2 cells of high clones against t2 cells of low clones. Under
-inheritance (`ρ = 1`), t2 cells are copies of the parents that expanded, so the
-high clones' t2 cells are *already selected* for high `s_1`. That DE recovers the
-expansion genes well even at high AED, because selection did the work that the
-method cannot do at t1. In sim7 and in the paper's Figure 3, the naive DE used **t1
-cells** of high versus low clones, and that is the version plasticity breaks.
-
-I would run both: lineage-DE on t1 cells (the published comparator) and on t2 cells
-(the one Kevin described). Under `ρ < 1` and a t2 shift `δ`, the t2 version drifts
-toward calling the response program rather than the priming program, which is a
-realistic failure worth showing. **[Q3]** and **[Q4]** together decide the default.
-
-### 4.5 Levels
-
-Seven targets on squared-distance AED: {0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 0.95},
-equivalently `h²` from 0.9 down to 0.05, which is sim3's range. Real-data anchors
-would help: the values in Figure 2E and S3-1 should sit inside this range and I do
-not have them. **[Q10]**.
+Seven targets on the mean un-squared AED, spaced evenly between the pilot floor and
+about 0.95, tentatively `{0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}` (in squared terms
+`h²` from about 0.9 down to about 0.2, sim3's range). The middle level, AED 0.5
+(`h² ≈ 0.75`), is the value held fixed during the Gini sweep. **[Q2]**, **[Q7]**.
 
 ## 5. Calibration
 
-Both sweeps are stated in terms of a *realized* statistic (Gini, AED), not a
-generator parameter. Two ways to handle that:
+Both sweeps are stated in terms of a *realized* statistic (pooled Gini, mean AED),
+not a generator parameter, so each level is calibrated by bisection:
 
-1. **Bisection per level.** For a target Gini, simulate at candidate `τ`, compute
-   expected Gini over 10 quick draws, bisect. About 10 generator calls per level,
-   negligible cost. Then draw the 20 replicates at the calibrated `τ`.
-2. **Report realized values only.** Sweep the parameter, plot against the realized
-   statistic. Simpler, but the x-axis becomes uneven and the levels are not
-   nameable in a caption.
+1. **Gini sweep.** For a target pooled Gini, hold `σ_w` at the AED-0.5 value,
+   simulate at a candidate `τ` (with `β_0` re-solved for 3,000 expected t2 cells),
+   average the realized pooled Gini over 10 quick draws, bisect on `τ`. About 10
+   generator calls per level; the generator alone runs in under a second, so this is
+   negligible.
+2. **AED sweep.** For a target mean AED, the ratio `σ_w / τ` sets the AED (Section
+   4.1) while `τ` alone sets the Gini at fixed ratio, so bisect on `σ_w / τ` for the
+   AED, then on `τ` for the Gini at that ratio, and iterate once. AED needs a PCA of
+   the counts per draw, about a second each.
 
-I would do (1) and *also* plot against realized values in a supplement, since the
-realized Gini at a fixed `τ` varies across replicates by ±0.05 or so at `L = 100`.
-The calibrated parameters go into the RDS `params` so the levels are reproducible.
+The calibrated `(τ, σ_w, β_0)` per level go into the RDS `calibration` table so the
+levels are reproducible, and every replicate reports its realized Gini, AED, total
+t2 cells and largest clone. The realized pooled Gini at a fixed `τ` varies across
+replicates by about ±0.05 at `L = 100`; with two replicates per level that
+variation is visible, which is fine for a pilot.
 
 ## 6. The three methods, matched fairly
 
-The Jaccard index depends as much on the gene-calling rule as on the score. To
-separate "better fate score" from "different threshold", every method gets the same
-final step where possible.
+### 6.1 The metric: a correlation of correlations
 
-**Shared embedding.** PCA (`d = 10`, or `d` chosen by elbow) on log-normalized t1
-counts, computed once per dataset. CYFER uses it as `cell_features`; CoSPAR gets it
-as `X_pca` so its similarity graph is built on the same representation. Handing
-both methods the same embedding is the only way to attribute differences to the
-model rather than to the preprocessing. The paper used fastTopics; PCA is the
-generic choice for a synthetic count matrix. **[Q8]**.
+No method is asked to threshold genes into "called" and "not called". Instead each
+method produces a **per-gene association with clonal expansion**, and the score for
+the method is how well that vector agrees with the truth:
 
-**CYFER** (`run-cyfer` skill): fit on t1 PCs, clone counts `Y_l` at t2 *including
-zeros* (Section 3.3); per-gene Spearman `cor.test` against `cell_imputed_score` over
-t1 cells; BH; call `q < 0.05`. This is exactly the paper's Methods and sim7's
-`method_cyfer`.
+```
+truth_g  = Spearman( x_g over t1 cells , Z_true )         g = 1..2000
+m_g      = the method's per-gene statistic (below)
+metric   = Pearson( m , truth ) over the 2,000 genes
+```
+
+`x_g` is the log-normalized expression of gene `g` in the 1,000 t1 cells. The truth
+is operational: it is the association that a method with perfect knowledge of every
+cell's fate potential would see on these very cells, so the ceiling is 1 by
+construction and there is no oracle line. The cheap substitute for a ceiling is the
+split-half reliability of `truth` (compute it on two random halves of the t1 cells
+and correlate the halves), which says how much of the truth is recoverable from
+1,000 cells at all. **[Q5]** asks whether the outer correlation should be Pearson
+(dominated by the ~100 genes with large `|truth_g|`, which is what recovery of the
+expansion program means) or Spearman (which also weighs the ordering among the
+~1,900 near-zero genes). Both go in the CSV; one goes in the figure.
+
+Jaccard at BH `q < 0.05` against the operational truth set (`truth` at `q < 0.05`)
+is kept as a secondary column for continuity with the mockup's wording, not as the
+headline.
+
+### 6.2 Shared embedding
+
+PCA (`d = 10`) on log-normalized t1 counts, computed once per dataset. CYFER uses
+it as `cell_features`; CoSPAR gets it as `X_pca` so its similarity graph is built on
+the same representation; AED is computed in it. Handing every method the same
+embedding is the only way to attribute differences to the model rather than to
+preprocessing. (The paper used fastTopics on real data; PCA is the generic choice
+for a synthetic count matrix.)
+
+### 6.3 Per-method statistics
+
+**CYFER** (`run-cyfer` skill): fit on t1 PCs with clone counts `Y_l` *including
+zeros*; `Z_hat = cell_imputed_score`; `m_g = Spearman(x_g, Z_hat)` over t1 cells.
+This is the paper's Methods and sim7's `method_cyfer`. The fitted `β̂` lives on the
+10 PCs, not on genes, so it is not the per-gene statistic; **[Q3]** covers the
+alternative of projecting `β̂` back through the PCA loadings.
+
+**Lineage-DE**: clones split into "high" and "low" by the **mean** of the t2 clone
+sizes `Y_l` (high if `Y_l > mean(Y)`); when a few clones are unusually big the high
+group is small and the low group is most clones, which is the intended behaviour
+and is why the mean is used rather than the median. Then, using **t1 cells only**,
+each gene is compared between all high-clone cells and all low-clone cells. The
+per-gene statistic is a signed effect size: `m_g = 2·AUC_g − 1`, the rank-biserial
+correlation from the Wilcoxon test (positive when high-clone cells express more).
+**[Q4]** covers alternatives.
 
 **CoSPAR** (`run-cospar` skill): `state_info` = `"t1"` for t1 cells; `"High"` for t2
-cells of the top-`k` clones by expansion ratio, `"Low"` for the rest;
-`infer_Tmap_from_multitime_clones(t1 → t2)`; `fate_bias(High, Low)` on the
-intraclone map; then **two gene-calling routes**:
+cells of the high clones as defined by lineage-DE's mean split, `"Low"` for the
+rest, so the two comparators see identical clone information;
+`infer_Tmap_from_multitime_clones(t1 → t2)` on the shared PCA; `fate_bias(High, Low)`
+on the intraclone map; `m_g = Spearman(x_g, fate_bias)` over t1 cells. This is the
+"matched" route: it isolates the quality of CoSPAR's fate score from any
+threshold. CoSPAR's own progenitor→DE recipe is not run. Cells outside the map
+carry a bias of 0.5, not `NA`; the correlation is restricted to t1 cells.
 
-- CoSPAR-native: `progenitor` (bias > 0.6 / < 0.4) → `differential_genes` (Wilcoxon,
-  BH), the recipe in the CoSPAR paper. This is what a CoSPAR user would do.
-- Matched: per-gene Spearman correlation of expression with `fate_bias` over t1
-  cells, BH. This isolates the score's quality from the calling rule.
-
-Report the native route in the main panel and the matched route in a supplement, or
-the reverse; either way say which. **[Q9]** covers `k` and the thresholds. The
-smoke test in the `run-cospar` skill recovered 10 of 10 causal genes on a toy, so
-the pipeline itself is not the risk; the risk is CoSPAR doing *well* on a shared
-embedding, which would be an honest result and a reason to lean on the extreme
-Gini end where its High fate collapses.
-
-**Lineage-DE**: clones ranked by `n_l^{t2} / n_l^{t1}` (or by `n_l^{t2}` when t1
-sizes are equal); "high" = top quartile, "low" = bottom quartile (sim7's rule) or
-top-`k` versus rest (Writeup14's rule); per-gene Wilcoxon between the two cell
-groups; BH; `q < 0.05`. Run on t2 cells (Kevin's spec) and t1 cells (sim7's).
-**[Q3]**, **[Q9]**.
-
-**Oracle**: per-gene Spearman with the true `Z_i`. Its Jaccard is the ceiling and
-should be reported on every panel as a grey line; where the ceiling itself drops,
-the level is uninformative.
-
-**Metrics per dataset**: Jaccard at `q < 0.05` (the headline), Jaccard at top-`|truth|`
-genes (threshold-free), AUROC and AUPRC of the gene ranking, sensitivity and
-specificity at `q < 0.05`, plus `cor(Z_hat, Z_true)` and `cor(fate_bias, Z_true)`
-over t1 cells as score-level diagnostics. Sim7's helper functions already implement
-all of these.
+**Score-level diagnostics** per dataset: `cor(Z_hat, Z_true)` and
+`cor(fate_bias, Z_true)` over t1 cells, so a bad gene-level result can be traced to
+the fate score rather than to the gene step.
 
 ## 7. Sanity checks before trusting a curve
 
-- Oracle Jaccard above 0.9 at every level; otherwise the truth is not recoverable
-  and the level is dropped or flagged.
-- Null run (`β = 0`) at the middle level: every method's false-positive rate at
-  `q < 0.05` near 0.05 (sim7's calibration check).
-- Realized Gini and AED within tolerance of targets for at least 18 of 20
-  replicates.
-- CYFER convergence count per level (the `NULL` returns from the safe wrapper).
-- CoSPAR progenitor group sizes per level; a zero on either side means the bias
-  collapsed, and that level's CoSPAR point is reported as missing rather than as
-  Jaccard 0.
+- Split-half reliability of `truth` at every level (Section 6.1); a level where it
+  drops well below 0.9 is one where no method can do well and is flagged as such.
+- Label-permutation check at the middle level of each axis: shuffle clone labels
+  before fitting and confirm every method's metric is near 0.
+- Realized pooled Gini and mean AED within tolerance of their targets in every
+  replicate; realized total t2 cells and largest clone size recorded.
+- CYFER convergence (the `NULL` returns from the safe wrapper) per level.
+- CoSPAR High and Low group sizes per level; if either is empty the bias has
+  collapsed and that CoSPAR point is reported as missing rather than as 0.
 - Heritability of the PCA embedding (`.anova_percentage`-style) per level, so 4B's
   x-axis can be cross-referenced to sim3.
 
-## 8. Code plan and runtime
+## 8. Code plan, runtime, progress reporting, outputs
 
 ```
 kevin/Writeup21_new-simulations/
   func_generate_claude.R      the generator (Sections 2, 5): one function, two knobs
-  func_methods_claude.R       CYFER / CoSPAR export+import / lineage-DE / oracle / metrics
+  func_methods_claude.R       PCA / CYFER / CoSPAR export+import / lineage-DE / truth / metrics
   sim_gini_claude.R           axis 1 driver: calibrate, replicate, save RDS
   sim_aed_claude.R            axis 2 driver
   cospar_flat_io.R            copied from .claude/skills/run-cospar/templates
   run_cospar.py               copied from .claude/skills/run-cospar/templates
-  make_csvs_claude.R          RDS -> csv/kevin/Writeup21_new-simulations/
+  make_csvs_claude.R          RDS -> csv/kevin/Writeup21/
+  plot_barplots_claude.R      csv -> fig/kevin/Writeup21/
 ```
 
 Each driver runs the R side in one process and shells out to the `cospar` conda
-environment per dataset via `system2()`. Per dataset: generator under a second,
-CYFER 20–60 s at 100 clones and 10 features, CoSPAR about 1–2 min at 6,000 cells,
-gene tests a few seconds. Seven levels × 20 replicates × two axes ≈ 280 datasets ≈
-8–12 hours single-core, so `parallel::mclapply()` over replicates or the SLURM
-pattern from `sim3_heritability.slurm`. **[Q7]**. RDS outputs go to the
-`SIM_OUT` location; CoSPAR exports and caches are large and regenerable and stay
-under `SIM_OUT`, never in the repo.
+environment (`COSPAR_ENV`) per dataset via `system2()`. Per dataset: generator under
+a second, PCA a second, CYFER about 20 s at 100 clones and 10 features, CoSPAR about
+a minute at 4,000 cells, gene statistics a few seconds. Seven levels × 2 replicates
+× two axes = 28 datasets, plus calibration, is about one to two hours on the laptop,
+run sequentially so the progress file is readable.
 
-RDS schema (both axes): `summary` (one row per level per method with mean/SD of each
-metric), `replicate_details` (one row per level × replicate × method), `calibration`
-(target, calibrated parameter, realized mean), `params`.
+**Progress reporting.** Each driver appends a time-stamped line to
+`OUT_ROOT/Writeup21_new-simulations/progress_gini_claude.txt` (or `_aed_`) at every
+stage: calibration of each level (target, calibrated parameters, realized value),
+then for each level × replicate the start and end of generation, CYFER, CoSPAR and
+the gene step, with elapsed time and a running estimate of time remaining. The same
+lines go to the console. A glance at the file says how far along the run is.
+
+**Outputs.** RDS to `OUT_ROOT/Writeup21_new-simulations/` (CoSPAR exports and
+caches also stay there, never in the repo). Flat CSVs to `csv/kevin/Writeup21/`,
+figures to `fig/kevin/Writeup21/`. RDS schema for both axes: `summary` (one row
+per level × method with mean and SD of each metric), `replicate_details` (one row
+per level × replicate × method), `calibration` (target, calibrated parameters,
+realized mean), `params`.
+
+**Figures.** Grouped barplots in the style of `Writeup17b_barplot-*.R`: one bar per
+method at each of the seven levels, height the mean metric of Section 6.1 across
+replicates with the individual replicates overplotted as points (an SD over two
+replicates is not worth drawing), x-axis labelled with the target statistic and the
+realized mean beneath it.
+
+Later, once the pilot looks right: 20 replicates per level, `parallel::mclapply()`
+over replicates or the SLURM pattern from `sim3_heritability.slurm` on Hyak, which
+will first need a `COSPAR_ENV` built there.
 
 ## 9. Questions for Kevin
 
-1. **Gini definition.** Pooled `n^{t1} + n^{t2}` per clone (literal reading),
-   t2-only, or the concatenated vector? And should t1 clone sizes be unequal too
-   (real pre-treatment Gini is 0.64)?
-2. **Mechanism for high Gini.** Sweep between-clone spread `τ` on the causal axis
-   (my default), or fold in rare jackpot cells within clones? The two make 4A a
-   heritability story or a rare-resistance story respectively.
-3. **Lineage-DE cells.** You specified t2 cells. Run the t1 version too (it is the
-   comparator in the current Figure 3 and in sim7)? Which one goes in the main panel?
-4. **What t2 cells look like.** How much of the parent's state does a progeny cell
-   keep (`ρ`), and is there a t2-wide response shift `δ`? This decides whether t2
-   lineage-DE is nearly an oracle (`ρ = 1`, `δ = 0`) or realistically confounded.
-5. **Truth set.** Structural (100 genes with non-zero loading) or operational
-   (correlation with true `Z`)? I would use structural and verify the two agree.
-6. **Zero-count clones in CYFER.** Keep them (my recommendation; the package accepts
-   them and they carry the signal at high Gini) or filter to `Y_l > 0` as every
-   existing sim script does?
-7. **Scale.** Seven levels per axis as in the mockup? 20 replicates? Laptop with
-   `mclapply` or Hyak SLURM? Total budget is roughly 10 CPU-hours as sized.
-8. **Embedding.** PCA on log-normalized counts, shared by CYFER and CoSPAR (my
-   default), or fastTopics to match the paper's real-data analysis?
-9. **Gene-calling operating point.** BH `q < 0.05` for every method as the headline,
-   with top-`k` and AUROC as supplements? For CoSPAR, native progenitor-DE route or
-   the correlation route matched to CYFER in the main panel? Top-`k` or quartile
-   split for defining high/low clones, and what `k`?
-10. **Real-data anchors.** What AED values does the real data span (Figure 2E, S3-1),
-    and is the squared or un-squared version the one the paper will keep? The
-    sweep should bracket the real range on both axes.
-11. **Decoupling.** Hold Gini fixed at ~0.6 while sweeping AED, and hold AED at its
-    middle level while sweeping Gini, by recalibrating? Or let the second statistic
-    float and just report it?
-12. **CoSPAR fate labels.** Define `High` by the same clone split lineage-DE uses
-    (so the two comparators see identical information), and pass CoSPAR the same PCA?
-13. **Control row for 4B.** Include the "heterogeneity on non-causal axes only"
-    variant as a supplement?
-14. **Outputs.** CSVs under `csv/kevin/Writeup21_new-simulations/` like
-    `Writeup_Simulations`, and figure style from `Writeup17b_barplot-*.R`
-    (grouped bars by method) or line-plus-ribbon over the seven levels?
+1. **Pooled Gini ceiling and t2 scale.** With 10 t1 cells per clone and 3,000 t2
+   cells in total, the pooled Gini tops out near 0.74 (Section 3.1). The levels are
+   set to `0.1–0.7` accordingly. If a higher top is wanted, the total t2 population
+   must grow: 10,000 t2 cells give a ceiling near 0.9 at roughly three times the
+   CoSPAR cost. Related: "lineages of size 0 through 500" was read as the scale of
+   the t2 sizes, not a hard cap; at a fixed total of 3,000 the largest clone at the
+   top level will hold well over 500 cells. If 500 is a cap, the total must shrink
+   to about 1,000–1,500 and the pooled ceiling falls to about 0.5–0.6. Which is
+   preferred: (a) 3,000 cells and levels up to 0.7, (b) a larger total, or (c) a
+   hard cap at 500?
+2. **AED range.** The mean AED over clones cannot exceed about 1 under any
+   generator where clones share one `σ_w` (Section 4.1); the values above 1 in the
+   real data are per-clone values for unusually spread clones. Should the x-axis be
+   the mean AED on the reachable range (about 0.3 to 0.95, the default), or should
+   `σ_w` vary across clones so that the per-clone distribution spans 0 to 2 at the
+   top level, with the axis labelled by the mean?
+3. **CYFER's per-gene statistic.** The plan uses `Spearman(x_g, Z_hat)` over t1
+   cells, the paper's Methods. The alternative is a gene-level coefficient obtained
+   by projecting the 10-PC `β̂` back through the PCA loadings (`W_pca · β̂`), which
+   is closer to "the β's from CYFER" but is not what the paper does. Keep the
+   Spearman version?
+4. **Lineage-DE's per-gene statistic.** Now that no threshold is applied, lineage-DE
+   needs a signed continuous statistic per gene: rank-biserial correlation from the
+   Wilcoxon (the default; scale-free and comparable to a Spearman correlation), log
+   fold change of mean log-normalized expression, or a Welch t-statistic?
+5. **Outer correlation.** Pearson (default) or Spearman between the method's
+   per-gene vector and the truth vector; over all 2,000 genes (default) or over the
+   genes with the largest `|truth_g|`?
+6. **The t2 shift `δ`.** A rigid t2-wide shift is nearly invisible to all three
+   methods as now specified (Section 2.4). Keep it rigid as a realism device, or add
+   a clone-specific component `δ_l` (each clone's descendants drift in their own
+   direction) so that CoSPAR's t2 neighbourhoods no longer mirror its t1 ones?
+7. **The fixed values.** Pooled Gini 0.4 held during the AED sweep and mean AED 0.5
+   held during the Gini sweep: are these the "middling" values wanted, or should
+   they be chosen after the pilot as the last level where all three methods still
+   do well?
+8. **AED embedding dimension.** AED is computed in the same 10-PC embedding the
+   methods use. Is 10 right, or should it match the number of PCs used for the
+   real-data AED in Figure 2E?
 
 ## 10. What I am uncertain about, stated plainly
 
 - Whether CoSPAR, given the same embedding, does nearly as well as CYFER on 4B. Its
   coherence prior assumes transcriptomic neighbours share fate, which is *true* under
-  this generator (fate is a linear function of the embedding). If so, CYFER's edge
-  on 4B is the extreme-Gini regime and the zero-clone handling, not heterogeneity as
+  this generator (fate is a linear function of the embedding). If so, CYFER's edge is
+  the extreme-Gini regime and the zero-clone handling rather than heterogeneity as
   such, and the framing should say that.
-- Whether a Gini near 0.9 is reachable with 100 clones without `n_2` becoming one
-  clone; the calibration will tell, and more clones (200) may be needed at the top.
-- Whether a structural truth set of 100 genes is too easy. Real expansion programs
+- Whether a rigid `δ` does anything at all to CoSPAR (Section 2.4); if the answer to
+  **[Q6]** is to keep it rigid, the memo's claim that CoSPAR needs a smooth continuum
+  between time points will not be what the simulation tests.
+- Whether the pooled Gini is the right axis for the paper given its ceiling; the
+  t2-only Gini is what the real-data numbers report, and both are recorded so the
+  figure can be relabelled without re-running.
+- Whether a structural set of 100 loading genes is too easy. Real expansion programs
   have weak effects on many genes; a version with 300 weak-loading genes would be a
-  harder and more realistic supplement.
+  harder and more realistic supplement, and the operational truth handles it without
+  any change to the metric.
