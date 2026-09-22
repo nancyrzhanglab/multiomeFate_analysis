@@ -1,0 +1,10 @@
+Notes:
+- Please log into the project-state that when you revise /Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/archive/Nancy/multiomeFate/git/multiomeFate_analysis/kevin/Writeup21_new-simulations/simulation_design_claude.md, the revision should: (1) not mention any previous rounds (i.e., I want the document to be self-contained and "clean" to read), and (2) put all the changes between rounds into the HISTORY_[user].md file.
+
+Answers to your questions ("9. Questions for Kevin")
+- 1: Yes, let's use \kappa=1.5. The values look good.
+- 2: I'm kind of interested to see what happens when we put the clone-varying part on the non-causal component so the AED and clone sizes are independent by construction. Can you re-run the demo in demo_aed_range_claude.R to see what happens when you do this, and report the results? You can mark as an open question for the next round on whether or not we should keep this change (after providing me empirical results of the impact, and then giving me a suggestion).
+- 3: Let's used use t2 Gini of 0.5 and mean squared AED of 0.4 during the provisional fixed values during the trailblazing round.
+- 4: These are good for the first pass.
+- 5: Let's set \tau_{\delta} to be a middling value during the trailblazing round. Please give a suggested value.
+- 6: This formula for m_g good. Can you write into the .md the advantage of using m_g over U_g as the metric? If I'm not mistaken, the null distribution and p-values are based on U_g, so I wanted to double-check your rationale for using m_g. 

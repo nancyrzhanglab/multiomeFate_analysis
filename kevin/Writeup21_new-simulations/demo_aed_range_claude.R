@@ -1,19 +1,23 @@
 # Writeup21 demo: can the per-clone squared AED span 0 to 2?
 # Kevin Z. Lin (drafted by Claude), 2026-09-22
 #
-# Generation only, no fitting. Answers Kevin's round-2 question 2: with the
-# within-clone spread sigma_w varying across clones, does the per-clone
-# squared AED (paper's clonal variability score) reach a 0-to-2 range, and
-# what does the mean over clones do at the same time? Also records the
-# t2-only Gini each setting produces, because clone-varying sigma_w raises
-# the expected clone size of the spread-out clones (Jensen's inequality on the
-# log-normal mean: E[Y_l] has a factor exp(beta^2 sigma_l^2 / 2)) and so moves
-# the Gini on its own.
+# Generation only, no fitting. Two questions. First: with the within-clone
+# spread sigma_w varying across clones, does the per-clone squared AED
+# (paper's clonal variability score) reach a 0-to-2 range, and what does the
+# mean over clones do at the same time? Also records the t2-only Gini each
+# setting produces, because clone-varying sigma_w on the causal coordinate
+# raises the expected clone size of the spread-out clones (Jensen's
+# inequality on the log-normal mean: E[Y_l] has a factor
+# exp(beta^2 sigma_l^2 / 2)) and so moves the Gini on its own. Second: if the
+# clone-varying part is put on the non-causal coordinates only
+# (`spread_variation = "noncausal"`), so that AED and clone size are
+# independent by construction, is the AED range preserved and does the
+# coupling vanish?
 #
 # The generator follows simulation_design_claude.md Sections 2.1-2.3 for t1
 # cells: hierarchical latent state, one causal coordinate, negative-binomial
 # counts on 2,000 genes, PCA to 10 dimensions on log-normalized counts.
-# Runs in about two minutes. Writes one CSV and prints the same table.
+# Runs in about four minutes. Writes one CSV and prints the same table.
 
 library(MASS)
 
@@ -59,6 +63,10 @@ csv_file <- file.path(csv_dir, "demo_aed_range_claude.csv")
 # only; the Gini depends on latent_scale as well (it sets the spread of Z).
 # sigma_l^2 = sigma_w^2 * g_l with g_l ~ Gamma(shape = kappa, rate = kappa),
 # mean 1; kappa = Inf gives every clone the same spread.
+# spread_variation = "isotropic" applies g_l to all d coordinates;
+# "noncausal" applies it to coordinates 2..d only and leaves the causal
+# (first) coordinate at the shared sigma_w, so a clone's spread on the
+# expansion axis, and hence its expected t2 size, does not depend on g_l.
 .generate_t1 <- function(h2,
                          kappa,
                          beta = 1.5,
@@ -68,10 +76,12 @@ csv_file <- file.path(csv_dir, "demo_aed_range_claude.csv")
                          num_cells_per_clone = 10,
                          num_clones = 100,
                          num_genes = 2000,
+                         spread_variation = "isotropic",
                          t2_total = 3000,
                          theta = 10,
                          seed_number = 10){
-  stopifnot(h2 >= 0, h2 <= 1, kappa > 0, latent_scale > 0)
+  stopifnot(h2 >= 0, h2 <= 1, kappa > 0, latent_scale > 0,
+            spread_variation %in% c("isotropic", "noncausal"))
   tau <- latent_scale * sqrt(h2)
   sigma_w <- latent_scale * sqrt(1 - h2)
 
@@ -88,12 +98,15 @@ csv_file <- file.path(csv_dir, "demo_aed_range_claude.csv")
   } else {
     spread_multiplier_vec <- rep(1, num_clones)
   }
-  sigma_vec <- sigma_w * sqrt(spread_multiplier_vec)
+  # Per-clone, per-coordinate spread: rows are clones, columns coordinates.
+  sigma_mat <- matrix(sigma_w * sqrt(spread_multiplier_vec),
+                      nrow = num_clones, ncol = d)
+  if(spread_variation == "noncausal") sigma_mat[, 1] <- sigma_w
 
   clone_idx_vec <- rep(seq_len(num_clones), each = num_cells_per_clone)
   latent_mat <- centre_mat[clone_idx_vec, , drop = FALSE] +
     matrix(stats::rnorm(num_cells * d), nrow = num_cells, ncol = d) *
-    sigma_vec[clone_idx_vec]
+    sigma_mat[clone_idx_vec, , drop = FALSE]
 
   # Fate potential on the first coordinate; beta_0 solved so the expected
   # number of t2 cells given these latent states equals t2_total.
@@ -124,7 +137,7 @@ csv_file <- file.path(csv_dir, "demo_aed_range_claude.csv")
   list(clone_vec = clone_vec,
        count_mat = count_mat,
        latent_mat = latent_mat,
-       sigma_vec = sigma_vec,
+       sigma_mat = sigma_mat,
        t2_size_vec = t2_size_vec)
 }
 
@@ -157,14 +170,30 @@ csv_file <- file.path(csv_dir, "demo_aed_range_claude.csv")
 grid_a_df <- expand.grid(h2 = c(0.9, 0.75, 0.5, 0.25, 0.1, 0),
                          kappa = c(Inf, 3, 1.5, 1),
                          latent_scale = 1,
-                         seed_number = c(10, 20))
+                         seed_number = c(10, 20),
+                         spread_variation = "isotropic")
 # Second grid: at the top AED level, does shrinking the latent scale bring the
 # Gini down (and does the count-noise floor of the AED stay small)?
 grid_b_df <- expand.grid(h2 = 0,
                          kappa = c(Inf, 1.5),
                          latent_scale = c(0.3, 0.5, 0.7),
-                         seed_number = c(10, 20))
-grid_df <- rbind(grid_a_df, grid_b_df)
+                         seed_number = c(10, 20),
+                         spread_variation = "isotropic")
+# Third grid: the same levels with the clone-varying spread on the non-causal
+# coordinates only. kappa = Inf is identical in both modes, so it is not
+# repeated.
+grid_c_df <- expand.grid(h2 = c(0.9, 0.75, 0.5, 0.25, 0.1, 0),
+                         kappa = c(3, 1.5, 1),
+                         latent_scale = 1,
+                         seed_number = c(10, 20),
+                         spread_variation = "noncausal")
+grid_d_df <- expand.grid(h2 = 0,
+                         kappa = 1.5,
+                         latent_scale = c(0.3, 0.5, 0.7),
+                         seed_number = c(10, 20),
+                         spread_variation = "noncausal")
+grid_df <- rbind(grid_a_df, grid_b_df, grid_c_df, grid_d_df)
+grid_df$spread_variation <- as.character(grid_df$spread_variation)
 
 result_list <- vector("list", nrow(grid_df))
 for(i in seq_len(nrow(grid_df))){
@@ -172,13 +201,15 @@ for(i in seq_len(nrow(grid_df))){
   kappa <- grid_df$kappa[i]
   latent_scale <- grid_df$latent_scale[i]
   seed_number <- grid_df$seed_number[i]
+  spread_variation <- grid_df$spread_variation[i]
   print(paste0(Sys.time(), " | setting ", i, " of ", nrow(grid_df),
                ": h2 = ", h2, ", kappa = ", kappa, ", scale = ", latent_scale,
-               ", seed = ", seed_number))
+               ", seed = ", seed_number, ", spread = ", spread_variation))
 
   data_list <- .generate_t1(h2 = h2,
                             kappa = kappa,
                             latent_scale = latent_scale,
+                            spread_variation = spread_variation,
                             seed_number = seed_number)
   aed_list <- .compute_aed(data_list$count_mat, data_list$clone_vec)
   aed_sq_vec <- aed_list$aed_sq_vec
@@ -188,6 +219,7 @@ for(i in seq_len(nrow(grid_df))){
     kappa = kappa,
     latent_scale = latent_scale,
     seed = seed_number,
+    spread_variation = spread_variation,
     aed_sq_mean = mean(aed_sq_vec),
     aed_sq_min = min(aed_sq_vec),
     aed_sq_q05 = unname(stats::quantile(aed_sq_vec, 0.05)),
@@ -209,5 +241,7 @@ result_df <- do.call(rbind, result_list)
 dir.create(csv_dir, showWarnings = FALSE, recursive = TRUE)
 utils::write.csv(result_df, csv_file, row.names = FALSE)
 
-print(round(result_df, 2))
+numeric_col_vec <- sapply(result_df, is.numeric)
+result_df[numeric_col_vec] <- round(result_df[numeric_col_vec], 2)
+print(result_df)
 print(paste0("Written to ", csv_file))
