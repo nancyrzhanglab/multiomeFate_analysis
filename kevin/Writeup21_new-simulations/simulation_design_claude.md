@@ -34,14 +34,24 @@ Why the two comparators are expected to fail, in the terms the paper will use:
   clone, and DE returns that clone's identity genes rather than the expansion
   program. When cells within a clone differ in fate (high AED), clone membership no
   longer predicts a cell's fate, so a clone-level split mislabels cells.
-- **CoSPAR** links time points through barcodes and then smooths fate over
-  transcriptomic neighbours, assuming a smooth continuum of states between the two
-  time points. A clone's expression at the later time point need not be anywhere
-  near its expression at the earlier one, and within a clone the cells that
-  expanded need not be the transcriptomic neighbours of those that did not.
-  CoSPAR's fate bias is also a clone-level quantity spread over neighbours, so it
-  inherits lineage-DE's problem at high Gini (its "High" fate becomes one clone) and
-  it ignores clones that went extinct, which are the informative ones at high Gini.
+- **CoSPAR** links the two time points through barcodes only, and assumes that
+  *within each time point* transcriptomic neighbours share fate. Its transition map
+  is `S_t1 · M · S_t2`: `M` is the barcode link, which ties every t1 cell of a clone
+  to every t2 cell of that clone equally, and `S_t1`, `S_t2` are within-time
+  similarity smoothers (`COSPAR_SRC/cospar/tmap/_tmap_core.py`; the t1-to-t2
+  similarity is never read). Three things break it. When cells within a clone
+  differ in fate, the barcode link cannot tell the clone-mates apart; the only way
+  CoSPAR separates them is coherence across clones at t2, and that requires the
+  t2 neighbourhood structure to mirror the t1 fate structure, which need not hold
+  when each clone's descendants drift in their own direction. When one or two
+  clones dominate, the "High" fate is one clone's descendants and the bias is that
+  clone's identity spread over its neighbours, lineage-DE's problem in another
+  form. And a clone that went extinct is a single-time clone to CoSPAR, absent
+  from the barcode link, whereas to CYFER its zero is data; at high Gini those are
+  most clones. The assumption that a clone's t2 expression sits near its t1
+  expression belongs to expression-aligning methods (optimal transport, RNA
+  velocity, CoSPAR's one-time-clone mode), not to barcoded CoSPAR, and the paper
+  should not attribute it to CoSPAR.
 
 The paper's current Methods say why this replaces the priming/plastic pair: those
 two semi-synthetic datasets reach Gini 0.26 and 0.28 only, whereas the real data run
@@ -133,22 +143,40 @@ step:
 3. Each child of parent `i` gets its own latent state
 
 ```
-s_child = ρ · s_parent + (1 − ρ) · m_l + sqrt(1 − ρ²) · σ_w · e_child + δ
+s_child = ρ · s_parent + (1 − ρ) · m_l + sqrt(1 − ρ²) · σ_w · e_child + δ + δ_l
+δ_l ~ N(0, τ_δ² I)   on the non-causal coordinates, one draw per clone
 ```
 
    with `ρ = 0.8`: a child takes after its specific parent more than after the
-   clone's centre, but is not a copy. `δ` is a t2-wide shift on the non-causal
-   coordinates (a treatment-response program; it creates no new expansion genes),
-   with its norm set so that t1 and t2 cells barely overlap in the top PCs, about
-   three standard deviations of the t1 cloud.
+   clone's centre, but is not a copy. The t2 shift has two parts, both on the
+   non-causal coordinates so that neither creates new expansion genes:
+   - `δ`, a **shared** shift (a treatment-response program every surviving cell
+     mounts), with its norm set so that t1 and t2 cells barely overlap in the top
+     PCs, about three standard deviations of the t1 cloud;
+   - `δ_l`, a **clone-specific** shift (each clone's descendants drift in their own
+     direction), with spread `τ_δ`.
 4. Counts for t2 cells come from the same gene model (Section 2.3).
 
-`ρ` and `δ` reach the gene calls only through CoSPAR, and even there only weakly:
-CoSPAR's t1→t2 link is the barcode, and its similarity smoothing acts within each
-time point, so a rigid shift that moves every t2 cell the same way leaves its
-within-t2 neighbourhoods intact. A large `δ` is set as specified, but it should not
-be expected to be the thing that breaks CoSPAR; the things that break it are in
-Section 1. **[Q6]** asks whether a clone-specific component of the shift is wanted.
+`ρ`, `δ` and `δ_l` reach the gene calls only through CoSPAR, since CYFER and
+lineage-DE never look at t2 expression. Within CoSPAR the two parts of the shift
+do different things. The shared `δ` is inert: CoSPAR's t1→t2 link is the barcode
+and its smoothing acts within each time point, so moving every t2 cell the same
+way leaves the within-t2 neighbourhoods intact. It is kept for realism (the t2
+population should not sit on top of the t1 population) and nothing is claimed for
+it. The clone-specific `δ_l` is the knob that matters: at `τ_δ = 0` a clone's
+descendants sit next to the descendants of transcriptomically similar cells from
+other clones, so CoSPAR's cross-clone coherence at t2 can undo the uniform barcode
+link and separate clone-mates that differ in fate; as `τ_δ` grows each clone's
+descendants become their own t2 cluster, that coherence disappears, and CoSPAR is
+left with the clone-level link alone. This is the mechanism by which "the later
+time point need not be a smooth continuation of the earlier one" hurts CoSPAR, and
+it is separate from the AED axis, which moves `σ_w` at t1.
+
+The main sweeps fix `τ_δ` at a moderate value, comparable to the between-clone
+spread `τ` at the middle level, so that clone-specific drift is present but not
+extreme. A **supplementary row** moves `τ_δ` over `{0, τ/2, τ, 2τ}` at the middle
+level of each axis, holding everything else fixed, to show CoSPAR degrading as t2
+structure stops mirroring t1 while CYFER and lineage-DE do not move. **[Q6]**.
 
 ### 2.5 Sizes
 
@@ -383,8 +411,9 @@ Each driver runs the R side in one process and shells out to the `cospar` conda
 environment (`COSPAR_ENV`) per dataset via `system2()`. Per dataset: generator under
 a second, PCA a second, CYFER about 20 s at 100 clones and 10 features, CoSPAR about
 a minute at 4,000 cells, gene statistics a few seconds. Seven levels × 2 replicates
-× two axes = 28 datasets, plus calibration, is about one to two hours on the laptop,
-run sequentially so the progress file is readable.
+× two axes = 28 datasets, plus the optional `τ_δ` supplementary row (4 values × 2
+replicates × two axes = 16 more), plus calibration, is about one to three hours on
+the laptop, run sequentially so the progress file is readable.
 
 **Progress reporting.** Each driver appends a time-stamped line to
 `OUT_ROOT/Writeup21_new-simulations/progress_gini_claude.txt` (or `_aed_`) at every
@@ -440,10 +469,12 @@ will first need a `COSPAR_ENV` built there.
 5. **Outer correlation.** Pearson (default) or Spearman between the method's
    per-gene vector and the truth vector; over all 2,000 genes (default) or over the
    genes with the largest `|truth_g|`?
-6. **The t2 shift `δ`.** A rigid t2-wide shift is nearly invisible to all three
-   methods as now specified (Section 2.4). Keep it rigid as a realism device, or add
-   a clone-specific component `δ_l` (each clone's descendants drift in their own
-   direction) so that CoSPAR's t2 neighbourhoods no longer mirror its t1 ones?
+6. **The clone-specific t2 drift `τ_δ`.** The main sweeps fix `τ_δ` at about the
+   between-clone spread `τ` of the middle level, and a supplementary row moves it
+   over `{0, τ/2, τ, 2τ}` (Section 2.4). Is a moderate fixed value right for the
+   main panels, or should the main panels use `τ_δ = 0` (CoSPAR at its best, so the
+   Gini and AED axes alone do the work) with the drift shown only in the
+   supplement? And is the supplementary row wanted at all in the pilot?
 7. **The fixed values.** Pooled Gini 0.4 held during the AED sweep and mean AED 0.5
    held during the Gini sweep: are these the "middling" values wanted, or should
    they be chosen after the pilot as the last level where all three methods still
@@ -459,9 +490,11 @@ will first need a `COSPAR_ENV` built there.
   this generator (fate is a linear function of the embedding). If so, CYFER's edge is
   the extreme-Gini regime and the zero-clone handling rather than heterogeneity as
   such, and the framing should say that.
-- Whether a rigid `δ` does anything at all to CoSPAR (Section 2.4); if the answer to
-  **[Q6]** is to keep it rigid, the memo's claim that CoSPAR needs a smooth continuum
-  between time points will not be what the simulation tests.
+- How strongly the clone-specific drift `τ_δ` hurts CoSPAR in practice. The
+  argument in Section 2.4 is from reading the map construction, not from running
+  it; if CoSPAR turns out insensitive to `τ_δ`, then its weakness on these data is
+  the uniform barcode link and the extinct clones, and the paper's framing should
+  say that rather than "smooth continuum".
 - Whether the pooled Gini is the right axis for the paper given its ceiling; the
   t2-only Gini is what the real-data numbers report, and both are recorded so the
   figure can be relabelled without re-running.

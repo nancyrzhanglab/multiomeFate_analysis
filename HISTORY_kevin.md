@@ -32,3 +32,17 @@
 - Finding: the mean AED over clones is bounded by about 1 under a shared `σ_w` (and has a count-noise floor), so Kevin's 0-to-2 range is reachable only per clone with clone-varying spread; raised as a new question.
 - Finding: a rigid t2 shift `δ` reaches none of the three gene calls now that lineage-DE tests t1 cells, and CoSPAR's smoothing is within time point, so `δ` will not be what breaks CoSPAR; flagged, with a clone-specific `δ_l` as the alternative.
 - Open: the 8 new questions in the memo's §9 (pooled-Gini ceiling and whether 500 is a hard cap on t2 clone size; AED range; CYFER per-gene statistic, Spearman with `Z_hat` vs `β̂` projected through PCA loadings; lineage-DE signed statistic; Pearson vs Spearman for the outer correlation; rigid vs clone-specific `δ`; the fixed middle values Gini 0.4 / AED 0.5; AED embedding dimension).
+
+### 2026-09-22 (Session 3 — does the t2 shift δ break CoSPAR?)
+- Kevin asked whether the rigid t2 shift `δ` controls the "t2 expression far from t1 expression" failure attributed to CoSPAR in the memo's §1.
+- Finding, from `COSPAR_SRC/cospar/tmap/_tmap_core.py`: the multi-time-clone map is `S_t1 · M · S_t2`, where `M` is the barcode link (each clone's own t1 cells to its own t2 cells, uniform at initialization) and `S_t1`, `S_t2` are the within-time blocks of one joint diffusion similarity; the t1-by-t2 block is never read, so CoSPAR never compares a t1 cell's expression to a t2 cell's.
+- Consequence: a rigid `δ` is inert; "t2 far from t1" is the assumption of OT / velocity / CoSPAR's one-time-clone mode, not of barcoded CoSPAR, and §1 misattributes it.
+- Consequence: what breaks barcoded CoSPAR is within-clone fate heterogeneity (the barcode link is uniform across clone-mates), which it can only undo through cross-clone coherence at t2; a clone-specific shift `δ_l` removes that coherence and is the dial for Kevin's mechanism.
+- Proposed, not yet applied: restate CoSPAR's assumption in §1, make the shift `δ + δ_l` with `δ_l ~ N(0, τ_δ² I)` in §2.4, and add a supplementary row over `τ_δ`; awaiting Kevin's go-ahead.
+- Open: whether to apply the three edits above.
+
+### 2026-09-22 (Session 4 — applied the CoSPAR edits to the memo)
+- Applied the three edits proposed in Session 3 to `simulation_design_claude.md`: §1 now states CoSPAR's real assumption (within-time neighbours share fate; uniform barcode link across clone-mates) and moves "t2 far from t1" to the OT / velocity / one-time-clone comparators; §2.4 makes the t2 shift `δ + δ_l` with `δ_l ~ N(0, τ_δ² I)` per clone on the non-causal coordinates; §9 Q6 now asks about the fixed `τ_δ` and the supplementary row.
+- Decided: the main sweeps fix `τ_δ` at about the middle-level `τ`, and a supplementary row moves `τ_δ` over `{0, τ/2, τ, 2τ}` at the middle level of each axis (adds up to 16 pilot datasets); `τ_δ` needs no calibration because Gini and AED are both t1-side statistics.
+- Resolved: whether to apply the Session 3 edits (yes).
+- Open: the 8 questions in §9, which Kevin is answering next.
