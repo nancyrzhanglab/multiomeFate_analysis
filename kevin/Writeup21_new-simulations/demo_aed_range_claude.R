@@ -6,8 +6,9 @@
 # squared AED (paper's clonal variability score) reach a 0-to-2 range, and
 # what does the mean over clones do at the same time? Also records the
 # t2-only Gini each setting produces, because clone-varying sigma_w raises
-# the expected clone size of the spread-out clones (Jensen) and so moves the
-# Gini on its own.
+# the expected clone size of the spread-out clones (Jensen's inequality on the
+# log-normal mean: E[Y_l] has a factor exp(beta^2 sigma_l^2 / 2)) and so moves
+# the Gini on its own.
 #
 # The generator follows simulation_design_claude.md Sections 2.1-2.3 for t1
 # cells: hierarchical latent state, one causal coordinate, negative-binomial

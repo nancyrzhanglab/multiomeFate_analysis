@@ -109,10 +109,19 @@ The two knobs are reparameterized as a **scale** and a **share**:
 (Section 2.2). Section 5 shows that this makes each axis a one-knob calibration.
 Spread is isotropic: heterogeneity moves the causal and non-causal coordinates
 together, which is what real heterogeneity looks like and what AED measures on
-all genes. One consequence to keep in view: a diffuse clone has a wider spread of
-fate potential and so, by Jensen, a larger *expected* clone size
-(`E[Y_l | m_l, σ_l] = 10 · exp(β_0 + β m_l1 + β² σ_l² / 2)`); the demo measures
-this coupling (Section 4.1) and **[Q2]** asks whether to keep it.
+all genes. One consequence to keep in view, called the **spread-size coupling**
+below: a diffuse clone has a wider spread of fate potential and so a larger
+*expected* clone size. This is Jensen's inequality for the log-normal mean:
+`Z_i` is normal within a clone with variance `β² σ_l²`, and
+
+```
+E[Y_l | m_l, σ_l] = 10 · exp(β_0 + β m_l1 + β² σ_l² / 2)
+```
+
+so two clones with the same centre but different spreads differ in expected size
+by the factor `exp(β² σ_l² / 2)`; the jackpot cells on the far side of the
+expansion axis outweigh the cells on the near side. The demo measures this
+coupling (Section 4.1) and **[Q2]** asks whether to keep it.
 
 ### 2.2 Fate potential
 
@@ -339,7 +348,7 @@ What the demo established:
   percentile 0.07–0.10 against 0.18 at `κ = 1.5`); `κ = 3` tops out near 2.1–2.2.
   So `κ = 1.5`, fixed across levels, gives the 0-to-2 range Kevin asked for.
   **[Q1]**.
-- **Jensen coupling is real and grows along the axis.** Diffuse clones are bigger
+- **The spread-size coupling is real and grows along the axis.** Diffuse clones are bigger
   at t2: Spearman between `AED_l` and `Y_l` is about 0 at the bottom and 0.5–0.65
   at the top. Its side effect on the Gini (0.55 at the bottom rising to 0.7 at the
   top, at `s = 1`) is removed by the scale calibration of Section 5, but the
@@ -360,7 +369,7 @@ end, which is one more reason to prefer it.
 ### 4.2 Holding Gini fixed while AED moves
 
 Raising the within-clone share widens the within-clone spread of `Z`, and the
-clone-varying `g_l` adds Jensen inequality on top, so the t2 Gini rises on its own
+clone-varying `g_l` adds the spread-size coupling on top, so the t2 Gini rises on its own
 along the AED axis (0.55 to 0.7 in the demo). To keep the panels unconfounded, the
 t2 Gini is held at its fixed middle value throughout 4B: at each AED level, `s` is
 bisected so the realized Gini stays within ±0.03 of the target (Section 5).
@@ -498,7 +507,7 @@ the fate score rather than to the gene step.
 - Realized t2 Gini and mean squared AED within tolerance of their targets in every
   replicate; realized total t2 cells, largest clone, number of extinct clones and
   the per-clone AED quantiles recorded.
-- Spearman between `AED_l` and `Y_l` per dataset, so the Jensen coupling of
+- Spearman between `AED_l` and `Y_l` per dataset, so the spread-size coupling of
   Section 4.1 is visible in the outputs rather than assumed.
 - CYFER convergence (the `NULL` returns from the safe wrapper) per level.
 - CoSPAR High and Low group sizes per level; if either is empty the bias has
@@ -611,7 +620,7 @@ realized mean beneath it (for 4B also the per-clone 5th–95th percentile range)
   CoSPAR turns out insensitive to `τ_δ`, its weakness on these data is the uniform
   barcode link and the extinct clones, and the paper's framing should say that
   rather than "smooth continuum".
-- Whether the Jensen coupling of Section 4.1 (diffuse clones expand more) reads as
+- Whether the spread-size coupling of Section 2.1 (diffuse clones expand more) reads as
   a feature or as a confound to a reviewer. It is stated in the Methods either way;
   **[Q2]** decides whether it stays in the generator.
 - At the top AED level `τ = 0`: clones have no centre and clone identity at t1 is
