@@ -1,0 +1,14 @@
+Notes:
+* My apologies on two things. After reading your notes, I would like to reverse on two decisions I previously made:
+-- (1): I would like AED to be actually squared, not un-squared. The squared form is cleaner mathematically to understand. (I'm reversing my previous decision to analyze the unsquared version.)
+-- (2): The Gini index should be computed only on the t2 cells. This way, we have a larger dynamic range in the simulations. (I'm reversing my previous decision to pool all the cells when computing the Gini index.)
+
+Answers to your questions ("9. Questions for Kevin")
+- 1: I'm hoping using the Gini index quantified only on t2 will help expand the dynamic range. But overall, let's go with (b) -- I think we can keep it at 3,000 cells but now with no hard cap at 500.
+- 2: Let's have \sigma_w vary across clones. Can you do a small demo in /Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/archive/Nancy/multiomeFate/git/multiomeFate_analysis/kevin/Writeup21_new-simulations just simulating data (i.e., no fitting) to see if you can generate data with a range from 0 to 2?
+- 3: Let's primarily keep the Spearman version. I'm not sure about the gene-level coefficient because correlation within genes might cause the \hat{\beta} be "placed" on "incorrect" genes. I think the Spearman version is overall more stable, since it's simply dependent on well-estimating the fate potential (and not too dependent on value of beta estimated)
+- 4: The lineage-DE's per-gene statistic can be simply the rank-biserial correlation from the Wilcoxon. Be sure to roughly write the value you'll compute (or if it's taken directly from the stats::wilcox.text code, write the output from the function you're grabbing), so I can make sure it makes sense.
+- 5: The outer correlation can be Spearman as well, and let's compute it over all 2000 genes.
+- 6: A moderate fixed value is best for the main panels. Let's start with a moderate value. You can write into "10. What I am uncertain about, stated plainly" that if CoSPAR performs way too poorly even for the "easy" settings in the Gini simulations or within-clone heterogeneity simulations, we will decrease \tau_delta.
+- 7: Let's choose these after a pilot where it's the last-level where all 3 methods do reasonably well. This means we probably need to do multiple rounds of simulations (where the first round of simulations is to trailblaze to determine appropriate values for the "final" round of simulations where we'll do many more replicates)
+- 8: Let's use 10-PCs throughout the entire simulation suite, including when we compute AED.

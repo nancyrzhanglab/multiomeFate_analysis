@@ -23,7 +23,7 @@ multiomeFate_analysis/
   .claude/skills/run-cospar/      ← local skill: R → CoSPAR (Python) → R, with templates
   additional_context/             ← reference PDFs and the figure mockup; index in summary.md
   kevin/
-    Writeup21_new-simulations/    ← CURRENT FOCUS: Gini and heterogeneity sweeps (design memo only so far)
+    Writeup21_new-simulations/    ← CURRENT FOCUS: Gini and heterogeneity sweeps (design memo + generation-only AED demo so far)
     Writeup_Simulations/          ← sim1–sim7 revision simulations (Nature Genetics critiques)
     Writeup14_simulation/         ← semi-synthetic priming/plastic simulations + earlier CoSPAR runs
     Writeup17b_simulation-plots/  ← figure code for Writeup14 (Jaccard barplots, UMAPs, Gini)
@@ -293,7 +293,7 @@ adaptation_index <- function(d_vec, weights) {
 ```
 Three variants compared: CYFER-weighted, naive (uniform), oracle (true fate potential).
 
-**Within-clone heterogeneity (AED)**, paper Methods: `AED_ℓ = Dist_ℓ / Dist_random`, the mean pairwise Euclidean distance among a clone's cells in the embedding at one time point, over the mean pairwise distance among all cells. The name says "squared" but the written formula does not square; reviewer 2 flagged it, and the Writeup21 memo asks which version to keep.
+**Within-clone heterogeneity (AED)**, paper Methods: `AED_ℓ = SqDist_ℓ / SqDist_random`, the mean pairwise *squared* Euclidean distance among a clone's cells in the embedding at one time point, over the mean pairwise squared distance among all cells (computed without forming pairs: twice the sum of per-coordinate sample variances). The squared version is the decision (September 2026); the paper's Methods formula currently reads un-squared and is to be corrected to match the name.
 
 ## Key Reviewer Critiques (Nature Genetics review)
 
