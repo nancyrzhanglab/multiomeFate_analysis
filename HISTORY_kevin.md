@@ -77,3 +77,10 @@
 - Open: §9 Q1 (keep `"noncausal"`?) and Q2 (confirm `τ_δ = 0.6`); neither blocks implementation.
 - Plan mode was not entered this turn: the edits were dictated by Kevin's written answers and the demo re-run was explicitly requested in them.
 - Scratch calibration scripts (`calib_tau_delta.R`, `latent_coupling.R`) live only in the session scratchpad; the latent-only bisection logic is to be lifted into `func_generate_claude.R`.
+
+### 2026-09-22 (Session 7 — memo revised against round-4 responses; design closed)
+- Kevin's round-4 responses are in `additional_context/responses-to-simulation-plan_round4.txt`; they answer the two remaining §9 questions and the memo was rewritten self-contained with no open questions.
+- Resolved (Kevin): `spread_variation = "noncausal"` for both sweeps, with `"isotropic"` kept as the fallback if `"noncausal"` does not pan out in the trailblazing round; `τ_δ = 0.6` held for the trailblazing round, to be changed if those results look odd.
+- Changes between the round-3 and round-4 versions: the "Questions for Kevin" section is gone and "What I am uncertain about" is now §9; the `[Q1]`/`[Q2]` cross-references are removed; the rationale for `"noncausal"` (reviewer could call the AED axis partly a clone-size axis; costs (a) calibrated `s` climbs to ~1.25 at the top AED level, (b) per-clone AED variation is fate-irrelevant) moved from the question into §2.1 as the reason for the decision; §2.4 and §9 now say `τ_δ = 0.6` is provisional and the supplementary row's grid is re-centred on whatever the final round uses; §9 gains the concrete trigger for the isotropic fallback (calibration cannot hold the Gini across AED levels, or the 4B curves are uninterpretable for reasons traceable to the placement), in which case the spread-size coupling is reported as a data property rather than removed.
+- Design memo is closed for implementation; nothing remains for Kevin to answer before `func_generate_claude.R` is written.
+- Plan mode was not entered this turn: the edits were dictated by Kevin's written answers.

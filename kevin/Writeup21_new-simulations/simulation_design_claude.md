@@ -1,10 +1,11 @@
 # Writeup21: design for the Gini and heterogeneity simulation sweeps
 
 Design memo for the two Figure 4 panels. Nothing here has been fitted; the only
-code run is the generation-only demo of Section 4.1. Decisions are stated as
-settled. The points that still need Kevin's input are collected in Section 9
-and cross-referenced as **[Q1]**, **[Q2]** where they arise; neither blocks
-implementation, and the memo states the working default for each.
+code run is the generation-only demo of Section 4.1. Every decision is settled
+and implementation can start. Two settings are held provisionally until the
+trailblazing round has run, the placement of the clone-varying spread
+(Section 2.1) and the clone-specific t2 drift `τ_δ` (Section 2.4); the fallback
+for each is stated where it arises and in Section 9.
 
 ## 1. What the two figures have to show
 
@@ -114,11 +115,29 @@ kept in the generator as a reference setting only.
   construction**. The per-clone AED still spans 0 to 2 (Section 4.1), because
   nine of the ten coordinates carry the clone-to-clone variation.
 
-The working default is `"noncausal"`; whether to keep it is **[Q1]**, decided on
-the demo results in Section 4.1. Either way the *mean* within-clone spread on
-the causal coordinate is `σ_w` and grows along the AED axis, so the axis moves
-within-clone fate heterogeneity as intended; the switch only decides whether the
-clone-to-clone *variation* in spread reaches the fate potential.
+**The sweeps use `"noncausal"`.** The demo (Section 4.1) shows the change is
+free on the axis that matters and removes the confound: the per-clone AED range
+is unchanged, the mean still equals `1 − h²`, and the spread-size coupling drops
+from a Spearman of 0.5–0.65 to about 0. The figure's claim is about
+heterogeneity per se; under `"isotropic"` a reviewer could say that the AED
+axis is partly a clone-size axis (diffuse clones are the big clones, so
+lineage-DE's high group is also the diffuse group) and that the per-clone AED
+distribution shown under the barplot is partly a size distribution, whereas
+under `"noncausal"` the Methods can state that AED and clone size are
+independent by construction. Two costs come with it: (a) the Gini falls rather
+than rises along the AED axis at fixed `s`, so the calibrated `s` climbs to
+about 1.25 at the top AED level (Section 4.1), which the calibration of
+Section 5 absorbs; (b) the clone-to-clone *variation* in AED is carried by
+fate-irrelevant coordinates, so a clone's own AED says nothing about how
+heterogeneous its fate potential is, only the level's mean does, which is
+cosmetic because the analysis is at the dataset level and is stated in the
+Methods in one sentence. Either way the *mean* within-clone spread on the
+causal coordinate is `σ_w` and grows along the AED axis, so the axis moves
+within-clone fate heterogeneity as intended; the switch only decides whether
+the clone-to-clone *variation* in spread reaches the fate potential.
+`"isotropic"` stays in the generator as the fallback: if `"noncausal"` does not
+pan out in the trailblazing round, the sweeps switch back to it (Section 9),
+and the demo results for both placements are in the same CSV.
 
 The two knobs are reparameterized as a **scale** and a **share**:
 
@@ -224,23 +243,25 @@ time point need not be a smooth continuation of the earlier one" hurts CoSPAR, a
 it is separate from the AED axis, which moves `σ_l` at t1.
 
 **The main sweeps fix `τ_δ = 0.6`** in the trailblazing round, the same absolute
-value at every level of both sweeps. **[Q2]**. The value is the between-clone
-spread `τ` at the provisional middle point of the two sweeps (t2 Gini 0.5 at mean
-AED 0.4, Section 8): a latent-only calibration at `h² = 0.6`, `κ = 1.5` gives
-`s ≈ 0.81`, hence `τ = s · sqrt(0.6) ≈ 0.63` and `σ_w ≈ 0.51`, under the
-`"noncausal"` default (`s ≈ 0.76`, `τ ≈ 0.59` under `"isotropic"`). So `δ_l`
+value at every level of both sweeps. The value is the between-clone spread `τ`
+at the provisional middle point of the two sweeps (t2 Gini 0.5 at mean AED 0.4,
+Section 8): a latent-only calibration at `h² = 0.6`, `κ = 1.5` gives
+`s ≈ 0.81`, hence `τ = s · sqrt(0.6) ≈ 0.63` and `σ_w ≈ 0.51`, under
+`"noncausal"` (`s ≈ 0.76`, `τ ≈ 0.59` under the `"isotropic"` fallback). So `δ_l`
 scatters the clones' t2 centres by about as much as their t1 centres already
 differ, and by a little more than one within-clone standard deviation per
 coordinate: clone-specific drift is present but does not swamp the t1 structure.
 A fixed absolute value rather than "the level's own `τ`" keeps the t2 drift
 identical across levels, so a change along either axis is attributable to that
-axis alone. If CoSPAR does far worse than expected even at the easy end of either
-axis, `τ_δ` is the first thing to lower (Section 10). A **supplementary row**
-moves `τ_δ` over `{0, 0.3, 0.6, 1.2}` (`0`, `τ_δ/2`, `τ_δ`, `2τ_δ`) at the
-chosen middle level of each axis, holding everything else fixed, to show CoSPAR
-degrading as t2 structure stops mirroring t1 while CYFER and lineage-DE do not
-move; it runs in the final round (Section 8), once the middle levels are known,
-and its grid is re-centred on the final `τ_δ` if that value changes.
+axis alone. The value is provisional: it is held through the trailblazing round
+and changed afterwards if those results look odd, and if CoSPAR does far worse
+than expected even at the easy end of either axis it is the first thing to
+lower (Section 9). A **supplementary row** moves `τ_δ` over `{0, 0.3, 0.6, 1.2}`
+(`0`, `τ_δ/2`, `τ_δ`, `2τ_δ`) at the chosen middle level of each axis, holding
+everything else fixed, to show CoSPAR degrading as t2 structure stops mirroring
+t1 while CYFER and lineage-DE do not move; it runs in the final round
+(Section 8), once the middle levels are known, and its grid is re-centred on
+the final `τ_δ` if that value changes.
 
 ### 2.5 Sizes
 
@@ -422,7 +443,7 @@ end, which is one more reason to prefer it.
 ### 4.2 Holding Gini fixed while AED moves
 
 The t2 Gini moves on its own along the AED axis (Section 4.1: down from 0.57 to
-0.39 under the `"noncausal"` default, up from 0.55 to 0.71 under `"isotropic"`).
+0.39 under `"noncausal"`, up from 0.55 to 0.71 under the `"isotropic"` fallback).
 To keep the panels unconfounded, the t2 Gini is held at its fixed value
 throughout 4B: at each AED level, `s` is bisected so the realized Gini stays
 within ±0.03 of the target (Section 5). Realized Gini and realized mean AED are
@@ -456,8 +477,8 @@ cleanly onto the two knobs, so no iteration is needed:
 For the **Gini sweep**, `h²` is fixed at the fixed AED value and `s` is bisected
 for each Gini target. For the **AED sweep**, `h²` moves and `s` is bisected at
 each level so the Gini stays at its fixed value. At the provisional middle point
-(Gini 0.5, `h² = 0.6`) the latent-only calibration gives `s ≈ 0.81` under the
-`"noncausal"` default, which is where the `τ_δ` of Section 2.4 comes from.
+(Gini 0.5, `h² = 0.6`) the latent-only calibration gives `s ≈ 0.81` under
+`"noncausal"`, which is where the `τ_δ` of Section 2.4 comes from.
 
 The calibrated `(h², s, τ, σ_w, β_0)` per level go into the RDS `calibration`
 table so the levels are reproducible, and every replicate reports its realized
@@ -591,9 +612,9 @@ the fate score rather than to the gene step.
   replicate; realized total t2 cells, largest clone, number of extinct clones and
   the per-clone AED quantiles recorded.
 - Spearman between `AED_l` and `Y_l` per dataset, so the spread-size coupling of
-  Section 2.1 is visible in the outputs rather than assumed (near 0 under the
-  `"noncausal"` default; 0.5–0.65 at the top AED level if `"isotropic"` is
-  chosen instead).
+  Section 2.1 is visible in the outputs rather than assumed (near 0 under
+  `"noncausal"`; 0.5–0.65 at the top AED level under the `"isotropic"`
+  fallback).
 - CYFER convergence (the `NULL` returns from the safe wrapper) per level.
 - CoSPAR High and Low group sizes per level; if either is empty the bias has
   collapsed and that CoSPAR point is reported as missing rather than as 0.
@@ -661,39 +682,7 @@ replicates with the individual replicates overplotted as points (an SD over two
 replicates is not worth drawing), x-axis labelled with the target statistic and the
 realized mean beneath it (for 4B also the per-clone 5th–95th percentile range).
 
-## 9. Questions for Kevin
-
-1. **Keep the clone-varying spread on the non-causal coordinates only?** The
-   generator's `spread_variation` switch (Section 2.1) defaults to `"noncausal"`,
-   and the demo (Section 4.1) says the change is free on the axis that matters
-   and removes the confound: the per-clone AED range is unchanged (0.05–2 at the
-   top level, medians and percentiles within 0.05 of the isotropic version at
-   every level), the mean still equals `1 − h²`, and the spread-size coupling
-   drops from a Spearman of 0.5–0.65 to about 0 (0.07 in the latent-only check,
-   the irreducible sample-level Jensen effect). The costs: (a) the Gini now falls
-   rather than rises along the AED axis at fixed `s`, so the calibrated `s`
-   climbs to about 1.25 at the top level (a larger within-clone spread of `Z`,
-   hence bigger jackpot cells, at a Gini that is nonetheless held at 0.5); (b)
-   the clone-to-clone *variation* in AED is then carried by fate-irrelevant
-   coordinates, so a clone's own AED no longer says anything about how
-   heterogeneous its fate potential is, only the level's mean does. **Suggestion:
-   keep `"noncausal"`.** The figure's claim is about heterogeneity per se, and
-   under `"isotropic"` a reviewer could say that the AED axis is partly a
-   clone-size axis (diffuse clones are the big clones, so lineage-DE's high group
-   is also the diffuse group) and that the per-clone AED distribution shown under
-   the barplot is partly a size distribution; under `"noncausal"` the Methods can
-   state that AED and clone size are independent by construction. Cost (b) is
-   cosmetic because the analysis is at the dataset level, and cost (a) is handled
-   by the calibration. If Kevin prefers the isotropic version, the switch is one
-   argument and the demo results for it are in the same CSV.
-2. **`τ_δ = 0.6` for the trailblazing round.** Section 2.4 fixes the
-   clone-specific t2 drift at the between-clone spread `τ` of the provisional
-   middle point, as an absolute value shared by every level of both sweeps
-   (about one within-clone standard deviation per coordinate). Confirm, or name a
-   different value; the supplementary row's grid `{0, 0.3, 0.6, 1.2}` scales with
-   it.
-
-## 10. What I am uncertain about, stated plainly
+## 9. What I am uncertain about, stated plainly
 
 - Whether CoSPAR, given the same embedding, does nearly as well as CYFER on 4B. Its
   coherence prior assumes transcriptomic neighbours share fate, which is *true* under
@@ -702,17 +691,26 @@ realized mean beneath it (for 4B also the per-clone 5th–95th percentile range)
   such, and the framing should say that.
 - How strongly the clone-specific drift `τ_δ` hurts CoSPAR in practice. The
   argument in Section 2.4 is from reading the map construction, not from running
-  it. **If CoSPAR performs far too poorly even at the easy settings of either
-  sweep, `τ_δ` will be decreased**: the main panels are meant to show the Gini
-  and AED axes doing the work, not the drift. Conversely, if CoSPAR turns out
-  insensitive to `τ_δ`, its weakness on these data is the uniform barcode link
-  and the extinct clones, and the paper's framing should say that rather than
-  "smooth continuum".
-- Whether the spread-size coupling of Section 2.1 would read as a feature or as a
-  confound to a reviewer. The `"noncausal"` default removes it from the data;
-  **[Q1]** decides whether that stays. Under `"noncausal"` the per-clone AED
-  variation is fate-irrelevant by construction, which is the honest price of the
-  independence and should be said in the Methods in one sentence.
+  it. **`τ_δ = 0.6` is provisional: it is held for the trailblazing round and
+  changed if those results look odd.** In particular, if CoSPAR performs far too
+  poorly even at the easy settings of either sweep, `τ_δ` will be decreased: the
+  main panels are meant to show the Gini and AED axes doing the work, not the
+  drift. Conversely, if CoSPAR turns out insensitive to `τ_δ`, its weakness on
+  these data is the uniform barcode link and the extinct clones, and the paper's
+  framing should say that rather than "smooth continuum". The supplementary
+  row's grid is re-centred on whatever value the final round uses.
+- Whether the `"noncausal"` placement of the clone-varying spread pans out once
+  the methods are fitted. It removes the spread-size coupling of Section 2.1 from
+  the data, at the price that the per-clone AED variation is fate-irrelevant by
+  construction (said in the Methods in one sentence) and that the calibrated `s`
+  climbs along the AED axis. The demo only checked the generator; whether the
+  three methods produce a readable gradient under it is known only after the
+  trailblazing round. **If `"noncausal"` does not pan out there (the calibration
+  cannot hold the Gini at its fixed value across the AED levels, or the 4B curves
+  are uninterpretable for reasons traceable to the placement), the sweeps switch
+  back to `"isotropic"`**: it is one generator argument, the demo results for it
+  are in the same CSV, and the spread-size coupling is then reported as a
+  property of the data (Section 7) rather than removed.
 - At the top AED level `τ = 0`: clones have no centre and clone identity at t1 is
   spread alone. Lineage-DE's two groups then differ in variance, not in mean, so
   its statistic should sit near 0 for every gene; that is the intended failure, but
