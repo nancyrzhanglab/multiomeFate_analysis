@@ -5,9 +5,9 @@
 # `sim_aed_claude.R` from OUT_ROOT and writes flat CSVs to
 # csv/kevin/Writeup21/. A missing RDS is skipped with a message.
 #
-# Run:  Rscript make_csvs_claude.R
-# Dry:  WRITEUP21_DRY=1 Rscript make_csvs_claude.R   (reads the `_dry` RDS)
-# PCs:  WRITEUP21_PCA=20 Rscript make_csvs_claude.R  (reads the `_pca20` RDS)
+# Run:  Rscript make_csvs_claude.R                    (reads the `_r2` RDS)
+# Dry:  WRITEUP21_DRY=1 Rscript make_csvs_claude.R    (reads the `_r2_dry` RDS)
+# PCs:  WRITEUP21_PCA=<d> Rscript make_csvs_claude.R  (reads `_r2_pca<d>`)
 #
 # Per axis:
 #   sim_<axis>_summary.csv             one row per level x method, mean/SD
@@ -27,8 +27,9 @@ out_dir <- file.path("/Users/kevinlin/Library/CloudStorage/Dropbox",
 csv_dir <- file.path(repo_dir, "csv", "kevin", "Writeup21")
 
 bool_dry <- Sys.getenv("WRITEUP21_DRY") == "1"
-d_pca <- as.numeric(Sys.getenv("WRITEUP21_PCA", unset = "10"))
-suffix <- paste0(if(d_pca != 10) paste0("_pca", d_pca) else "",
+d_pca <- as.numeric(Sys.getenv("WRITEUP21_PCA", unset = "20"))
+suffix <- paste0("_r2",
+                 if(d_pca != 20) paste0("_pca", d_pca) else "",
                  if(bool_dry) "_dry" else "")
 
 # Export -----------------------------------------------------------------------

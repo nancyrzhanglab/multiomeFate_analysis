@@ -183,42 +183,21 @@ gene_rank_biserial <- function(expr_mat, bool_high_vec){
 # Truth and metric ------------------------------------------------------------
 
 #' The operational truth: every gene's Spearman correlation with the true
-#' fate potential over the t1 cells, plus its split-half reliability
+#' fate potential over the t1 cells
 #'
 #' @param lognorm_t1_mat log-normalized expression, t1 cells by genes.
 #' @param z_true_vec true log fate potential, one per t1 cell.
 #' @param q_threshold BH threshold defining the truth *set* for Jaccard.
-#' @param seed_number seed for the split-half partition.
 #'
-#' @returns a list with `bool_set_vec` (logical per gene, the truth set),
-#'   `split_half_pearson` and `split_half_reliability` (Pearson and Spearman
-#'   between the truth vectors of two random halves of the t1 cells) and
+#' @returns a list with `bool_set_vec` (logical per gene, the truth set) and
 #'   `truth_df` (`gene`, `stat`, `pvalue`, `qvalue`).
 compute_truth <- function(lognorm_t1_mat,
                           z_true_vec,
-                          q_threshold = 0.05,
-                          seed_number = 10){
+                          q_threshold = 0.05){
   truth_df <- gene_spearman(lognorm_t1_mat, z_true_vec)
   truth_df$qvalue <- stats::p.adjust(truth_df$pvalue, method = "BH")
 
-  if(!is.null(seed_number)) set.seed(seed_number)
-  n <- nrow(lognorm_t1_mat)
-  half_idx_vec <- sample(n, size = floor(n / 2))
-  truth_a_df <- gene_spearman(lognorm_t1_mat[half_idx_vec, , drop = FALSE],
-                              z_true_vec[half_idx_vec])
-  truth_b_df <- gene_spearman(lognorm_t1_mat[-half_idx_vec, , drop = FALSE],
-                              z_true_vec[-half_idx_vec])
-  # Two versions: Spearman over all genes is the memo's definition, and is
-  # pulled toward 0 by the ~1,900 genes whose truth is sampling noise around
-  # 0; Pearson weights the ~100 large-|truth| genes and says whether the
-  # signal part of the vector is reproducible.
-  reliability <- stats::cor(truth_a_df$stat, truth_b_df$stat,
-                            method = "spearman")
-  reliability_pearson <- stats::cor(truth_a_df$stat, truth_b_df$stat)
-
   list(bool_set_vec = truth_df$qvalue < q_threshold,
-       split_half_pearson = reliability_pearson,
-       split_half_reliability = reliability,
        truth_df = truth_df)
 }
 
@@ -407,8 +386,13 @@ method_lineage_de <- function(lognorm_t1_mat,
 #'
 #' `state_info` is `"t1"` for t1 cells, `"High"` for t2 cells of the high
 #' clones (the lineage-DE split) and `"Low"` for the other t2 cells. The
-#' similarity graph is built on the shared PCA. Fails soft: any error on
-#' either side returns `NA` statistics with `bool_success = FALSE`.
+#' similarity graph is built on the shared PCA. t1 cells of clones with no
+#' t2 cells are excluded before the export (memo Section 3.2): they are
+#' single-time clones to CoSPAR, outside its transition map, and the 0.5
+#' bias it fills in for them would rank the lowest-fate cells in the middle.
+#' Their fate bias is returned as `NA` and the gene correlation runs over
+#' the included t1 cells only. Fails soft: any error on either side returns
+#' `NA` statistics with `bool_success = FALSE`.
 #'
 #' @param count_mat integer matrix, all cells by genes, with names.
 #' @param cell_df data frame with `cell_id`, `time_info`, `clone_id` in the
@@ -425,10 +409,11 @@ method_lineage_de <- function(lognorm_t1_mat,
 #' @param seed_number passed to `run_cospar.py --seed`.
 #' @param verbose numeric.
 #'
-#' @returns a list with `bool_success`, `fate_bias_vec` (named over the t1
-#'   cells, `NA` on failure), `gene_df` (`gene`, `stat`, `pvalue`),
-#'   `log_vec` (the Python stdout and stderr lines), `num_high_t2`,
-#'   `num_low_t2`, `num_progenitor_a`, `num_progenitor_b` and `runtime_sec`.
+#' @returns a list with `bool_success`, `fate_bias_vec` (named over all t1
+#'   cells, `NA` for excluded cells and on failure), `gene_df` (`gene`,
+#'   `stat`, `pvalue`), `log_vec` (the Python stdout and stderr lines),
+#'   `num_high_t2`, `num_low_t2`, `num_progenitor_a`, `num_progenitor_b`,
+#'   `num_t1_excluded` and `runtime_sec`.
 method_cospar <- function(count_mat,
                           cell_df,
                           pca_mat,
@@ -444,6 +429,20 @@ method_cospar <- function(count_mat,
   stopifnot(nrow(count_mat) == nrow(cell_df), nrow(pca_mat) == nrow(cell_df),
             all(rownames(count_mat) == cell_df$cell_id),
             file.exists(python_path), file.exists(script_path))
+  t1_all_id_vec <- cell_df$cell_id[cell_df$time_info == "t1"]
+
+  # Exclude t1 cells of extinct clones (no t2 cells) before the export; see
+  # the block comment above. `lognorm_t1_mat` keeps all t1 rows, so the gene
+  # step below subsets it by the included cell IDs.
+  surviving_clone_vec <- unique(cell_df$clone_id[cell_df$time_info == "t2"])
+  bool_keep_vec <- cell_df$time_info == "t2" |
+    cell_df$clone_id %in% surviving_clone_vec
+  num_t1_excluded <- length(t1_all_id_vec) - sum(bool_keep_vec &
+                                                   cell_df$time_info == "t1")
+  count_mat <- count_mat[bool_keep_vec, , drop = FALSE]
+  pca_mat <- pca_mat[bool_keep_vec, , drop = FALSE]
+  cell_df <- cell_df[bool_keep_vec, , drop = FALSE]
+
   t1_idx <- which(cell_df$time_info == "t1")
   t1_id_vec <- cell_df$cell_id[t1_idx]
   num_genes <- ncol(lognorm_t1_mat)
@@ -451,7 +450,8 @@ method_cospar <- function(count_mat,
                               stat = rep(NA_real_, num_genes),
                               pvalue = rep(NA_real_, num_genes),
                               stringsAsFactors = FALSE)
-  na_bias_vec <- stats::setNames(rep(NA_real_, length(t1_idx)), t1_id_vec)
+  na_bias_vec <- stats::setNames(rep(NA_real_, length(t1_all_id_vec)),
+                                 t1_all_id_vec)
 
   state_vec <- ifelse(cell_df$time_info == "t1", "t1",
                       ifelse(cell_df$clone_id %in% high_clone_vec,
@@ -466,6 +466,7 @@ method_cospar <- function(count_mat,
                     num_low_t2 = num_low_t2,
                     num_progenitor_a = NA_integer_,
                     num_progenitor_b = NA_integer_,
+                    num_t1_excluded = num_t1_excluded,
                     runtime_sec = NA_real_)
   if(num_high_t2 == 0 || num_low_t2 == 0){
     if(verbose > 0) print("CoSPAR skipped: one t2 fate group is empty")
@@ -505,17 +506,20 @@ method_cospar <- function(count_mat,
     return(fail_list)
   }
 
-  fate_bias_vec <- result$import_list$fate_bias[t1_id_vec]
-  names(fate_bias_vec) <- t1_id_vec
+  bias_included_vec <- result$import_list$fate_bias[t1_id_vec]
+  names(bias_included_vec) <- t1_id_vec
   # A constant bias (every t1 cell at 0.5) is a collapsed map and is reported
   # as missing rather than as a score of 0 (memo Section 7).
-  if(anyNA(fate_bias_vec) || stats::sd(fate_bias_vec) == 0){
+  if(anyNA(bias_included_vec) || stats::sd(bias_included_vec) == 0){
     if(verbose > 0) print("CoSPAR failed: fate bias missing or constant")
     fail_list$log_vec <- result$log_vec
     fail_list$runtime_sec <- runtime_sec
     return(fail_list)
   }
-  gene_df <- gene_spearman(lognorm_t1_mat, fate_bias_vec)
+  fate_bias_vec <- na_bias_vec
+  fate_bias_vec[t1_id_vec] <- bias_included_vec
+  gene_df <- gene_spearman(lognorm_t1_mat[t1_id_vec, , drop = FALSE],
+                           bias_included_vec)
 
   if(bool_clean){
     unlink(file.path(export_dir, c("counts.mtx", "X_pca.csv", "cells.txt",
@@ -531,5 +535,6 @@ method_cospar <- function(count_mat,
        num_low_t2 = num_low_t2,
        num_progenitor_a = result$import_list$run$n_progenitor_a,
        num_progenitor_b = result$import_list$run$n_progenitor_b,
+       num_t1_excluded = num_t1_excluded,
        runtime_sec = runtime_sec)
 }

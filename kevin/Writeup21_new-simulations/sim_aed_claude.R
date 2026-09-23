@@ -3,17 +3,18 @@
 #
 # Figure 4B driver: gene recovery by CYFER, CoSPAR and lineage-DE as the
 # mean squared within-clone AED rises, with the t2 Gini held fixed
-# (simulation_design_claude.md, Sections 4, 5 and 8). Trailblazing round:
-# seven AED targets x two replicates at the provisional fixed t2 Gini of 0.5
-# and tau_delta = 0.6.
+# (simulation_design_claude.md, Sections 4, 5 and 8). Trailblazing round 2:
+# seven AED targets x two replicates at the fixed t2 Gini of 0.5,
+# tau_delta = 0.6, 20-PC shared embedding, extinct-clone t1 cells excluded
+# from CoSPAR.
 #
-# Run:   Rscript sim_aed_claude.R
+# Run:   Rscript sim_aed_claude.R                   (outputs suffixed `_r2`)
 # Dry:   WRITEUP21_DRY=1 Rscript sim_aed_claude.R   (2 levels x 1 replicate,
-#        outputs suffixed `_dry`)
-# PCs:   WRITEUP21_PCA=20 Rscript sim_aed_claude.R  (20-PC shared embedding
-#        instead of 10; outputs suffixed `_pca20`)
+#        outputs suffixed `_r2_dry`)
+# PCs:   WRITEUP21_PCA=<d> Rscript sim_aed_claude.R (a non-default embedding
+#        dimension; outputs suffixed `_r2_pca<d>`)
 # Progress is appended to OUT_ROOT/Writeup21_new-simulations/
-# progress_aed_claude.txt; the RDS lands beside it after every level.
+# progress_aed_claude_r2.txt; the RDS lands beside it after every level.
 
 library(multiomeFate)
 library(Matrix)
@@ -40,8 +41,12 @@ source(file.path(script_dir, "cospar_flat_io.R"))
 # Settings ---------------------------------------------------------------------
 
 bool_dry <- Sys.getenv("WRITEUP21_DRY") == "1"
-d_pca <- as.numeric(Sys.getenv("WRITEUP21_PCA", unset = "10"))
-suffix <- paste0(if(d_pca != 10) paste0("_pca", d_pca) else "",
+d_pca <- as.numeric(Sys.getenv("WRITEUP21_PCA", unset = "20"))
+# `_r2` marks the second trailblazing round (CoSPAR extinct-clone exclusion,
+# 20-PC default); the round-1 files ("" = 10 PCs, "_pca20") stay on disk as
+# the record.
+suffix <- paste0("_r2",
+                 if(d_pca != 20) paste0("_pca", d_pca) else "",
                  if(bool_dry) "_dry" else "")
 
 level_vec <- c(0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 1.0)  # mean squared AED targets

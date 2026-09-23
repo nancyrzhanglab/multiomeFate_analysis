@@ -34,8 +34,7 @@
 #' Generate one dataset, run the three methods, score them
 #'
 #' @param h2,latent_scale,tau_delta,spread_variation,kappa generator knobs.
-#' @param seed_number seed for the generator, CYFER, CoSPAR and the
-#'   split-half partition.
+#' @param seed_number seed for the generator, CYFER and CoSPAR.
 #' @param export_dir directory for this dataset's CoSPAR export.
 #' @param python_path,script_path for `method_cospar()`.
 #' @param d_latent latent dimension of the generator.
@@ -85,8 +84,7 @@ run_one_dataset <- function(h2,
   clone_vec <- dat$cell_df$clone_id[dat$t1_idx]
   t2_size_vec <- dat$t2_size_vec
   aed_vec <- compute_aed(pca_t1_mat, clone_vec)
-  truth_list <- compute_truth(lognorm_t1_mat, dat$z_true_vec,
-                              seed_number = seed_number)
+  truth_list <- compute_truth(lognorm_t1_mat, dat$z_true_vec)
   timer_vec["embed"] <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
   .log_progress(paste0(stage_prefix, "generated + embedded: t2 cells = ",
                        sum(t2_size_vec), ", Gini = ",
@@ -177,8 +175,6 @@ run_one_dataset <- function(h2,
     t2_num_zero = sum(t2_size_vec == 0),
     spearman_aed_t2size = stats::cor(aed_vec[names(t2_size_vec)], t2_size_vec,
                                      method = "spearman"),
-    split_half_reliability = truth_list$split_half_reliability,
-    split_half_pearson = truth_list$split_half_pearson,
     pca_heritability = compute_pca_heritability(pca_t1_mat, clone_vec),
     num_high_clones = length(de_list$high_clone_vec),
     num_high_cells = de_list$num_high_cells,
@@ -187,6 +183,7 @@ run_one_dataset <- function(h2,
     num_low_t2 = cospar_list$num_low_t2,
     num_progenitor_a = cospar_list$num_progenitor_a,
     num_progenitor_b = cospar_list$num_progenitor_b,
+    num_t1_excluded_cospar = cospar_list$num_t1_excluded,
     time_generate_sec = timer_vec["generate"],
     time_embed_sec = timer_vec["embed"],
     stringsAsFactors = FALSE)
@@ -450,9 +447,9 @@ run_sweep <- function(axis,
                   "score_spearman")
   realized_vec <- c("gini_t2", "gini_pooled", "aed_mean", "aed_q05",
                     "aed_q95", "t2_total", "t2_max_clone", "t2_num_zero",
-                    "spearman_aed_t2size", "split_half_reliability",
-                    "split_half_pearson", "pca_heritability",
-                    "num_high_clones", "runtime_sec")
+                    "spearman_aed_t2size", "pca_heritability",
+                    "num_high_clones", "num_t1_excluded_cospar",
+                    "runtime_sec")
   summary_list <- lapply(seq_len(nrow(key_df)), function(i){
     sub_df <- replicate_details_df[
       replicate_details_df$level_idx == key_df$level_idx[i] &

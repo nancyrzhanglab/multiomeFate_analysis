@@ -11,9 +11,9 @@
 # a third shows the score-level diagnostics (correlation of each method's
 # fate score with the true fate potential).
 #
-# Run:  Rscript plot_barplots_claude.R
-# Dry:  WRITEUP21_DRY=1 Rscript plot_barplots_claude.R
-# PCs:  WRITEUP21_PCA=20 Rscript plot_barplots_claude.R  (reads the `_pca20` CSVs)
+# Run:  Rscript plot_barplots_claude.R                    (reads the `_r2` CSVs)
+# Dry:  WRITEUP21_DRY=1 Rscript plot_barplots_claude.R    (reads `_r2_dry`)
+# PCs:  WRITEUP21_PCA=<d> Rscript plot_barplots_claude.R  (reads `_r2_pca<d>`)
 
 library(ggplot2)
 
@@ -28,8 +28,9 @@ csv_dir <- file.path(repo_dir, "csv", "kevin", "Writeup21")
 fig_dir <- file.path(repo_dir, "fig", "kevin", "Writeup21")
 
 bool_dry <- Sys.getenv("WRITEUP21_DRY") == "1"
-d_pca <- as.numeric(Sys.getenv("WRITEUP21_PCA", unset = "10"))
-suffix <- paste0(if(d_pca != 10) paste0("_pca", d_pca) else "",
+d_pca <- as.numeric(Sys.getenv("WRITEUP21_PCA", unset = "20"))
+suffix <- paste0("_r2",
+                 if(d_pca != 20) paste0("_pca", d_pca) else "",
                  if(bool_dry) "_dry" else "")
 
 # Settings ---------------------------------------------------------------------

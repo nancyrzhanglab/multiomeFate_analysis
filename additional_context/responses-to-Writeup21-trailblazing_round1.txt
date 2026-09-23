@@ -1,0 +1,17 @@
+Notes:
+* Can you include some UMAPs (i.e., log-transform, then PCA, then UMAP) of the data, colored by lineage, or time point, or fate potential for just the t1 cells, to give me a sense of the data?  You just need to do this for three settings (the "easiest", "middle", and "hardest") for one replicate for each simulation suite (i.e., one for Gini, one for within-cell heterogeneity) (so, 3 settings x 2 simulation suites = 6 dataset's worth of UMAPs)
+* For "6.2 The fate scores behind the gene calls", is the reason there's no bars for "Lineage-DE" because Lineage-DE doesn't compute a fate score per cell? (It is okay if there's no natural way to compute this for Lineage-DE. I just wanted to double-check. Please write this into 6.2 to make it more explicit.)
+* In "6.4 Realized statistics and diagnostics", what are "1, 4, 7, 10, ..."? I didn't understand what these row names referred to.
+* Please add a lot of comments to /Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/archive/Nancy/multiomeFate/git/multiomeFate_analysis/.claude/skills/run-cospar/templates/run_cospar.py so I can review it manually to make sure CoSPAR is being used appropriately
+
+Responses to "7 Problems and potential issues found while running"
+- 1. Yes, you can use 20 PCs -- it seems to have worked well. 
+- 2. Let's keep the AED re-centering. Please update /Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/archive/Nancy/multiomeFate/git/multiomeFate_analysis/kevin/Writeup21_new-simulations/simulation_design_claude.md and the code accordingly. In the memo .md, please write down the formula for this recentering so I can better understand it.
+- 3. Yes, I am happy to change the limits of the Gini levels for the simulation to tell a complete story.
+- 4. Yes, I like this fix to the seeds.
+- 5. Can we somehow exclude these cells (i.e., t1 cells with no clones in t2) prior to running CoSPAR so we won't have this issue? Let's trailblaze this setting to see how it performs.
+- 6. I like this change to score a constant CoSPAR as a failed run. Please make a note of it if it occurs.
+- 7. We can remove the split-half reliability check.
+- 8. Let's update the memo with values in this trailblazing simulation, and then make sure the memo is self-consistent.
+- 9. Yes, you can use R CMD INSTALL.
+- 10.  I am okay with this finding, if CoSPAR is still high (around 0.7), but not as high as CYFER. To me, these current results are fantastic.
