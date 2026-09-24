@@ -11,9 +11,13 @@
 # a third shows the score-level diagnostics (correlation of each method's
 # fate score with the true fate potential).
 #
-# Run:  Rscript plot_barplots_claude.R                    (reads the `_r2` CSVs)
-# Dry:  WRITEUP21_DRY=1 Rscript plot_barplots_claude.R    (reads `_r2_dry`)
-# PCs:  WRITEUP21_PCA=<d> Rscript plot_barplots_claude.R  (reads `_r2_pca<d>`)
+# With five or more replicates the individual points would overplot, so the
+# bars carry a mean +/- SD whisker instead; below five they stay as points.
+#
+# Run:   Rscript plot_barplots_claude.R                  (reads the `_r2` CSVs)
+# Round: WRITEUP21_ROUND=final Rscript plot_barplots_claude.R  (reads `_final`)
+# Dry:   WRITEUP21_DRY=1 Rscript plot_barplots_claude.R  (reads `_dry`)
+# PCs:   WRITEUP21_PCA=<d> Rscript plot_barplots_claude.R  (reads `_pca<d>`)
 
 library(ggplot2)
 
@@ -29,7 +33,8 @@ fig_dir <- file.path(repo_dir, "fig", "kevin", "Writeup21")
 
 bool_dry <- Sys.getenv("WRITEUP21_DRY") == "1"
 d_pca <- as.numeric(Sys.getenv("WRITEUP21_PCA", unset = "20"))
-suffix <- paste0("_r2",
+round_str <- Sys.getenv("WRITEUP21_ROUND", unset = "r2")
+suffix <- paste0("_", round_str,
                  if(d_pca != 20) paste0("_pca", d_pca) else "",
                  if(bool_dry) "_dry" else "")
 
@@ -77,11 +82,25 @@ axis_label_list <- list(
                                         fill = method))
   plot1 <- plot1 + ggplot2::geom_col(position = ggplot2::position_dodge(0.8),
                                      width = 0.7)
-  plot1 <- plot1 + ggplot2::geom_point(
-    data = detail_df,
-    ggplot2::aes(x = level_factor, y = .data[[metric]], group = method),
-    position = ggplot2::position_dodge(0.8), size = 1.2, color = "black",
-    inherit.aes = FALSE)
+  # Twenty replicates overplot into a smear, so past five the spread is drawn
+  # as a mean +/- SD whisker instead of the individual replicates.
+  if(max(summary_df$num_replicates) >= 5){
+    sd_col <- paste0(metric, "_sd")
+    summary_df$ymin_val <- summary_df[[mean_col]] - summary_df[[sd_col]]
+    summary_df$ymax_val <- summary_df[[mean_col]] + summary_df[[sd_col]]
+    plot1 <- plot1 + ggplot2::geom_errorbar(
+      data = summary_df,
+      ggplot2::aes(x = level_factor, ymin = .data$ymin_val,
+                   ymax = .data$ymax_val, group = method),
+      position = ggplot2::position_dodge(0.8), width = 0.3, linewidth = 0.3,
+      color = "black", inherit.aes = FALSE)
+  } else {
+    plot1 <- plot1 + ggplot2::geom_point(
+      data = detail_df,
+      ggplot2::aes(x = level_factor, y = .data[[metric]], group = method),
+      position = ggplot2::position_dodge(0.8), size = 1.2, color = "black",
+      inherit.aes = FALSE)
+  }
   plot1 <- plot1 + ggplot2::geom_hline(yintercept = 0, linewidth = 0.3)
   plot1 <- plot1 + ggplot2::scale_fill_manual(values = method_color_vec)
   plot1 <- plot1 + ggplot2::scale_x_discrete(labels = label_vec)
@@ -98,9 +117,19 @@ axis_label_list <- list(
   plot1 <- ggplot2::ggplot(detail_df,
                            ggplot2::aes(x = .data[[realized_col]], y = spearman,
                                         color = method))
-  plot1 <- plot1 + ggplot2::geom_line(ggplot2::aes(group = method),
-                                      alpha = 0.4)
-  plot1 <- plot1 + ggplot2::geom_point(size = 2)
+  # With two replicates a line through the points reads as a curve; with
+  # twenty it is a scribble, so past five replicates this is a scatter with a
+  # loess trend.
+  if(max(table(detail_df$level_idx, detail_df$method)) >= 5){
+    plot1 <- plot1 + ggplot2::geom_point(size = 1, alpha = 0.6)
+    plot1 <- plot1 + ggplot2::geom_smooth(ggplot2::aes(group = method),
+                                          method = "loess", formula = y ~ x,
+                                          se = FALSE, linewidth = 0.6)
+  } else {
+    plot1 <- plot1 + ggplot2::geom_line(ggplot2::aes(group = method),
+                                        alpha = 0.4)
+    plot1 <- plot1 + ggplot2::geom_point(size = 2)
+  }
   plot1 <- plot1 + ggplot2::scale_color_manual(values = method_color_vec)
   plot1 <- plot1 + ggplot2::labs(
     x = if(axis == "gini") "Realized Gini of t2 clone sizes" else

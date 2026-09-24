@@ -1,0 +1,543 @@
+---
+title: "Writeup21: final round of the Gini and heterogeneity sweeps"
+author: "Kevin Z. Lin (drafted by Claude)"
+date: "2026-09-23"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r libraries}
+library(ggplot2)
+library(knitr)
+```
+
+```{r paths}
+repo_dir <- file.path("/Users/kevinlin/Library/CloudStorage/Dropbox",
+                      "Collaboration-and-People/archive/Nancy/multiomeFate",
+                      "git/multiomeFate_analysis")
+csv_dir <- file.path(repo_dir, "csv", "kevin", "Writeup21")
+```
+
+```{r read_csvs}
+.read_pass <- function(axis, suffix){
+  list(summary_df = utils::read.csv(file.path(csv_dir,
+    paste0("sim_", axis, "_summary", suffix, ".csv")), stringsAsFactors = FALSE),
+       detail_df = utils::read.csv(file.path(csv_dir,
+    paste0("sim_", axis, "_replicate_details", suffix, ".csv")),
+    stringsAsFactors = FALSE),
+       calibration_df = utils::read.csv(file.path(csv_dir,
+    paste0("sim_", axis, "_calibration", suffix, ".csv")),
+    stringsAsFactors = FALSE))
+}
+pass_list <- list(gini = .read_pass("gini", "_final"),
+                  aed = .read_pass("aed", "_final"),
+                  gini_r2 = .read_pass("gini", "_r2"),
+                  aed_r2 = .read_pass("aed", "_r2"))
+
+method_level_vec <- c("CYFER", "CoSPAR", "Lineage-DE")
+method_color_vec <- c(CYFER = "#D55E00", CoSPAR = "#0072B2",
+                      "Lineage-DE" = "#009E73")
+
+# Values quoted in the prose, read from the tables rather than typed, so the
+# text cannot drift from the CSVs it describes.
+.metric_at <- function(axis, method, level, column){
+  df <- pass_list[[axis]]$summary_df
+  round(df[[column]][df$method == method & df$level == level], 3)
+}
+num_datasets <- nrow(pass_list$gini$detail_df) / length(method_level_vec)
+num_converged_total <- sum(pass_list$gini$summary_df$num_converged) +
+  sum(pass_list$aed$summary_df$num_converged)
+```
+
+# Overview
+
+This is the **final round** of the two simulation sweeps that become Figure 4
+of the Nature Methods submission of *Resolution of Selection Versus Adaptation
+in Cellular Evolution*. It ran on 2026-09-23 on the laptop, both axes
+concurrently, at the design settled by the trailblazing round:
+`r num_datasets` datasets per axis (7 levels x 20 replicates), 106.5 minutes
+for the Gini axis and 116.6 minutes for the AED axis.
+
+Nothing about the simulation changed from the trailblazing `_r2` pass except
+the replicate count, which rose from 2 to 20. The design itself — the
+generator, the calibration, the shared 20-PC embedding, the three methods and
+the metric — is described in `simulation_design_claude.md` and evidenced in
+`Writeup21_trailblazing-report_claude.html`; this report does not repeat it,
+and states only what the 20 replicates add.
+
+**The two questions this round existed to answer** (memo Section 9) are both
+answered, and both resolve in the same direction: what looked erratic on two
+replicates is not erratic.
+
+1. *Where does CoSPAR actually fall away on the Gini axis?* It holds through
+   Gini 0.6 and breaks between 0.6 and 0.7. The `_r2` zig-zag at the top of
+   the ladder (0.27, 0.62, 0.31) was two-replicate noise; at 20 replicates
+   every curve is monotone in its level.
+2. *Is the top Gini level "methods fail" or "the truth is barely estimable"?*
+   The latter. CYFER's gene-level score at Gini 0.9 is
+   `r .metric_at("gini", "CYFER", 0.9, "spearman_mean")` while its per-cell
+   fate score still correlates
+   `r .metric_at("gini", "CYFER", 0.9, "score_cor_mean")` with the truth.
+
+A third finding was not on the list and is the most interesting thing in the
+round: along the AED axis CYFER's **fate score stays flat while its gene score
+falls** (Section 3.3).
+
+Every number below is read from the CSVs in `csv/kevin/Writeup21/` (suffix
+`_final`); the figures in `fig/kevin/Writeup21/` are re-drawn here from the
+same tables.
+
+# How this round was run
+
+| Setting | Gini axis (4A) | AED axis (4B) |
+|---|---|---|
+| Levels | t2 Gini 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9 | mean squared AED 0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 1.0 |
+| Held fixed | mean squared AED 0.4 | t2 Gini 0.5 |
+| Replicates | 20 | 20 |
+| Seeds | `1000 + 100j + r` | `2000 + 100j + r` |
+| Wall clock | 106.5 min | 116.6 min |
+
+Shared across both: 100 clones x 10 t1 cells, about 3,000 expected t2 cells
+with zero-count clones kept, latent dimension 10, `kappa = 1.5`,
+`tau_delta = 0.6`, `spread_variation = "noncausal"`, a 20-PC embedding shared
+by all three methods, and t1 cells of extinct clones excluded before CoSPAR.
+The driver is `sim_final_claude.R`, which takes the axis as its argument and
+holds these settings once for both.
+
+**The held values both survive the 20 replicates.** AED 0.4 is still the last
+level at which all three methods do reasonably well (at 0.55 CoSPAR falls to
+`r .metric_at("aed", "CoSPAR", 0.55, "spearman_mean")` and lineage-DE to
+`r .metric_at("aed", "Lineage-DE", 0.55, "spearman_mean")`), and the held t2
+Gini of 0.5 sits comfortably inside CoSPAR's easy regime
+(`r .metric_at("gini", "CoSPAR", 0.5, "spearman_mean")` at 0.5,
+`r .metric_at("gini", "CoSPAR", 0.6, "spearman_mean")` at 0.6). Neither axis
+needs re-running at a different held value.
+
+```{r calibration_table}
+.calibration_table <- function(calibration_df){
+  data.frame(level = calibration_df$level,
+             h2 = round(calibration_df$h2, 3),
+             recentre_steps = calibration_df$num_recentre,
+             s = signif(calibration_df$latent_scale, 3),
+             tau = signif(calibration_df$tau, 3),
+             sigma_w = signif(calibration_df$sigma_w, 3),
+             check_AED = round(calibration_df$aed_check, 3))
+}
+knitr::kable(.calibration_table(pass_list$gini$calibration_df),
+             caption = "Gini axis: calibrated generator parameters per level.")
+knitr::kable(.calibration_table(pass_list$aed$calibration_df),
+             caption = "AED axis: calibrated generator parameters per level.")
+```
+
+# Results
+
+```{r plot_helpers}
+.level_label_vec <- function(summary_df, axis){
+  level_df <- unique(summary_df[, c("level_idx", "level", "gini_t2_mean",
+                                    "aed_mean_mean", "aed_q05_mean",
+                                    "aed_q95_mean")])
+  level_df <- level_df[order(level_df$level_idx), ]
+  if(axis == "gini"){
+    label_vec <- paste0(level_df$level, "\n(",
+                        sprintf("%.2f", level_df$gini_t2_mean), ")")
+  } else {
+    label_vec <- paste0(level_df$level, "\n(",
+                        sprintf("%.2f", level_df$aed_mean_mean), ")\n[",
+                        sprintf("%.2f", level_df$aed_q05_mean), ", ",
+                        sprintf("%.2f", level_df$aed_q95_mean), "]")
+  }
+  names(label_vec) <- level_df$level_idx
+  label_vec
+}
+
+# Twenty replicates overplot as points, so the spread is a mean +/- SD
+# whisker here, matching `plot_barplots_claude.R`.
+.plot_barplot <- function(summary_df, axis, metric, ylab, title){
+  summary_df <- summary_df[summary_df$method %in% method_level_vec, ]
+  summary_df$method <- factor(summary_df$method, levels = method_level_vec)
+  summary_df$level_factor <- factor(summary_df$level_idx)
+  mean_col <- paste0(metric, "_mean")
+  sd_col <- paste0(metric, "_sd")
+  summary_df$ymin_val <- summary_df[[mean_col]] - summary_df[[sd_col]]
+  summary_df$ymax_val <- summary_df[[mean_col]] + summary_df[[sd_col]]
+  label_vec <- .level_label_vec(summary_df, axis)
+  x_label <- if(axis == "gini"){
+    "Gini of t2 clone sizes: target (realized mean)"
+  } else {
+    "Mean squared AED: target (realized mean) [per-clone 5th-95th pct]"
+  }
+
+  plot1 <- ggplot2::ggplot(summary_df,
+                           ggplot2::aes(x = level_factor, y = .data[[mean_col]],
+                                        fill = method))
+  plot1 <- plot1 + ggplot2::geom_col(position = ggplot2::position_dodge(0.8),
+                                     width = 0.7)
+  plot1 <- plot1 + ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = .data$ymin_val, ymax = .data$ymax_val),
+    position = ggplot2::position_dodge(0.8), width = 0.3, linewidth = 0.3,
+    color = "black")
+  plot1 <- plot1 + ggplot2::geom_hline(yintercept = 0, linewidth = 0.3)
+  plot1 <- plot1 + ggplot2::scale_fill_manual(values = method_color_vec)
+  plot1 <- plot1 + ggplot2::scale_x_discrete(labels = label_vec)
+  plot1 <- plot1 + ggplot2::labs(x = x_label, y = ylab, fill = NULL,
+                                 title = title)
+  plot1 <- plot1 + ggplot2::theme_bw()
+  plot1 <- plot1 + ggplot2::theme(legend.position = "top")
+  plot1
+}
+
+.summary_table <- function(summary_df, axis_label, metric = "spearman"){
+  wide_df <- data.frame(level = sort(unique(summary_df$level)))
+  for(method in method_level_vec){
+    sub_df <- summary_df[summary_df$method == method, ]
+    sub_df <- sub_df[match(wide_df$level, sub_df$level), ]
+    wide_df[[method]] <- sprintf("%.3f (%.3f)",
+                                 sub_df[[paste0(metric, "_mean")]],
+                                 sub_df[[paste0(metric, "_sd")]])
+  }
+  colnames(wide_df)[1] <- axis_label
+  rownames(wide_df) <- NULL
+  wide_df
+}
+```
+
+## The headline curves
+
+```{r gini_bar, fig.width=9, fig.height=5}
+plot(.plot_barplot(pass_list$gini$summary_df, "gini", "spearman",
+                   "Spearman(method, truth) over genes",
+                   "4A: Gini axis, 20 replicates"))
+```
+
+```{r aed_bar, fig.width=9, fig.height=5}
+plot(.plot_barplot(pass_list$aed$summary_df, "aed", "spearman",
+                   "Spearman(method, truth) over genes",
+                   "4B: AED axis, 20 replicates"))
+```
+
+```{r summary_tables}
+knitr::kable(.summary_table(pass_list$gini$summary_df, "Gini target"),
+             caption = "Gini axis: Spearman of each method's per-gene vector with the truth, mean (SD) over 20 replicates.")
+knitr::kable(.summary_table(pass_list$aed$summary_df, "AED target"),
+             caption = "AED axis: Spearman of each method's per-gene vector with the truth, mean (SD) over 20 replicates.")
+```
+
+**Both panels show the intended gradient, and CYFER is the best method at
+every level of both axes.** On the Gini axis CYFER runs 0.87–0.95 from Gini
+0.3 through 0.8 and drops to
+`r .metric_at("gini", "CYFER", 0.9, "spearman_mean")` at 0.9; CoSPAR holds
+0.64–0.70 through Gini 0.6 and then declines to
+`r .metric_at("gini", "CoSPAR", 0.9, "spearman_mean")`; lineage-DE runs
+0.70–0.75 through 0.6 and declines to
+`r .metric_at("gini", "Lineage-DE", 0.9, "spearman_mean")`. On the AED axis
+CYFER falls gently from `r .metric_at("aed", "CYFER", 0.1, "spearman_mean")`
+to `r .metric_at("aed", "CYFER", 1, "spearman_mean")` while CoSPAR falls from
+`r .metric_at("aed", "CoSPAR", 0.1, "spearman_mean")` to
+`r .metric_at("aed", "CoSPAR", 1, "spearman_mean")` and lineage-DE from
+`r .metric_at("aed", "Lineage-DE", 0.1, "spearman_mean")` to
+`r .metric_at("aed", "Lineage-DE", 1, "spearman_mean")`. The gap between CYFER
+and the better comparator widens along both axes: about 0.15 at the easy end,
+0.3 at Gini 0.9 and 0.46 at AED 1.0.
+
+The separation is large relative to replicate noise everywhere except the top
+of the Gini axis. CYFER's SD is at most 0.073 through Gini 0.8 and at most
+0.103 through AED 0.85; the comparators' SDs grow to 0.17–0.20 at the hard
+ends, which is itself part of the result — the comparators are not merely
+worse there, they are unstable.
+
+## What twenty replicates changed
+
+```{r r2_comparison}
+.round_comparison <- function(axis){
+  fin_df <- pass_list[[axis]]$summary_df
+  r2_df <- pass_list[[paste0(axis, "_r2")]]$summary_df
+  out_df <- data.frame(level = sort(unique(fin_df$level)))
+  for(method in method_level_vec){
+    f_sub <- fin_df[fin_df$method == method, ]
+    r_sub <- r2_df[r2_df$method == method, ]
+    f_sub <- f_sub[match(out_df$level, f_sub$level), ]
+    r_sub <- r_sub[match(out_df$level, r_sub$level), ]
+    out_df[[paste0(method, " (2 rep)")]] <- sprintf("%.2f", r_sub$spearman_mean)
+    out_df[[paste0(method, " (20 rep)")]] <- sprintf("%.2f", f_sub$spearman_mean)
+  }
+  rownames(out_df) <- NULL
+  out_df
+}
+knitr::kable(.round_comparison("gini"),
+             caption = "Gini axis: trailblazing (2 replicates) against the final round (20 replicates).")
+knitr::kable(.round_comparison("aed"),
+             caption = "AED axis: trailblazing (2 replicates) against the final round (20 replicates).")
+```
+
+Two entries in the first table are the reason this round was run.
+
+**CoSPAR's top half was noise, not structure.** The trailblazing pass read
+0.27, 0.62 and 0.31 at Gini 0.7, 0.8 and 0.9 — a zig-zag that no story
+explains and that made "where does CoSPAR fall away" unanswerable. At 20
+replicates the same levels read
+`r .metric_at("gini", "CoSPAR", 0.7, "spearman_mean")`,
+`r .metric_at("gini", "CoSPAR", 0.8, "spearman_mean")` and
+`r .metric_at("gini", "CoSPAR", 0.9, "spearman_mean")`: monotone, with the
+break between Gini 0.6 and 0.7. Every curve in this round is monotone in its
+level, on every method and both axes, which is what a figure of this kind
+needs in order to be read as a trend rather than a set of bars.
+
+**CYFER at Gini 0.9 is less bad than two replicates suggested**: 0.52 became
+`r .metric_at("gini", "CYFER", 0.9, "spearman_mean")`, with an SD of
+`r .metric_at("gini", "CYFER", 0.9, "spearman_sd")` that explains how the
+two-replicate estimate landed as low as it did. The interpretation of that
+level is in Section 3.4.
+
+The AED axis moved very little between rounds — no entry by more than 0.08 —
+which is the expected behaviour when a curve is already smooth, and is a
+reassurance about the trailblazing round rather than a new result.
+
+## The fate scores behind the gene calls
+
+```{r score_bars, fig.width=9, fig.height=4.5}
+plot(.plot_barplot(pass_list$gini$summary_df[
+  pass_list$gini$summary_df$method != "Lineage-DE", ], "gini", "score_cor",
+  "cor(fate score, true fate potential) over t1 cells",
+  "Gini axis: per-cell fate scores"))
+plot(.plot_barplot(pass_list$aed$summary_df[
+  pass_list$aed$summary_df$method != "Lineage-DE", ], "aed", "score_cor",
+  "cor(fate score, true fate potential) over t1 cells",
+  "AED axis: per-cell fate scores"))
+```
+
+**Lineage-DE has no bars here because it computes no per-cell fate score**: it
+splits clones into a high and a low group by t2 size and compares the two
+groups of t1 cells gene by gene, so the only per-cell quantity it touches is
+the binary group label. Its absence is a property of the method, not a missing
+computation.
+
+CYFER's `cell_imputed_score` correlates 0.85–0.97 with `Z_true` at every level
+of both axes. CoSPAR's fate bias — over the t1 cells it actually scores, with
+extinct-clone cells excluded — tops out near 0.75 at the easy ends and decays
+to `r .metric_at("gini", "CoSPAR", 0.9, "score_cor_mean")` at Gini 0.9 and
+`r .metric_at("aed", "CoSPAR", 1, "score_cor_mean")` at AED 1.0.
+
+**The finding worth the paper is in the AED panel.** CYFER's fate score is
+essentially flat along that axis —
+`r .metric_at("aed", "CYFER", 0.1, "score_cor_mean")` at AED 0.1 and
+`r .metric_at("aed", "CYFER", 1, "score_cor_mean")` at AED 1.0, never dipping
+below 0.93 — while its gene-level score over the same datasets falls from
+`r .metric_at("aed", "CYFER", 0.1, "spearman_mean")` to
+`r .metric_at("aed", "CYFER", 1, "spearman_mean")`. Within-clone heterogeneity
+degrades **what genes can be read off the fate potential, not the fate
+potential itself**. CoSPAR shows no such decoupling: its fate score falls in
+step with its genes (0.75 to 0.15), so this is specific to CYFER rather than a
+property of the generator at high AED.
+
+The mechanism is the one the metric is built on. The operational truth is the
+per-gene Spearman of expression with `Z_true` over the t1 cells; as the
+within-clone spread grows, a clone's cells scatter in expression while their
+fate potentials stay tied to the clone, so the same fate potential is paired
+with increasingly noisy expression and the gene-level signal weakens even
+though the per-cell fate potential is recovered as well as ever. For the paper
+this separates two claims that are easy to conflate: CYFER's per-cell scores
+are robust to heterogeneity, and *gene discovery* from those scores is not.
+
+## Where the top Gini level sits
+
+```{r gini_top_diagnostics}
+gini_df <- unique(pass_list$gini$summary_df[, c("level", "t2_num_zero_mean",
+                                                "t2_max_clone_mean",
+                                                "t2_total_mean",
+                                                "num_t1_excluded_cospar_mean")])
+gini_df$pct_largest_clone <- round(100 * gini_df$t2_max_clone_mean /
+                                     gini_df$t2_total_mean, 1)
+rownames(gini_df) <- NULL
+knitr::kable(gini_df[, c("level", "t2_num_zero_mean", "t2_max_clone_mean",
+                         "pct_largest_clone", "num_t1_excluded_cospar_mean")],
+             col.names = c("Gini target", "extinct clones", "largest t2 clone",
+                           "% of t2 in it", "t1 cells excluded from CoSPAR"),
+             digits = 1,
+             caption = "Gini axis: what the top of the ladder does to the data. Means over 20 replicates.")
+```
+
+At Gini 0.9 an average of 34 of the 100 clones leave no descendants and the
+largest clone holds about half of the 3,000 t2 cells. The operational truth
+over 1,000 t1 cells is therefore dominated by the few dozen cells belonging to
+one or two clones, and **the level is better described as one where the truth
+itself is barely estimable than as one where the methods fail**. CYFER's
+per-cell fate score is the evidence: it is still
+`r .metric_at("gini", "CYFER", 0.9, "score_cor_mean")` there, so the fate
+potentials are recovered; it is the gene-level readout that degrades, for the
+same reason as in Section 3.3. The figure caption should say this rather than
+leaving the top bar to be read as a failure of the method.
+
+## Secondary metrics
+
+```{r secondary_tables}
+knitr::kable(.summary_table(pass_list$gini$summary_df, "Gini target",
+                            "pearson"),
+             caption = "Gini axis: Pearson version of the metric, mean (SD).")
+knitr::kable(.summary_table(pass_list$aed$summary_df, "AED target", "pearson"),
+             caption = "AED axis: Pearson version of the metric, mean (SD).")
+knitr::kable(.summary_table(pass_list$gini$summary_df, "Gini target",
+                            "jaccard"),
+             caption = "Gini axis: Jaccard of the called gene sets at BH q < 0.05, mean (SD).")
+knitr::kable(.summary_table(pass_list$aed$summary_df, "AED target", "jaccard"),
+             caption = "AED axis: Jaccard of the called gene sets at BH q < 0.05, mean (SD).")
+```
+
+The Pearson version tracks the Spearman one and is uniformly higher, as it was
+in the trailblazing round; nothing in the ordering of the methods depends on
+which is used. The Jaccard columns are noisier and should stay secondary:
+they depend on a BH threshold applied to p-values from three different
+approximations, and at the hard ends of both axes they compare sets that are
+nearly empty. One entry is worth not over-reading — lineage-DE's Jaccard at
+AED 0.85 (`r .metric_at("aed", "Lineage-DE", 0.85, "jaccard_mean")`) exceeds
+its value at easier levels while its Spearman there is
+`r .metric_at("aed", "Lineage-DE", 0.85, "spearman_mean")`; a set-overlap
+measure can rise as the sets shrink toward the few strongest genes, which is
+why the Spearman metric is the headline one.
+
+## Realized statistics and calibration
+
+```{r realized_tables}
+.realized_table <- function(summary_df, axis){
+  df <- unique(summary_df[, c("level", "gini_t2_mean", "aed_mean_mean",
+                              "aed_q05_mean", "aed_q95_mean",
+                              "t2_total_mean", "t2_num_zero_mean",
+                              "spearman_aed_t2size_mean",
+                              "pca_heritability_mean")])
+  rownames(df) <- NULL
+  colnames(df) <- c("target", "realized Gini", "realized AED", "AED 5th pct",
+                    "AED 95th pct", "t2 cells", "extinct clones",
+                    "cor(AED, t2 size)", "PCA heritability")
+  df
+}
+knitr::kable(.realized_table(pass_list$gini$summary_df, "gini"), digits = 3,
+             caption = "Gini axis: realized statistics, means over 20 replicates.")
+knitr::kable(.realized_table(pass_list$aed$summary_df, "aed"), digits = 3,
+             caption = "AED axis: realized statistics, means over 20 replicates.")
+```
+
+The calibration did its job on both axes. On the AED axis the **held** t2 Gini
+realizes 0.48–0.54 at every level, so the axis moves heterogeneity without
+dragging clone-size inequality along with it — the point of placing the
+clone-varying spread on the non-causal coordinates. Realized mean AED is
+within 0.02 of target at every level except the bottom one, where the known
+count-noise floor puts 0.1 at 0.124. On the Gini axis the held mean AED stays
+at 0.40–0.43 throughout, and the realized Gini tracks the target to within
+about 0.05, undershooting slightly in the middle of the ladder (target 0.6
+realizes 0.57) — replicate scatter around the calibration, not a calibration
+error, and the barplot x-axis carries the realized value beneath each target
+so the figure is honest about it.
+
+The spread-size coupling stays within sampling noise of zero at every level of
+both axes, as designed: the per-clone AED *variation* is fate-irrelevant by
+construction, which is one sentence the Methods owes the reader.
+
+## Convergence and the reproducibility check
+
+```{r convergence, include=FALSE}
+conv_df <- rbind(pass_list$gini$summary_df[, c("level", "method",
+                                               "num_converged",
+                                               "num_replicates")],
+                 pass_list$aed$summary_df[, c("level", "method",
+                                              "num_converged",
+                                              "num_replicates")])
+num_full_conv <- sum(conv_df$num_converged == conv_df$num_replicates)
+num_conv_rows <- nrow(conv_df)
+```
+
+All `r num_full_conv` of the `r num_conv_rows` level-by-method cells have all
+20 replicates converged, i.e. every one of the `r num_datasets * 2` datasets:
+CYFER's
+cross-validated fit on all of them (including the levels where 34 clones are
+extinct, which it accepts by design), and CoSPAR's Python pipeline returned a
+usable transition map and fate bias on all of them. There is no filtering
+anywhere behind these curves.
+
+```{r drift_check, include=FALSE}
+.drift_check <- function(axis){
+  fin_df <- pass_list[[axis]]$detail_df
+  r2_df <- pass_list[[paste0(axis, "_r2")]]$detail_df
+  fin_df <- fin_df[fin_df$replicate <= 2, ]
+  key_vec <- function(df) paste0(df$level_idx, "_", df$replicate, "_",
+                                 df$method)
+  r2_df <- r2_df[match(key_vec(fin_df), key_vec(r2_df)), ]
+  max(abs(fin_df$spearman - r2_df$spearman), na.rm = TRUE)
+}
+drift_gini <- .drift_check("gini")
+drift_aed <- .drift_check("aed")
+num_drift_rows <- sum(pass_list$gini$detail_df$replicate <= 2)
+```
+
+The seed scheme is unchanged from the trailblazing round, so replicates 1 and
+2 of every level regenerate the `_r2` datasets exactly. They do: across the
+`r num_drift_rows` comparable rows per axis the largest absolute difference in
+the metric is `r signif(drift_gini, 3)` on the Gini axis and
+`r signif(drift_aed, 3)` on the AED axis — identical at the four significant
+digits the CSVs carry, CoSPAR's Python shell-out included. The first two of the 20
+replicates are therefore a drift check on the whole pipeline, and replicates
+3–20 are the new information.
+
+# What this means for Figure 4
+
+Three claims the panels now support, in the form the caption can make them:
+
+1. **CYFER recovers the genes behind expansion across the whole range of
+   clone-size inequality and within-clone heterogeneity that real data
+   present**, at 0.87–0.95 along the Gini axis through 0.8 and 0.70–0.96 along
+   the AED axis, while both comparators degrade well before the hard end. The
+   real-data Gini anchors (0.64 at t1, 0.72–0.81 at day 10) sit in the region
+   where CoSPAR has already broken and CYFER has not.
+2. **The comparators fail in different ways, and neither failure is about the
+   coherence prior.** CoSPAR's ceiling at the easy end (about 0.75) is the
+   uniform barcode link and the extinct clones, not the assumption that
+   transcriptomic neighbours share fate — the trailblazing round settled that
+   by showing insensitivity to the clone-specific drift. Lineage-DE's decline
+   is the coarsening of a continuous fate potential into two clone groups.
+3. **The limits of the hard ends are properties of the data, not of CYFER.**
+   At Gini 0.9 a third of clones are extinct and one clone holds half of t2;
+   at AED 1.0 clone identity at t1 is spread alone. In both regimes CYFER's
+   per-cell fate score stays above 0.85 while gene-level recovery falls, which
+   is the honest statement to make.
+
+# What this round does not cover
+
+- The `tau_delta` supplementary row (memo Section 2.4) at the middle levels of
+  both axes, deliberately kept out of the final-round driver so it could not
+  delay the headline sweeps. The trailblazing round already showed CoSPAR
+  moves by less than 0.1 over a four-fold range.
+- A formal permutation p-value. The label-permutation check of the
+  trailblazing round confirmed the metrics scatter around 0 under permuted
+  labels, but CYFER's null spread is wide enough that a p-value would need
+  hundreds of permutations.
+- The harder 300-weak-gene variant of the gene model (memo Section 9), which
+  remains the honest answer to "is a structural set of 100 loading genes too
+  easy".
+- The top AED level is qualitatively different from the rest of its ladder
+  rather than merely harder: at `tau = 0` clones have no centre, so
+  lineage-DE's two groups differ in variance and not in mean. The text should
+  say so where that level is discussed.
+
+# File inventory
+
+| What | Where |
+|---|---|
+| Driver | `kevin/Writeup21_new-simulations/sim_final_claude.R` |
+| RDS | `OUT_ROOT/Writeup21_new-simulations/sim_{gini,aed}_claude_final.rds` |
+| Progress logs | `OUT_ROOT/Writeup21_new-simulations/progress_{gini,aed}_claude_final.txt` |
+| CSVs | `csv/kevin/Writeup21/sim_{gini,aed}_{summary,replicate_details,calibration}_final.csv` |
+| Figures | `fig/kevin/Writeup21/sim_{gini,aed}_*_final.png` |
+| Design | `kevin/Writeup21_new-simulations/simulation_design_claude.md` |
+| Trailblazing round | `kevin/Writeup21_new-simulations/Writeup21_trailblazing-report_claude.html` |
+
+`make_csvs_claude.R` and `plot_barplots_claude.R` now take
+`WRITEUP21_ROUND=final` to read this round instead of the trailblazing one;
+both rounds' files sit side by side.

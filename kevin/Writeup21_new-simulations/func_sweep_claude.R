@@ -265,11 +265,16 @@ run_sweep <- function(axis,
   start_time <- Sys.time()
   cat("", file = progress_file)
   .log_progress(paste0("=== ", axis, " sweep: ", length(level_vec),
-                       " levels x ", num_replicates, " replicates, fixed ",
+                       " levels x ", num_replicates, " replicates = ",
+                       length(level_vec) * num_replicates, " datasets, fixed ",
                        if(axis == "gini") "mean AED = " else "t2 Gini = ",
                        fixed_val, ", tau_delta = ", tau_delta,
                        ", spread_variation = ", spread_variation,
                        ", kappa = ", kappa, ", d_pca = ", d_pca),
+                progress_file, start_time)
+  .log_progress(paste0("progress file: ", progress_file), progress_file,
+                start_time)
+  .log_progress(paste0("RDS (re-saved after every level): ", rds_file),
                 progress_file, start_time)
 
   # Calibration (Section 5): h2 from the AED target, s bisected for the
@@ -424,6 +429,18 @@ run_sweep <- function(axis,
                         replicate_details = replicate_details_df,
                         summary = summary_df)
     saveRDS(result_list, rds_file)
+    # A compact per-level line, so the curve can be read off the progress
+    # file with `tail -f` during a long run without loading the RDS.
+    level_summary_df <- summary_df[summary_df$level_idx == j, ]
+    level_str <- paste0(level_summary_df$method, " = ",
+                        round(level_summary_df$spearman_mean, 3), " (sd ",
+                        round(level_summary_df$spearman_sd, 3), ")",
+                        collapse = ", ")
+    .log_progress(paste0("*** level ", j, "/", length(level_vec), " (",
+                         level_vec[j], ") complete over ",
+                         level_summary_df$num_replicates[1],
+                         " replicates; mean Spearman: ", level_str),
+                  progress_file, start_time)
     .log_progress(paste0("saved ", rds_file, " through level ", j),
                   progress_file, start_time)
   }

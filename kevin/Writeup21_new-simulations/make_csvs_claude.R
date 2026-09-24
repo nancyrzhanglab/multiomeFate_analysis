@@ -5,9 +5,11 @@
 # `sim_aed_claude.R` from OUT_ROOT and writes flat CSVs to
 # csv/kevin/Writeup21/. A missing RDS is skipped with a message.
 #
-# Run:  Rscript make_csvs_claude.R                    (reads the `_r2` RDS)
-# Dry:  WRITEUP21_DRY=1 Rscript make_csvs_claude.R    (reads the `_r2_dry` RDS)
-# PCs:  WRITEUP21_PCA=<d> Rscript make_csvs_claude.R  (reads `_r2_pca<d>`)
+# Run:   Rscript make_csvs_claude.R                     (reads the `_r2` RDS)
+# Round: WRITEUP21_ROUND=final Rscript make_csvs_claude.R  (reads `_final`,
+#        the 20-replicate round of `sim_final_claude.R`)
+# Dry:   WRITEUP21_DRY=1 Rscript make_csvs_claude.R    (reads the `_dry` RDS)
+# PCs:   WRITEUP21_PCA=<d> Rscript make_csvs_claude.R  (reads `_pca<d>`)
 #
 # Per axis:
 #   sim_<axis>_summary.csv             one row per level x method, mean/SD
@@ -28,7 +30,11 @@ csv_dir <- file.path(repo_dir, "csv", "kevin", "Writeup21")
 
 bool_dry <- Sys.getenv("WRITEUP21_DRY") == "1"
 d_pca <- as.numeric(Sys.getenv("WRITEUP21_PCA", unset = "20"))
-suffix <- paste0("_r2",
+# `r2` is the trailblazing round (2 replicates), `final` the 20-replicate
+# round; both stay on disk, so the round names the files rather than
+# replacing them.
+round_str <- Sys.getenv("WRITEUP21_ROUND", unset = "r2")
+suffix <- paste0("_", round_str,
                  if(d_pca != 20) paste0("_pca", d_pca) else "",
                  if(bool_dry) "_dry" else "")
 
